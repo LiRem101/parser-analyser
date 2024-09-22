@@ -53,7 +53,7 @@ public class DefaultCompilerOptionsProvider implements CompilerOptionsProvider {
         //optionList.addAll(cp);
         //String cpstring = cp.stream().map(c -> c + ":").reduce(String::new);
         optionList.add("-source");
-        optionList.add("1.7");
+        optionList.add("1.8");
         return optionList;
     }
 }
