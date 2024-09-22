@@ -1,3 +1,5 @@
+Forked to add functionalities needed for my master's thesis.
+
 # inmemantlr
 
 inmemantlr provides the functionality of [ANTLR v4](http://www.antlr.org/) 
