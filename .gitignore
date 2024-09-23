@@ -4,3 +4,4 @@
 dependency-reduced-pom.xml
 /inmemantlr-api/src/main/resources/Quil.g4
 /inmemantlr-api/src/main/resources/teleport.quil
+/inmemantlr-api/src/main/resources/Quil/
