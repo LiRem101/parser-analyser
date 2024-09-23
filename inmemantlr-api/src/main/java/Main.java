@@ -8,17 +8,23 @@ import org.snt.inmemantlr.utils.FileUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
 
-    public static void main(String[] args) throws FileNotFoundException, CompilationException, ParsingException, IllegalWorkflowException {
+    public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
+
+        final String file = "defgate";
 
         File f = new File(resourcePath + "Quil.g4");
         GenericParser gp = new GenericParser(f);
         // 2. load file content into string
-        String s = FileUtils.loadFileContent(resourcePath + "teleport.quil");
+        String s = FileUtils.loadFileContent(resourcePath + "Quil/" + file + ".quil");
         // 3. set listener for checking parse tree elements. Here you could use any ParseTreeListener implementation. The default listener is used per default
         // this listener will create a parse tree from the java file
         DefaultTreeListener dlist = new DefaultTreeListener();
@@ -37,6 +43,10 @@ public class Main {
         System.out.println(xml);
         System.out.println(json);
         System.out.println(dot);
+
+        // Save .dot file
+//        Path path = Paths.get(resourcePath + "Quil/" + file + ".dot");
+//        Files.write(path, dot.getBytes());
 
     }
 }
