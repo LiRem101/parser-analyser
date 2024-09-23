@@ -7,11 +7,7 @@ import org.snt.inmemantlr.tree.ParseTree;
 import org.snt.inmemantlr.utils.FileUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
