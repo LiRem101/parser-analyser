@@ -2,52 +2,61 @@ package de.hhu.lirem101.quil_analyser;
 
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
+/**
+ * Represents a code block at one level of the parse tree.
+ * This class processes a parse tree node and categorizes its children
+ * into labels, branches, valid code lines, defined gates, and circuits.
+ */
 public class OneLevelCodeBlock {
 
-    private final HashMap<String, Integer> labels = new HashMap<>();
-    private final HashMap<String, Integer> branchesSameLevel = new HashMap<>();
-    private final HashSet<Integer> validCodelines = new HashSet<>();
-    private final HashSet<String> definedGates = new HashSet<>();
-    private final HashMap<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+    private final Map<String, Integer> labels = new HashMap<>();
+    private final Map<String, Integer> branchesSameLevel = new HashMap<>();
+    private final Set<Integer> validCodelines = new HashSet<>();
+    private final Set<String> definedGates = new HashSet<>();
+    private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+    private final Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
 
-    private final HashMap<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
-
+    /**
+     * Constructs a OneLevelCodeBlock by processing the given parse tree node.
+     *
+     * @param node the root parse tree node to process
+     */
     public OneLevelCodeBlock(ParseTreeNode node) {
-        List<ParseTreeNode> nodeQueue = new ArrayList<>();
+        Queue<ParseTreeNode> nodeQueue = new LinkedList<>();
         nodeQueue.add(node);
         while (!nodeQueue.isEmpty()) {
-            ParseTreeNode currentNode = nodeQueue.remove(0);
+            ParseTreeNode currentNode = nodeQueue.poll();
             int line = currentNode.getLine();
-            if (currentNode.getRule().equals("defCircuit")) {
-                OneLevelCodeBlock circuit = new OneLevelCodeBlock(currentNode.getLastChild());
-                // The Key is the name of the definied circuit
-                String circuitName = currentNode.getFirstChild().getLabel();
-                circuitsNextLevel.put(circuitName, circuit);
-                linesCircuitsNextLevel.put(circuitName, line);
-            } else if(currentNode.getRule().equals("defGate")) {
-                definedGates.add(currentNode.getFirstChild().getLabel());
-            } else {
-                List<ParseTreeNode> newChildren = currentNode.getChildren();
-                for (ParseTreeNode child : newChildren) {
-                    nodeQueue.add(child);
-                }
-                if (newChildren.isEmpty()) {
-                    validCodelines.add(line);
-                }
-            }
+            String rule = currentNode.getRule();
 
-            if(currentNode.getRule().equals("defLabel")) {
-                labels.put(currentNode.getFirstChild().getLabel(), line);
-            } else if(currentNode.getRule().equals("jump") || currentNode.getRule().equals("jumpWhen") ||
-                    currentNode.getRule().equals("jumpUnless")) {
-                branchesSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+            switch (rule) {
+                case "defCircuit":
+                    OneLevelCodeBlock circuit = new OneLevelCodeBlock(currentNode.getLastChild());
+                    circuitsNextLevel.put(currentNode.getFirstChild().getLabel(), circuit);
+                    linesCircuitsNextLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    break;
+                case "defGate":
+                    definedGates.add(currentNode.getFirstChild().getLabel());
+                    break;
+                case "defLabel":
+                    labels.put(currentNode.getFirstChild().getLabel(), line);
+                    nodeQueue.addAll(currentNode.getChildren());
+                    break;
+                case "jump":
+                case "jumpWhen":
+                case "jumpUnless":
+                    branchesSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    nodeQueue.addAll(currentNode.getChildren());
+                    break;
+                default:
+                    nodeQueue.addAll(currentNode.getChildren());
+                    if (currentNode.getChildren().isEmpty()) {
+                        validCodelines.add(line);
+                    }
+                    break;
             }
         }
     }
-
 }
