@@ -118,6 +118,27 @@ class TestOneLevelCodeBlock {
     }
 
     @Test
+    void processesJumpUnlessInstructions() {
+        ParseTreeNode node = mock(ParseTreeNode.class);
+        ParseTreeNode childNode = mock(ParseTreeNode.class);
+        ParseTreeNode childNode2 = mock(ParseTreeNode.class);
+        ArrayList<ParseTreeNode> children = new ArrayList<>();
+        children.add(childNode);
+        children.add(childNode2);
+        when(node.getRule()).thenReturn("jumpUnless");
+        when(node.getLine()).thenReturn(1);
+        when(node.getFirstChild()).thenReturn(childNode);
+        when(node.getChildren()).thenReturn(children);
+        when(childNode.getLabel()).thenReturn("label1");
+        when(childNode.getRule()).thenReturn("label");
+        when(childNode.getLastChild()).thenReturn(childNode2);
+        when(childNode2.getRule()).thenReturn("addr");
+        when(childNode2.getLine()).thenReturn(1);
+        OneLevelCodeBlock block = new OneLevelCodeBlock(node);
+        assertTrue(block.getBranchesCondSameLevel().containsKey("label1"));
+    }
+
+    @Test
     void handlesEmptyNode() {
         OneLevelCodeBlock block = new OneLevelCodeBlock(null);
         assertTrue(block.getValidCodelines().isEmpty());

@@ -14,6 +14,7 @@ public class OneLevelCodeBlock {
 
     private final BidiMap<String, Integer> labels = new TreeBidiMap<>();
     private final BidiMap<String, Integer> branchesSameLevel = new TreeBidiMap<>();
+    private final BidiMap<String, Integer> branchesCondSameLevel = new TreeBidiMap<>();
     private final Map<String, Integer> jumpToCircuits = new HashMap<>();
     private final Set<Integer> validCodelines = new HashSet<>();
     private final Set<String> definedGates = new HashSet<>();
@@ -57,9 +58,12 @@ public class OneLevelCodeBlock {
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 case "jump":
+                    branchesSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    nodeQueue.addAll(currentNode.getChildren());
+                    break;
                 case "jumpWhen":
                 case "jumpUnless":
-                    branchesSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    branchesCondSameLevel.put(currentNode.getFirstChild().getLabel(), line);
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 default:
@@ -99,6 +103,10 @@ public class OneLevelCodeBlock {
 
     public BidiMap<String, Integer> getBranchesSameLevel() {
         return new TreeBidiMap<>(branchesSameLevel);
+    }
+
+    public BidiMap<String, Integer> getBranchesCondSameLevel() {
+        return new TreeBidiMap<>(branchesCondSameLevel);
     }
 
     public Map<String, Integer> getJumpToCircuits() {
