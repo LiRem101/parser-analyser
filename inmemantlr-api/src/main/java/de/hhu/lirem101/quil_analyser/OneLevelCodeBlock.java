@@ -1,7 +1,8 @@
 package de.hhu.lirem101.quil_analyser;
 
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.TreeBidiMap;
 import org.snt.inmemantlr.tree.ParseTreeNode;
-
 import java.util.*;
 
 /**
@@ -11,8 +12,9 @@ import java.util.*;
  */
 public class OneLevelCodeBlock {
 
-    private final Map<String, Integer> labels = new HashMap<>();
-    private final Map<String, Integer> branchesSameLevel = new HashMap<>();
+    private final BidiMap<String, Integer> labels = new TreeBidiMap<>();
+    private final BidiMap<String, Integer> branchesSameLevel = new TreeBidiMap<>();
+    private final Map<String, Integer> jumpToCircuits = new HashMap<>();
     private final Set<Integer> validCodelines = new HashSet<>();
     private final Set<String> definedGates = new HashSet<>();
     private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
@@ -26,8 +28,18 @@ public class OneLevelCodeBlock {
     public OneLevelCodeBlock(ParseTreeNode node) {
         Queue<ParseTreeNode> nodeQueue = new LinkedList<>();
         nodeQueue.add(node);
-        while (!nodeQueue.isEmpty()) {
-            ParseTreeNode currentNode = nodeQueue.poll();
+        parseAst(nodeQueue);
+        nodeQueue.add(node);
+        findCircuitJumps(nodeQueue);
+    }
+
+    /**
+     * Extracts properties from the parse tree node. Updates the variables labels, branchesSameLevel, validCodelines,
+     * definedGates, linesCircuitsNextLevel, and circuitsNextLevel.
+     */
+    private void parseAst(Queue<ParseTreeNode> nodeQueue) {
+        ParseTreeNode currentNode = nodeQueue.poll();
+        while (currentNode != null) {
             int line = currentNode.getLine();
             String rule = currentNode.getRule();
 
@@ -57,6 +69,55 @@ public class OneLevelCodeBlock {
                     }
                     break;
             }
+            currentNode = nodeQueue.poll();
         }
+    }
+
+    /**
+     * Finds the lines from which to jump to circuits.
+     */
+    private void findCircuitJumps(Queue<ParseTreeNode> nodeQueue) {
+        ParseTreeNode currentNode = nodeQueue.poll();
+        while (currentNode != null) {
+            String rule = currentNode.getRule();
+
+            if(rule.equals("gate")) {
+                String gateName = currentNode.getFirstChild().getLabel();
+                if(linesCircuitsNextLevel.containsKey(gateName)) {
+                    jumpToCircuits.put(gateName, currentNode.getLine());
+                }
+            }
+            nodeQueue.addAll(currentNode.getChildren());
+
+            currentNode = nodeQueue.poll();
+        }
+    }
+
+    public BidiMap<String, Integer> getLabels() {
+        return new TreeBidiMap<>(labels);
+    }
+
+    public BidiMap<String, Integer> getBranchesSameLevel() {
+        return new TreeBidiMap<>(branchesSameLevel);
+    }
+
+    public Map<String, Integer> getJumpToCircuits() {
+        return new HashMap<>(jumpToCircuits);
+    }
+
+    public Set<Integer> getValidCodelines() {
+        return new HashSet<>(validCodelines);
+    }
+
+    public Set<String> getDefinedGates() {
+        return new HashSet<>(definedGates);
+    }
+
+    public Map<String, Integer> getLinesCircuitsNextLevel() {
+        return new HashMap<>(linesCircuitsNextLevel);
+    }
+
+    public Map<String, OneLevelCodeBlock> getCircuitsNextLevel() {
+        return new HashMap<>(circuitsNextLevel);
     }
 }
