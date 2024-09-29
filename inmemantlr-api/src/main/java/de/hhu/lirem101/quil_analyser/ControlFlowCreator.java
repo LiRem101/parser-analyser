@@ -29,7 +29,9 @@ public class ControlFlowCreator {
         validCodelines.addAll(codeBlock.getValidCodelines());
         linesCircuitsNextLevel.putAll(codeBlock.getLinesCircuitsNextLevel());
         for (Map.Entry<String, OneLevelCodeBlock> entry : codeBlock.getCircuitsNextLevel().entrySet()) {
-            circuitsNextLevel.put(entry.getKey(), new ControlFlowCreator(entry.getValue()));
+            ControlFlowCreator cfc = new ControlFlowCreator(entry.getValue());
+            cfc.addLabels(labels);
+            circuitsNextLevel.put(entry.getKey(), cfc);
         }
     }
 
@@ -139,6 +141,14 @@ public class ControlFlowCreator {
             nextBlock.addCodeline(startline);
             blockQueue.add(nextBlock);
         }
+    }
+
+    /**
+     * Adds labels, used in Constructor for Labels of outer ControlFlowCreator.
+     * @param labels
+     */
+    private void addLabels(BidiMap<String, Integer> labels) {
+        this.labels.putAll(labels);
     }
 
 }

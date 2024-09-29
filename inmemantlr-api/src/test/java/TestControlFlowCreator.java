@@ -522,4 +522,140 @@ public class TestControlFlowCreator {
         assertTrue(halt.getCodelines().isEmpty());
         assertTrue(halt.getBranches().isEmpty());
     }
+
+    @Test
+    void simpleDefCircuitJumpInside() {
+        OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
+        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
+        innerLabels.put("label1", 2);
+        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
+        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
+        innerJumpsCondSameLevel.put("label1", 5);
+        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
+        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
+        when(innerBlock.getLabels()).thenReturn(innerLabels);
+        when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
+        when(innerBlock.getJumpsCondSameLevel()).thenReturn(innerJumpsCondSameLevel);
+        when(innerBlock.getJumpToCircuits()).thenReturn(innerJumpToCircuits);
+        when(innerBlock.getValidCodelines()).thenReturn(innerValidCodelines);
+        when(innerBlock.getLinesCircuitsNextLevel()).thenReturn(innerLinesCircuitsNextLevel);
+        when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
+
+        OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
+        BidiMap<String, Integer> labels = new TreeBidiMap<>();
+        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        jumpToCircuits.put("circuit1", 6);
+        Set<Integer> validCodelines = new HashSet<>(Arrays.asList(6, 7, 8));
+        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        circuitsNextLevel.put("circuit1", innerBlock);
+        when(block.getLabels()).thenReturn(labels);
+        when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
+        when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
+        when(block.getJumpToCircuits()).thenReturn(jumpToCircuits);
+        when(block.getValidCodelines()).thenReturn(validCodelines);
+        when(block.getLinesCircuitsNextLevel()).thenReturn(linesCircuitsNextLevel);
+        when(block.getCircuitsNextLevel()).thenReturn(circuitsNextLevel);
+
+        ControlFlowCreator cfc = new ControlFlowCreator(block);
+        ControlFlowBlock cfg = cfc.createControlFlowBlock();
+
+        assertNotNull(cfg);
+        assertEquals("start", cfg.getName());
+        assertEquals(Collections.singletonList(6), cfg.getCodelines());
+        ArrayList<ControlFlowBlock> branches = cfg.getBranches();
+        assertEquals(1, branches.size());
+        ControlFlowBlock circuitBlock = branches.get(0);
+
+        branches = circuitBlock.getBranches();
+        assertNotNull(circuitBlock);
+        assertEquals(Arrays.asList(0, 1), circuitBlock.getCodelines());
+        assertEquals(1, branches.size());
+
+        ControlFlowBlock nextBlock = branches.get(0);
+        assertEquals("label1", nextBlock.getName());
+        assertEquals(Arrays.asList(2, 3, 4, 5), nextBlock.getCodelines());
+        assertEquals(2, nextBlock.getBranches().size());
+        ControlFlowBlock blockLabel = nextBlock.getBranches().stream().filter(b -> b.getName().equals("label1")).findFirst().orElse(null);
+        assertTrue(blockLabel == nextBlock);
+
+        nextBlock = nextBlock.getBranches().stream().filter(b -> b.getName().equals("line7")).findFirst().orElse(null);
+        assertEquals(Arrays.asList(7, 8), nextBlock.getCodelines());
+        assertEquals(1, nextBlock.getBranches().size());
+
+        ControlFlowBlock halt = nextBlock.getBranches().get(0);
+        assertEquals("halt", halt.getName());
+        assertTrue(halt.getCodelines().isEmpty());
+        assertTrue(halt.getBranches().isEmpty());
+    }
+
+    @Test
+    void simpleDefCircuitJumpOut() {
+        OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
+        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
+        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
+        innerJumpsSameLevel.put("label1", 4);
+        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
+        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
+        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
+        when(innerBlock.getLabels()).thenReturn(innerLabels);
+        when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
+        when(innerBlock.getJumpsCondSameLevel()).thenReturn(innerJumpsCondSameLevel);
+        when(innerBlock.getJumpToCircuits()).thenReturn(innerJumpToCircuits);
+        when(innerBlock.getValidCodelines()).thenReturn(innerValidCodelines);
+        when(innerBlock.getLinesCircuitsNextLevel()).thenReturn(innerLinesCircuitsNextLevel);
+        when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
+
+        OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
+        BidiMap<String, Integer> labels = new TreeBidiMap<>();
+        labels.put("label1", 7);
+        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        jumpToCircuits.put("circuit1", 6);
+        Set<Integer> validCodelines = new HashSet<>(Arrays.asList(6, 7, 8));
+        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        circuitsNextLevel.put("circuit1", innerBlock);
+        when(block.getLabels()).thenReturn(labels);
+        when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
+        when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
+        when(block.getJumpToCircuits()).thenReturn(jumpToCircuits);
+        when(block.getValidCodelines()).thenReturn(validCodelines);
+        when(block.getLinesCircuitsNextLevel()).thenReturn(linesCircuitsNextLevel);
+        when(block.getCircuitsNextLevel()).thenReturn(circuitsNextLevel);
+
+        ControlFlowCreator cfc = new ControlFlowCreator(block);
+        ControlFlowBlock cfg = cfc.createControlFlowBlock();
+
+        assertNotNull(cfg);
+        assertEquals("start", cfg.getName());
+        assertEquals(Collections.singletonList(6), cfg.getCodelines());
+        ArrayList<ControlFlowBlock> branches = cfg.getBranches();
+        assertEquals(1, branches.size());
+        ControlFlowBlock circuitBlock = branches.get(0);
+
+        branches = circuitBlock.getBranches();
+        assertNotNull(circuitBlock);
+        assertEquals(Arrays.asList(0, 1, 2, 3, 4), circuitBlock.getCodelines());
+        assertEquals(1, branches.size());
+
+        ControlFlowBlock nextBlock = branches.get(0);
+        assertEquals("label1", nextBlock.getName());
+        assertEquals(Arrays.asList(7, 8), nextBlock.getCodelines());
+        assertEquals(1, nextBlock.getBranches().size());
+
+        ControlFlowBlock halt = nextBlock.getBranches().get(0);
+        assertEquals("halt", halt.getName());
+        assertTrue(halt.getCodelines().isEmpty());
+        assertTrue(halt.getBranches().isEmpty());
+    }
 }
