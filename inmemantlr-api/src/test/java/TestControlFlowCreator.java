@@ -192,14 +192,13 @@ public class TestControlFlowCreator {
     }
 
     @Test
-    void labelJumpCondWithLabel() {
+    void labelJumpCondWithLoop() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
         BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 6);
-        labels.put("label2", 4);
+        labels.put("label1", 3);
         BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
         BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        jumpsCondSameLevel.put("label1", 3);
+        jumpsCondSameLevel.put("label1", 6);
         Map<String, Integer> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
         Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
@@ -217,22 +216,26 @@ public class TestControlFlowCreator {
 
         assertNotNull(cfg);
         assertEquals("start", cfg.getName());
+        assertEquals(Arrays.asList(0, 1, 2), cfg.getCodelines());
         ArrayList<ControlFlowBlock> branches = cfg.getBranches();
+        assertEquals(1, branches.size());
+        ControlFlowBlock labelBlock = branches.get(0);
+
+        branches = labelBlock.getBranches();
+        assertNotNull(labelBlock);
+        assertEquals(Arrays.asList(3, 4, 5, 6), labelBlock.getCodelines());
         assertEquals(2, branches.size());
 
-        ControlFlowBlock branchLabel = branches.stream().filter(b -> b.getName().equals("label1")).findFirst().orElse(null);
-        assertNotNull(branchLabel);
-        assertEquals(Arrays.asList(6, 7, 8), branchLabel.getCodelines());
-        assertEquals(1, branchLabel.getBranches().size());
+        ControlFlowBlock branchBack = branches.stream().filter(b -> b.getName().equals("label1")).findFirst().orElse(null);
+        assertTrue(branchBack == labelBlock);
 
-        ControlFlowBlock branchElse = branches.stream().filter(b -> b.getName().equals("label2")).findFirst().orElse(null);
+        ControlFlowBlock branchElse = branches.stream().filter(b -> b.getName().equals("line7")).findFirst().orElse(null);
+
         assertNotNull(branchElse);
-        assertEquals(Arrays.asList(4, 5), branchElse.getCodelines());
+        assertEquals(Arrays.asList(7, 8), branchElse.getCodelines());
         assertEquals(1, branchElse.getBranches().size());
 
-        assertTrue(branchLabel == branchElse.getBranches().get(0));
-
-        ControlFlowBlock halt = branchLabel.getBranches().get(0);
+        ControlFlowBlock halt = branchElse.getBranches().get(0);
         assertEquals("halt", halt.getName());
         assertTrue(halt.getCodelines().isEmpty());
         assertTrue(halt.getBranches().isEmpty());
