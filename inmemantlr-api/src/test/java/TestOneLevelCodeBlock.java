@@ -114,7 +114,7 @@ class TestOneLevelCodeBlock {
         when(childNode2.getRule()).thenReturn("addr");
         when(childNode2.getLine()).thenReturn(1);
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
-        assertTrue(block.getBranchesSameLevel().containsKey("label1"));
+        assertTrue(block.getJumpsSameLevel().containsKey("label1"));
     }
 
     @Test
@@ -135,7 +135,7 @@ class TestOneLevelCodeBlock {
         when(childNode2.getRule()).thenReturn("addr");
         when(childNode2.getLine()).thenReturn(1);
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
-        assertTrue(block.getBranchesCondSameLevel().containsKey("label1"));
+        assertTrue(block.getJumpsCondSameLevel().containsKey("label1"));
     }
 
     @Test

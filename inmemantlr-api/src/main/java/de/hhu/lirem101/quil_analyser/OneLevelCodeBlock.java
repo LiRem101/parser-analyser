@@ -11,14 +11,21 @@ import java.util.*;
  * into labels, branches, valid code lines, defined gates, and circuits.
  */
 public class OneLevelCodeBlock {
-
+    // The name of the labels and the line number in which they are defined.
     private final BidiMap<String, Integer> labels = new TreeBidiMap<>();
-    private final BidiMap<String, Integer> branchesSameLevel = new TreeBidiMap<>();
-    private final BidiMap<String, Integer> branchesCondSameLevel = new TreeBidiMap<>();
+    // The name of the label a branch jumps to and the line number in which the jump is defined.
+    private final BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+    // The name of the label a conditional branch jumps to and the line number in which the jump is defined.
+    private final BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+    // The name of the circuit that is being called and the line number in which the circuit is called.
     private final Map<String, Integer> jumpToCircuits = new HashMap<>();
+    // Code lines that are targeted/valid on this level.
     private final Set<Integer> validCodelines = new HashSet<>();
+    // The names of the gates that are manually defined on this level (via defGate).
     private final Set<String> definedGates = new HashSet<>();
+    // The name of a defined circuit and the line number in which the circuit is defined.
     private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+    // The name of a defined circuit and the OneLevelCodeBlock that represents the circuit.
     private final Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
 
     /**
@@ -58,12 +65,12 @@ public class OneLevelCodeBlock {
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 case "jump":
-                    branchesSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    jumpsSameLevel.put(currentNode.getFirstChild().getLabel(), line);
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 case "jumpWhen":
                 case "jumpUnless":
-                    branchesCondSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    jumpsCondSameLevel.put(currentNode.getFirstChild().getLabel(), line);
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 default:
@@ -101,12 +108,12 @@ public class OneLevelCodeBlock {
         return new TreeBidiMap<>(labels);
     }
 
-    public BidiMap<String, Integer> getBranchesSameLevel() {
-        return new TreeBidiMap<>(branchesSameLevel);
+    public BidiMap<String, Integer> getJumpsSameLevel() {
+        return new TreeBidiMap<>(jumpsSameLevel);
     }
 
-    public BidiMap<String, Integer> getBranchesCondSameLevel() {
-        return new TreeBidiMap<>(branchesCondSameLevel);
+    public BidiMap<String, Integer> getJumpsCondSameLevel() {
+        return new TreeBidiMap<>(jumpsCondSameLevel);
     }
 
     public Map<String, Integer> getJumpToCircuits() {
