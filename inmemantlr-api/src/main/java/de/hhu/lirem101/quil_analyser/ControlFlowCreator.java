@@ -78,7 +78,9 @@ public class ControlFlowCreator {
                 block.addBranch(blocks.get(label));
 
                 String elseName = "line" + (line + 1);
-                if(labels.containsValue(line + 1)) {
+                if(!validCodelines.contains(line+1)) {
+                    elseName = endBlockName;
+                } else if(labels.containsValue(line + 1)) {
                     elseName = labels.getKey(line + 1);
                     addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, labels.get(elseName));
                 } else {
@@ -88,7 +90,9 @@ public class ControlFlowCreator {
                 pollNextBlock = true;
             } else if(jumpToCircuits.containsValue(line)) {
                 String nextBlockName = "line" + (line + 1);
-                if(labels.containsValue(line + 1)) {
+                if(!validCodelines.contains(line+1)) {
+                    nextBlockName = endBlockName;
+                } else if(labels.containsValue(line + 1)) {
                     nextBlockName = labels.getKey(line + 1);
                     addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, labels.get(nextBlockName));
                 } else {
