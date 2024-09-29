@@ -24,6 +24,7 @@ public class ControlFlowCreator {
     public ControlFlowCreator(OneLevelCodeBlock codeBlock) {
         labels.putAll(codeBlock.getLabels());
         jumpsSameLevel.putAll(codeBlock.getJumpsSameLevel());
+        jumpsCondSameLevel.putAll(codeBlock.getJumpsCondSameLevel());
         jumpToCircuits.putAll(codeBlock.getJumpToCircuits());
         validCodelines.addAll(codeBlock.getValidCodelines());
         linesCircuitsNextLevel.putAll(codeBlock.getLinesCircuitsNextLevel());
@@ -48,21 +49,54 @@ public class ControlFlowCreator {
         while(validCodelines.contains(line)) {
             if(labels.containsValue(line)) {
                 String label = labels.getKey(line);
-                ControlFlowBlock nextBlock = new ControlFlowBlock(label);
-                block.addBranch(nextBlock);
-                blocks.put(label, nextBlock);
-                block = nextBlock;
+                if(!blocks.containsKey(label)) {
+                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+                    blocks.put(label, nextBlock);
+                    nextBlock.addCodeline(labels.get(label));
+                    blockQueue.add(nextBlock);
+                }
+                block.addBranch(blocks.get(label));
+                if(blockQueue.isEmpty()) {
+                    break;
+                }
+                block = blockQueue.poll();
+                line = block.getCodelines().get(0);
             } else if(jumpsSameLevel.containsValue(line)) {
                 String label = jumpsSameLevel.getKey(line);
-                ControlFlowBlock nextBlock = new ControlFlowBlock(label);
                 block.addCodeline(line);
-                block.addBranch(nextBlock);
-                blocks.put(label, nextBlock);
-                block = nextBlock;
-                line = labels.get(label);
-            }
+                if(!blocks.containsKey(label)) {
+                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+                    blocks.put(label, nextBlock);
+                    nextBlock.addCodeline(labels.get(label));
+                    blockQueue.add(nextBlock);
+                }
+                block.addBranch(blocks.get(label));
+                if(blockQueue.isEmpty()) {
+                    break;
+                }
+                block = blockQueue.poll();
+                line = block.getCodelines().get(0);
+            } else if(jumpsCondSameLevel.containsValue(line)) {
+                String label = jumpsCondSameLevel.getKey(line);
+                block.addCodeline(line);
+                if(!blocks.containsKey(label)) {
+                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+                    blocks.put(label, nextBlock);
+                    nextBlock.addCodeline(labels.get(label));
+                    blockQueue.add(nextBlock);
+                }
+                block.addBranch(blocks.get(label));
 
-            block.addCodeline(line);
+                int nextLine = line + 1;
+                String elseName = "line" + nextLine;
+                ControlFlowBlock elseBlock = new ControlFlowBlock(elseName);
+                blocks.put(elseName, elseBlock);
+                block.addBranch(elseBlock);
+                block = elseBlock;
+
+            } else {
+                block.addCodeline(line);
+            }
             line++;
         }
 
