@@ -42,6 +42,12 @@ public class ControlFlowCreator {
 
     private ControlFlowBlock createControlFlowBlock(String name, int startline, String endBlockName, HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue) {
         ControlFlowBlock block = blocks.get(name);
+        int line = startline;
+
+        while(validCodelines.contains(line)) {
+            block.addCodeline(line);
+            line++;
+        }
 
         block.addBranch(blocks.get(endBlockName));
         return block;
