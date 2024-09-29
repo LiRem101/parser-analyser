@@ -47,6 +47,8 @@ public class ControlFlowCreator {
         int line = startline;
 
         while(validCodelines.contains(line) || !blockQueue.isEmpty()) {
+            boolean pollNextBlock = false;
+
             if(!validCodelines.contains(line)) {
                 block.addBranch(blocks.get(endBlockName));
                 block = blockQueue.poll();
@@ -55,67 +57,40 @@ public class ControlFlowCreator {
 
             if(labels.containsValue(line)) {
                 String label = labels.getKey(line);
-                if(!blocks.containsKey(label)) {
-                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
-                    blocks.put(label, nextBlock);
-                    nextBlock.addCodeline(labels.get(label));
-                    blockQueue.add(nextBlock);
-                }
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
                 block.addBranch(blocks.get(label));
-                if(blockQueue.isEmpty()) {
-                    break;
-                }
-                block = blockQueue.poll();
-                line = block.getCodelines().get(0);
-            } else if(jumpsSameLevel.containsValue(line)) {
-                String label = jumpsSameLevel.getKey(line);
+                pollNextBlock = true;
+            } else {
                 block.addCodeline(line);
-                if(!blocks.containsKey(label)) {
-                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
-                    blocks.put(label, nextBlock);
-                    nextBlock.addCodeline(labels.get(label));
-                    blockQueue.add(nextBlock);
-                }
+            }
+
+            if(jumpsSameLevel.containsValue(line)) {
+                String label = jumpsSameLevel.getKey(line);
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
                 block.addBranch(blocks.get(label));
-                if(blockQueue.isEmpty()) {
-                    break;
-                }
-                block = blockQueue.poll();
-                line = block.getCodelines().get(0);
+                pollNextBlock = true;
             } else if(jumpsCondSameLevel.containsValue(line)) {
                 String label = jumpsCondSameLevel.getKey(line);
-                block.addCodeline(line);
-                if(!blocks.containsKey(label)) {
-                    ControlFlowBlock nextBlock = new ControlFlowBlock(label);
-                    blocks.put(label, nextBlock);
-                    nextBlock.addCodeline(labels.get(label));
-                    blockQueue.add(nextBlock);
-                }
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
                 block.addBranch(blocks.get(label));
 
                 String elseName = "line" + (line + 1);
                 if(labels.containsValue(line + 1)) {
                     elseName = labels.getKey(line + 1);
-                    if(!blocks.containsKey(elseName)) {
-                        ControlFlowBlock nextBlock = new ControlFlowBlock(elseName);
-                        blocks.put(elseName, nextBlock);
-                        nextBlock.addCodeline(labels.get(elseName));
-                        blockQueue.add(nextBlock);
-                    }
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, labels.get(elseName));
                 } else {
-                    ControlFlowBlock elseBlock = new ControlFlowBlock(elseName);
-                    elseBlock.addCodeline(line + 1);
-                    blocks.put(elseName, elseBlock);
-                    blockQueue.add(elseBlock);
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, line + 1);
                 }
                 block.addBranch(blocks.get(elseName));
+                pollNextBlock = true;
+            }
+
+            if(pollNextBlock) {
                 if(blockQueue.isEmpty()) {
                     break;
                 }
                 block = blockQueue.poll();
                 line = block.getCodelines().get(0);
-            } else {
-                block.addCodeline(line);
             }
             line++;
         }
@@ -125,6 +100,22 @@ public class ControlFlowCreator {
         }
 
         return block;
+    }
+
+    /**
+     * Adds a block with the given label name with given startline to the hashmap and the block queue if it does not exist yet.
+     * @param blocks The hashmap of blocks.
+     * @param blockQueue The queue of blocks.
+     * @param label The label name of the block.
+     * @param startline The startline of the new block.
+     */
+    private void addBlockWithLabelNameIfNecessary(HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue, String label, int startline) {
+        if(!blocks.containsKey(label)) {
+            ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+            blocks.put(label, nextBlock);
+            nextBlock.addCodeline(startline);
+            blockQueue.add(nextBlock);
+        }
     }
 
 }
