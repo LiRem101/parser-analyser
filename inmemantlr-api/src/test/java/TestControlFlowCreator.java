@@ -108,4 +108,40 @@ public class TestControlFlowCreator {
         assertTrue(halt.getCodelines().isEmpty());
         assertTrue(halt.getBranches().isEmpty());
     }
+
+    @Test
+    void labelJump() {
+        OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
+        BidiMap<String, Integer> labels = new TreeBidiMap<>();
+        labels.put("label1", 6);
+        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+        jumpsSameLevel.put("label1", 3);
+        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
+        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        when(block.getLabels()).thenReturn(labels);
+        when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
+        when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
+        when(block.getJumpToCircuits()).thenReturn(jumpToCircuits);
+        when(block.getValidCodelines()).thenReturn(validCodelines);
+        when(block.getLinesCircuitsNextLevel()).thenReturn(linesCircuitsNextLevel);
+        when(block.getCircuitsNextLevel()).thenReturn(circuitsNextLevel);
+
+        ControlFlowCreator cfc = new ControlFlowCreator(block);
+        ControlFlowBlock cfg = cfc.createControlFlowBlock();
+        assertNotNull(cfg);
+        assertEquals(cfg.getBranches().size(), 1);
+        ControlFlowBlock branch = cfg.getBranches().get(0);
+        assertEquals(branch.getBranches().size(), 1);
+        ControlFlowBlock halt = branch.getBranches().get(0);
+        assertEquals("start", cfg.getName());
+        assertEquals(Arrays.asList(0, 1, 2, 3), cfg.getCodelines());
+        assertEquals("label1", branch.getName());
+        assertEquals(Arrays.asList(6, 7, 8), branch.getCodelines());
+        assertEquals("halt", halt.getName());
+        assertTrue(halt.getCodelines().isEmpty());
+        assertTrue(halt.getBranches().isEmpty());
+    }
 }

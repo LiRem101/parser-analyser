@@ -52,6 +52,14 @@ public class ControlFlowCreator {
                 block.addBranch(nextBlock);
                 blocks.put(label, nextBlock);
                 block = nextBlock;
+            } else if(jumpsSameLevel.containsValue(line)) {
+                String label = jumpsSameLevel.getKey(line);
+                ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+                block.addCodeline(line);
+                block.addBranch(nextBlock);
+                blocks.put(label, nextBlock);
+                block = nextBlock;
+                line = labels.get(label);
             }
 
             block.addCodeline(line);
