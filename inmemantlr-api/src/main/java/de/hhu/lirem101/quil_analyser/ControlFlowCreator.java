@@ -37,7 +37,8 @@ public class ControlFlowCreator {
         ControlFlowBlock halt = new ControlFlowBlock("halt");
         hashmap.put("start", start);
         hashmap.put("halt", halt);
-        return createControlFlowBlock("start", 0, "halt", hashmap, blockQueue);
+        createControlFlowBlock("start", 0, "halt", hashmap, blockQueue);
+        return hashmap.get("start");
     }
 
     private ControlFlowBlock createControlFlowBlock(String name, int startline, String endBlockName, HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue) {
@@ -45,6 +46,14 @@ public class ControlFlowCreator {
         int line = startline;
 
         while(validCodelines.contains(line)) {
+            if(labels.containsValue(line)) {
+                String label = labels.getKey(line);
+                ControlFlowBlock nextBlock = new ControlFlowBlock(label);
+                block.addBranch(nextBlock);
+                blocks.put(label, nextBlock);
+                block = nextBlock;
+            }
+
             block.addCodeline(line);
             line++;
         }
