@@ -13,13 +13,13 @@ public class ControlFlowCreator {
     // The name of the label a conditional branch jumps to and the line number in which the jump is defined.
     private final BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
     // The name of the circuit that is being called and the line number in which the circuit is called.
-    private final Map<String, Integer> jumpToCircuits = new HashMap<>();
+    private final BidiMap<String, Integer> jumpToCircuits = new TreeBidiMap<>();
     // Code lines that are targeted/valid on this level.
     private final Set<Integer> validCodelines = new HashSet<>();
     // The name of a defined circuit and the line number in which the circuit is defined.
     private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-    // The name of a defined circuit and the OneLevelCodeBlock that represents the circuit.
-    private final Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+    // The name of a defined circuit and the ControlFlowCreator that represents the circuit.
+    private final Map<String, ControlFlowCreator> circuitsNextLevel = new HashMap<>();
 
     public ControlFlowCreator(OneLevelCodeBlock codeBlock) {
         labels.putAll(codeBlock.getLabels());
@@ -28,7 +28,9 @@ public class ControlFlowCreator {
         jumpToCircuits.putAll(codeBlock.getJumpToCircuits());
         validCodelines.addAll(codeBlock.getValidCodelines());
         linesCircuitsNextLevel.putAll(codeBlock.getLinesCircuitsNextLevel());
-        circuitsNextLevel.putAll(codeBlock.getCircuitsNextLevel());
+        for (Map.Entry<String, OneLevelCodeBlock> entry : codeBlock.getCircuitsNextLevel().entrySet()) {
+            circuitsNextLevel.put(entry.getKey(), new ControlFlowCreator(entry.getValue()));
+        }
     }
 
     public ControlFlowBlock createControlFlowBlock() {
@@ -38,7 +40,8 @@ public class ControlFlowCreator {
         ControlFlowBlock halt = new ControlFlowBlock("halt");
         hashmap.put("start", start);
         hashmap.put("halt", halt);
-        createControlFlowBlock("start", 0, "halt", hashmap, blockQueue);
+        int startline = validCodelines.stream().min(Integer::compareTo).orElse(0);
+        createControlFlowBlock("start", startline, "halt", hashmap, blockQueue);
         return hashmap.get("start");
     }
 
@@ -83,6 +86,22 @@ public class ControlFlowCreator {
                 }
                 block.addBranch(blocks.get(elseName));
                 pollNextBlock = true;
+            } else if(jumpToCircuits.containsValue(line)) {
+                String nextBlockName = "line" + (line + 1);
+                if(labels.containsValue(line + 1)) {
+                    nextBlockName = labels.getKey(line + 1);
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, labels.get(nextBlockName));
+                } else {
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, line + 1);
+                }
+                pollNextBlock = true;
+
+                String label = jumpToCircuits.getKey(line);
+                int circuitLine = linesCircuitsNextLevel.get(label);
+                addBlockWithLabelNameIfNecessary(blocks, new LinkedList<>(), label, circuitLine);
+                ControlFlowCreator circuitCreator = circuitsNextLevel.get(label);
+                circuitCreator.createControlFlowBlock(label, circuitLine + 1, nextBlockName, blocks, new LinkedList<>());
+                block.addBranch(blocks.get(label));
             }
 
             if(pollNextBlock) {
