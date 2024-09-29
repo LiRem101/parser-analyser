@@ -46,7 +46,13 @@ public class ControlFlowCreator {
         ControlFlowBlock block = blocks.get(name);
         int line = startline;
 
-        while(validCodelines.contains(line)) {
+        while(validCodelines.contains(line) || !blockQueue.isEmpty()) {
+            if(!validCodelines.contains(line)) {
+                block.addBranch(blocks.get(endBlockName));
+                block = blockQueue.poll();
+                line = block.getCodelines().get(0) + 1;
+            }
+
             if(labels.containsValue(line)) {
                 String label = labels.getKey(line);
                 if(!blocks.containsKey(label)) {
@@ -87,20 +93,37 @@ public class ControlFlowCreator {
                 }
                 block.addBranch(blocks.get(label));
 
-                int nextLine = line + 1;
-                String elseName = "line" + nextLine;
-                ControlFlowBlock elseBlock = new ControlFlowBlock(elseName);
-                blocks.put(elseName, elseBlock);
-                block.addBranch(elseBlock);
-                block = elseBlock;
-
+                String elseName = "line" + (line + 1);
+                if(labels.containsValue(line + 1)) {
+                    elseName = labels.getKey(line + 1);
+                    if(!blocks.containsKey(elseName)) {
+                        ControlFlowBlock nextBlock = new ControlFlowBlock(elseName);
+                        blocks.put(elseName, nextBlock);
+                        nextBlock.addCodeline(labels.get(elseName));
+                        blockQueue.add(nextBlock);
+                    }
+                } else {
+                    ControlFlowBlock elseBlock = new ControlFlowBlock(elseName);
+                    elseBlock.addCodeline(line + 1);
+                    blocks.put(elseName, elseBlock);
+                    blockQueue.add(elseBlock);
+                }
+                block.addBranch(blocks.get(elseName));
+                if(blockQueue.isEmpty()) {
+                    break;
+                }
+                block = blockQueue.poll();
+                line = block.getCodelines().get(0);
             } else {
                 block.addCodeline(line);
             }
             line++;
         }
 
-        block.addBranch(blocks.get(endBlockName));
+        if(!validCodelines.contains(line)) {
+            block.addBranch(blocks.get(endBlockName));
+        }
+
         return block;
     }
 
