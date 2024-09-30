@@ -12,20 +12,20 @@ import java.util.*;
  */
 public class OneLevelCodeBlock {
     // The name of the labels and the line number in which they are defined.
-    private final BidiMap<String, Integer> labels = new TreeBidiMap<>();
+    private final Map<Integer, String> labels = new HashMap<>();
     // The name of the label a branch jumps to and the line number in which the jump is defined.
-    private final BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+    private final Map<Integer, String> jumpsSameLevel = new HashMap<>();
     // The name of the label a conditional branch jumps to and the line number in which the jump is defined.
-    private final BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+    private final Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
     // The name of the circuit that is being called and the line number in which the circuit is called.
-    private final Map<String, Integer> jumpToCircuits = new HashMap<>();
+    private final Map<Integer, String> jumpToCircuits = new HashMap<>();
     // Code lines that are targeted/valid on this level.
     private final Set<Integer> validCodelines = new HashSet<>();
     // The names of the gates that are manually defined on this level (via defGate).
     private final Set<String> definedGates = new HashSet<>();
     // The name of a defined circuit and the line number in which the circuit is defined.
-    private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-    // The name of a defined circuit and the OneLevelCodeBlock that represents the circuit.
+    private final Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
+    // The name of a defined circuit and the ControlFlowCreator that represents the circuit.
     private final Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
 
     /**
@@ -55,22 +55,22 @@ public class OneLevelCodeBlock {
                 case "defCircuit":
                     OneLevelCodeBlock circuit = new OneLevelCodeBlock(currentNode.getLastChild());
                     circuitsNextLevel.put(currentNode.getFirstChild().getLabel(), circuit);
-                    linesCircuitsNextLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    linesCircuitsNextLevel.put(line, currentNode.getFirstChild().getLabel());
                     break;
                 case "defGate":
                     definedGates.add(currentNode.getFirstChild().getLabel());
                     break;
                 case "defLabel":
-                    labels.put(currentNode.getFirstChild().getLabel(), line);
+                    labels.put(line, currentNode.getFirstChild().getLabel());
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 case "jump":
-                    jumpsSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    jumpsSameLevel.put(line, currentNode.getFirstChild().getLabel());
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 case "jumpWhen":
                 case "jumpUnless":
-                    jumpsCondSameLevel.put(currentNode.getFirstChild().getLabel(), line);
+                    jumpsCondSameLevel.put(line, currentNode.getFirstChild().getLabel());
                     nodeQueue.addAll(currentNode.getChildren());
                     break;
                 default:
@@ -94,8 +94,8 @@ public class OneLevelCodeBlock {
 
             if(rule.equals("gate")) {
                 String gateName = currentNode.getFirstChild().getLabel();
-                if(linesCircuitsNextLevel.containsKey(gateName)) {
-                    jumpToCircuits.put(gateName, currentNode.getLine());
+                if(circuitsNextLevel.containsKey(gateName)) {
+                    jumpToCircuits.put(currentNode.getLine(), gateName);
                 }
             }
             nodeQueue.addAll(currentNode.getChildren());
@@ -104,19 +104,19 @@ public class OneLevelCodeBlock {
         }
     }
 
-    public BidiMap<String, Integer> getLabels() {
-        return new TreeBidiMap<>(labels);
+    public Map<Integer, String> getLabels() {
+        return new HashMap<>(labels);
     }
 
-    public BidiMap<String, Integer> getJumpsSameLevel() {
-        return new TreeBidiMap<>(jumpsSameLevel);
+    public Map<Integer, String> getJumpsSameLevel() {
+        return new HashMap<>(jumpsSameLevel);
     }
 
-    public BidiMap<String, Integer> getJumpsCondSameLevel() {
-        return new TreeBidiMap<>(jumpsCondSameLevel);
+    public Map<Integer, String> getJumpsCondSameLevel() {
+        return new HashMap<>(jumpsCondSameLevel);
     }
 
-    public Map<String, Integer> getJumpToCircuits() {
+    public Map<Integer, String> getJumpToCircuits() {
         return new HashMap<>(jumpToCircuits);
     }
 
@@ -128,7 +128,7 @@ public class OneLevelCodeBlock {
         return new HashSet<>(definedGates);
     }
 
-    public Map<String, Integer> getLinesCircuitsNextLevel() {
+    public Map<Integer, String> getLinesCircuitsNextLevel() {
         return new HashMap<>(linesCircuitsNextLevel);
     }
 

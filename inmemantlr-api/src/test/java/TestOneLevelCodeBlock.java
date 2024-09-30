@@ -19,8 +19,8 @@ class TestOneLevelCodeBlock {
         when(node.getFirstChild()).thenReturn(childNode);
         when(childNode.getLabel()).thenReturn("label1");
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
-        assertTrue(block.getLabels().containsKey("label1"));
-        assertEquals(1, block.getLabels().get("label1"));
+        assertTrue(block.getLabels().containsValue("label1"));
+        assertEquals("label1", block.getLabels().get(1));
     }
 
     @Test
@@ -38,7 +38,7 @@ class TestOneLevelCodeBlock {
         when(childNode2.getLine()).thenReturn(2);
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
         assertTrue(block.getCircuitsNextLevel().containsKey("circuit1"));
-        assertEquals(1, block.getLinesCircuitsNextLevel().get("circuit1"));
+        assertEquals("circuit1", block.getLinesCircuitsNextLevel().get(1));
     }
 
     @Test
@@ -75,8 +75,8 @@ class TestOneLevelCodeBlock {
         when(callCircuitChildNode.getLine()).thenReturn(3);
 
         OneLevelCodeBlock block = new OneLevelCodeBlock(parent);
-        assertTrue(block.getJumpToCircuits().containsKey("circuit1"));
-        assertEquals(3, (int) block.getJumpToCircuits().get("circuit1"));
+        assertTrue(block.getJumpToCircuits().containsValue("circuit1"));
+        assertEquals("circuit1", block.getJumpToCircuits().get(3));
     }
 
     @Test
@@ -114,7 +114,7 @@ class TestOneLevelCodeBlock {
         when(childNode2.getRule()).thenReturn("addr");
         when(childNode2.getLine()).thenReturn(1);
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
-        assertTrue(block.getJumpsSameLevel().containsKey("label1"));
+        assertTrue(block.getJumpsSameLevel().containsValue("label1"));
     }
 
     @Test
@@ -135,7 +135,7 @@ class TestOneLevelCodeBlock {
         when(childNode2.getRule()).thenReturn("addr");
         when(childNode2.getLine()).thenReturn(1);
         OneLevelCodeBlock block = new OneLevelCodeBlock(node);
-        assertTrue(block.getJumpsCondSameLevel().containsKey("label1"));
+        assertTrue(block.getJumpsCondSameLevel().containsValue("label1"));
     }
 
     @Test

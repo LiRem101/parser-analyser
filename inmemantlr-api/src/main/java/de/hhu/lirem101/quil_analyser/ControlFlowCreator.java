@@ -7,17 +7,17 @@ import java.util.*;
 
 public class ControlFlowCreator {
     // The name of the labels and the line number in which they are defined.
-    private final BidiMap<String, Integer> labels = new TreeBidiMap<>();
+    private final BidiMap<Integer, String> labels = new TreeBidiMap<>();
     // The name of the label a branch jumps to and the line number in which the jump is defined.
-    private final BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
+    private final Map<Integer, String> jumpsSameLevel = new HashMap<>();
     // The name of the label a conditional branch jumps to and the line number in which the jump is defined.
-    private final BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
+    private final Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
     // The name of the circuit that is being called and the line number in which the circuit is called.
-    private final BidiMap<String, Integer> jumpToCircuits = new TreeBidiMap<>();
+    private final Map<Integer, String> jumpToCircuits = new HashMap<>();
     // Code lines that are targeted/valid on this level.
     private final Set<Integer> validCodelines = new HashSet<>();
     // The name of a defined circuit and the line number in which the circuit is defined.
-    private final Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+    private final BidiMap<Integer, String> linesCircuitsNextLevel = new TreeBidiMap<>();
     // The name of a defined circuit and the ControlFlowCreator that represents the circuit.
     private final Map<String, ControlFlowCreator> circuitsNextLevel = new HashMap<>();
 
@@ -47,7 +47,7 @@ public class ControlFlowCreator {
         return hashmap.get("start");
     }
 
-    private ControlFlowBlock createControlFlowBlock(String name, int startline, String endBlockName, HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue) {
+    private void createControlFlowBlock(String name, int startline, String endBlockName, HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue) {
         ControlFlowBlock block = blocks.get(name);
         int line = startline;
 
@@ -60,50 +60,52 @@ public class ControlFlowCreator {
                 line = block.getCodelines().get(0) + 1;
             }
 
-            if(labels.containsValue(line)) {
-                String label = labels.getKey(line);
-                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
+            if(labels.containsKey(line)) {
+                String label = labels.get(line);
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, line);
                 block.addBranch(blocks.get(label));
                 pollNextBlock = true;
             } else {
                 block.addCodeline(line);
             }
 
-            if(jumpsSameLevel.containsValue(line)) {
-                String label = jumpsSameLevel.getKey(line);
-                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
+            if(jumpsSameLevel.containsKey(line)) {
+                String label = jumpsSameLevel.get(line);
+                int labelLine = labels.getKey(label);
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labelLine);
                 block.addBranch(blocks.get(label));
                 pollNextBlock = true;
-            } else if(jumpsCondSameLevel.containsValue(line)) {
-                String label = jumpsCondSameLevel.getKey(line);
-                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labels.get(label));
+            } else if(jumpsCondSameLevel.containsKey(line)) {
+                String label = jumpsCondSameLevel.get(line);
+                int labelLine = labels.getKey(label);
+                addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labelLine);
                 block.addBranch(blocks.get(label));
 
                 String elseName = "line" + (line + 1);
                 if(!validCodelines.contains(line+1)) {
                     elseName = endBlockName;
-                } else if(labels.containsValue(line + 1)) {
-                    elseName = labels.getKey(line + 1);
-                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, labels.get(elseName));
+                } else if(labels.containsKey(line + 1)) {
+                    elseName = labels.get(line + 1);
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, line + 1);
                 } else {
                     addBlockWithLabelNameIfNecessary(blocks, blockQueue, elseName, line + 1);
                 }
                 block.addBranch(blocks.get(elseName));
                 pollNextBlock = true;
-            } else if(jumpToCircuits.containsValue(line)) {
+            } else if(jumpToCircuits.containsKey(line)) {
                 String nextBlockName = "line" + (line + 1);
                 if(!validCodelines.contains(line+1)) {
                     nextBlockName = endBlockName;
-                } else if(labels.containsValue(line + 1)) {
-                    nextBlockName = labels.getKey(line + 1);
-                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, labels.get(nextBlockName));
+                } else if(labels.containsKey(line + 1)) {
+                    nextBlockName = labels.get(line + 1);
+                    addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, line + 1);
                 } else {
                     addBlockWithLabelNameIfNecessary(blocks, blockQueue, nextBlockName, line + 1);
                 }
                 pollNextBlock = true;
 
-                String label = jumpToCircuits.getKey(line);
-                int circuitLine = linesCircuitsNextLevel.get(label);
+                String label = jumpToCircuits.get(line);
+                int circuitLine = linesCircuitsNextLevel.getKey(label);
                 addBlockWithLabelNameIfNecessary(blocks, new LinkedList<>(), label, circuitLine);
                 ControlFlowCreator circuitCreator = circuitsNextLevel.get(label);
                 circuitCreator.createControlFlowBlock(label, circuitLine + 1, nextBlockName, blocks, new LinkedList<>());
@@ -124,7 +126,6 @@ public class ControlFlowCreator {
             block.addBranch(blocks.get(endBlockName));
         }
 
-        return block;
     }
 
     /**
@@ -145,9 +146,9 @@ public class ControlFlowCreator {
 
     /**
      * Adds labels, used in Constructor for Labels of outer ControlFlowCreator.
-     * @param labels
+     * @param labels A Map of labels.
      */
-    private void addLabels(BidiMap<String, Integer> labels) {
+    private void addLabels(Map<Integer, String> labels) {
         this.labels.putAll(labels);
     }
 

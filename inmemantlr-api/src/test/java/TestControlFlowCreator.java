@@ -17,12 +17,12 @@ public class TestControlFlowCreator {
     @Test
     void noCode() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>();
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -47,12 +47,12 @@ public class TestControlFlowCreator {
     @Test
     void simpleLinearCode() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -77,14 +77,14 @@ public class TestControlFlowCreator {
     @Test
     void labelLinearCode() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 3);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(3, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -112,15 +112,15 @@ public class TestControlFlowCreator {
     @Test
     void labelJump() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 6);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        jumpsSameLevel.put("label1", 3);
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(6, "label1");
+        jumpsSameLevel.put(3, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -148,15 +148,15 @@ public class TestControlFlowCreator {
     @Test
     void labelJumpCondWoLabel() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 6);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        jumpsCondSameLevel.put("label1", 3);
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(6, "label1");
+        jumpsCondSameLevel.put(3, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -194,16 +194,16 @@ public class TestControlFlowCreator {
     @Test
     void labelJumpCondWithLabel() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 3);
-        labels.put("label2", 7);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        jumpsCondSameLevel.put("label1", 6);
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(3, "label1");
+        labels.put(7, "label2");
+        jumpsCondSameLevel.put(6, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -245,15 +245,15 @@ public class TestControlFlowCreator {
     @Test
     void labelJumpCondHalt() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 3);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        jumpsCondSameLevel.put("label1", 6);
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(3, "label1");
+        jumpsCondSameLevel.put(6, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -291,15 +291,15 @@ public class TestControlFlowCreator {
     @Test
     void labelJumpCondWithLoop() {
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 3);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        jumpsCondSameLevel.put("label1", 6);
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(3, "label1");
+        jumpsCondSameLevel.put(6, "label1");
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
         when(block.getJumpsCondSameLevel()).thenReturn(jumpsCondSameLevel);
@@ -341,12 +341,12 @@ public class TestControlFlowCreator {
     @Test
     void simpleDefCircuitWoLabel() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
@@ -356,16 +356,16 @@ public class TestControlFlowCreator {
         when(innerBlock.getLinesCircuitsNextLevel()).thenReturn(innerLinesCircuitsNextLevel);
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
-        OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
+        jumpToCircuits.put(6, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -404,12 +404,12 @@ public class TestControlFlowCreator {
     @Test
     void simpleDefCircuitWithLabel() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
@@ -420,16 +420,16 @@ public class TestControlFlowCreator {
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 7);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(3, 4, 5, 6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(7, "label1");
+        jumpToCircuits.put(6, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -468,12 +468,12 @@ public class TestControlFlowCreator {
     @Test
     void simpleDefCircuitHalt() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
@@ -484,15 +484,15 @@ public class TestControlFlowCreator {
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(3, 4, 5, 6));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        jumpToCircuits.put(6, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -526,15 +526,15 @@ public class TestControlFlowCreator {
     @Test
     void simpleDefCircuitJumpInside() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        innerLabels.put("label1", 2);
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        innerJumpsCondSameLevel.put("label1", 5);
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
+        innerLabels.put(2, "label1");
+        innerJumpsCondSameLevel.put(5, "label1");
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
         when(innerBlock.getJumpsCondSameLevel()).thenReturn(innerJumpsCondSameLevel);
@@ -544,15 +544,15 @@ public class TestControlFlowCreator {
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        jumpToCircuits.put(6, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -597,14 +597,14 @@ public class TestControlFlowCreator {
     @Test
     void simpleDefCircuitJumpOut() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        innerJumpsSameLevel.put("label1", 4);
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
+        innerJumpsSameLevel.put(4, "label1");
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
         when(innerBlock.getJumpsCondSameLevel()).thenReturn(innerJumpsCondSameLevel);
@@ -614,16 +614,16 @@ public class TestControlFlowCreator {
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        labels.put("label1", 7);
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(6, 7, 8));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        labels.put(7, "label1");
+        jumpToCircuits.put(6, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
@@ -662,15 +662,15 @@ public class TestControlFlowCreator {
     @Test
     void defCircuitTwoAndJump() {
         OneLevelCodeBlock innerBlock = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> innerLabels = new TreeBidiMap<>();
-        innerLabels.put("label1", 3);
-        BidiMap<String, Integer> innerJumpsSameLevel = new TreeBidiMap<>();
-        innerJumpsSameLevel.put("label1", 2);
-        BidiMap<String, Integer> innerJumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> innerJumpToCircuits = new HashMap<>();
+        Map<Integer, String> innerLabels = new HashMap<>();
+        Map<Integer, String> innerJumpsSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> innerJumpToCircuits = new HashMap<>();
         Set<Integer> innerValidCodelines = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        Map<String, Integer> innerLinesCircuitsNextLevel = new HashMap<>();
+        Map<Integer, String> innerLinesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> innerCircuitsNextLevel = new HashMap<>();
+        innerLabels.put(3, "label1");
+        innerJumpsSameLevel.put(2, "label1");
         when(innerBlock.getLabels()).thenReturn(innerLabels);
         when(innerBlock.getJumpsSameLevel()).thenReturn(innerJumpsSameLevel);
         when(innerBlock.getJumpsCondSameLevel()).thenReturn(innerJumpsCondSameLevel);
@@ -680,16 +680,16 @@ public class TestControlFlowCreator {
         when(innerBlock.getCircuitsNextLevel()).thenReturn(innerCircuitsNextLevel);
 
         OneLevelCodeBlock block = mock(OneLevelCodeBlock.class);
-        BidiMap<String, Integer> labels = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsSameLevel = new TreeBidiMap<>();
-        BidiMap<String, Integer> jumpsCondSameLevel = new TreeBidiMap<>();
-        Map<String, Integer> jumpToCircuits = new HashMap<>();
-        jumpToCircuits.put("circuit1", 6);
-        jumpToCircuits.put("circuit1", 7);
+        Map<Integer, String> labels = new HashMap<>();
+        Map<Integer, String> jumpsSameLevel = new HashMap<>();
+        Map<Integer, String> jumpsCondSameLevel = new HashMap<>();
+        Map<Integer, String> jumpToCircuits = new HashMap<>();
         Set<Integer> validCodelines = new HashSet<>(Arrays.asList(6, 7));
-        Map<String, Integer> linesCircuitsNextLevel = new HashMap<>();
-        linesCircuitsNextLevel.put("circuit1", 0);
+        Map<Integer, String> linesCircuitsNextLevel = new HashMap<>();
         Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
+        jumpToCircuits.put(6, "circuit1");
+        jumpToCircuits.put(7, "circuit1");
+        linesCircuitsNextLevel.put(0, "circuit1");
         circuitsNextLevel.put("circuit1", innerBlock);
         when(block.getLabels()).thenReturn(labels);
         when(block.getJumpsSameLevel()).thenReturn(jumpsSameLevel);
