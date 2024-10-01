@@ -53,12 +53,21 @@ public class ControlFlowCreator {
         boolean pollNextBlock = false;
 
         while(validCodelines.contains(line) || !blockQueue.isEmpty() || pollNextBlock) {
-            pollNextBlock = false;
+            if(pollNextBlock) {
+                if(blockQueue.isEmpty()) {
+                    line--;
+                    break;
+                }
+                block = blockQueue.poll();
+                line = block.getCodelines().get(0) + 1;
+            }
             if(!validCodelines.contains(line)) {
                 block.addBranch(blocks.get(endBlockName));
                 block = blockQueue.poll();
                 line = block.getCodelines().get(0) + 1;
             }
+
+            pollNextBlock = false;
 
             if(labels.containsKey(line)) {
                 String label = labels.get(line);
@@ -97,15 +106,6 @@ public class ControlFlowCreator {
             }
 
             line++;
-
-            if(pollNextBlock) {
-                if(blockQueue.isEmpty()) {
-                    line--;
-                    break;
-                }
-                block = blockQueue.poll();
-                line = block.getCodelines().get(0) + 1;
-            }
         }
 
         if(!validCodelines.contains(line)) {
