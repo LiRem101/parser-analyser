@@ -53,16 +53,14 @@ public class ControlFlowCreator {
         boolean pollNextBlock = false;
 
         while(validCodelines.contains(line) || !blockQueue.isEmpty() || pollNextBlock) {
-            if(pollNextBlock) {
+            if(pollNextBlock || !validCodelines.contains(line)) {
                 if(blockQueue.isEmpty()) {
                     line--;
                     break;
                 }
-                block = blockQueue.poll();
-                line = block.getCodelines().get(0) + 1;
-            }
-            if(!validCodelines.contains(line)) {
-                block.addBranch(blocks.get(endBlockName));
+                if(!validCodelines.contains(line)) {
+                    block.addBranch(blocks.get(endBlockName));
+                }
                 block = blockQueue.poll();
                 line = block.getCodelines().get(0) + 1;
             }
