@@ -96,14 +96,16 @@ public class ControlFlowCreator {
                 block.addBranch(blocks.get(label));
             }
 
+            line++;
+
             if(pollNextBlock) {
                 if(blockQueue.isEmpty()) {
+                    line--;
                     break;
                 }
                 block = blockQueue.poll();
-                line = block.getCodelines().get(0);
+                line = block.getCodelines().get(0) + 1;
             }
-            line++;
         }
 
         if(!validCodelines.contains(line)) {
