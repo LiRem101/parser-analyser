@@ -710,16 +710,30 @@ public class TestControlFlowCreator {
         ControlFlowBlock circuitBlock = branches.get(0);
 
         branches = circuitBlock.getBranches();
-        assertNotNull(circuitBlock);
-        assertEquals(Arrays.asList(0, 1, 2, 3, 4), circuitBlock.getCodelines());
+        assertEquals("circuit1", circuitBlock.getName());
+        assertEquals(Arrays.asList(0, 1, 2), circuitBlock.getCodelines());
         assertEquals(1, branches.size());
 
         ControlFlowBlock nextBlock = branches.get(0);
         assertEquals("label1", nextBlock.getName());
-        assertEquals(Arrays.asList(7, 8), nextBlock.getCodelines());
+        assertEquals(Arrays.asList(3, 4, 5), nextBlock.getCodelines());
         assertEquals(1, nextBlock.getBranches().size());
 
-        ControlFlowBlock halt = nextBlock.getBranches().get(0);
+        ControlFlowBlock line7 = nextBlock.getBranches().get(0);
+        assertEquals("line7", line7.getName());
+        assertEquals(Collections.singletonList(7), line7.getCodelines());
+        assertEquals(1, line7.getBranches().size());
+
+        ControlFlowBlock circuitBlock2 = line7.getBranches().get(0);
+        assertEquals("circuit1", circuitBlock2.getName());
+        assertEquals(Arrays.asList(0, 1, 2), circuitBlock2.getCodelines());
+        assertEquals(1, circuitBlock2.getBranches().size());
+        ControlFlowBlock nextBlock2 = circuitBlock2.getBranches().get(0);
+        assertEquals("label1", nextBlock2.getName());
+        assertEquals(Arrays.asList(3, 4, 5), nextBlock2.getCodelines());
+        assertEquals(1, nextBlock2.getBranches().size());
+
+        ControlFlowBlock halt = nextBlock2.getBranches().get(0);
         assertEquals("halt", halt.getName());
         assertTrue(halt.getCodelines().isEmpty());
         assertTrue(halt.getBranches().isEmpty());
