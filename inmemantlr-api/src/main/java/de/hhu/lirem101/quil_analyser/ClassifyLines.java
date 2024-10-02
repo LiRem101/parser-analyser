@@ -71,7 +71,7 @@ public class ClassifyLines {
                 handleMeasurementNodes(currentNode, line);
             } else if(controlStructure.contains(rule)) {
                 lineTypes.put(line, LineType.CONTROL_STRUCTURE);
-            } else if(rule.equals("gate")) {
+            } else if(rule.equals("gate") || rule.equals("circuitGate")) {
                 handleGateNodes(currentNode, line);
             } else {
                 nodeQueue.addAll(currentNode.getChildren());
