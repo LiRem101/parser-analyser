@@ -70,12 +70,13 @@ public class ControlFlowCreator {
         int line = startline;
         int suffixCounter = 0;
         boolean pollNextBlock = false;
+        boolean addLastBlock = true;
 
         while(validCodelines.contains(line) || !blockQueue.isEmpty() || pollNextBlock) {
             boolean polled = false;
             if(pollNextBlock || !validCodelines.contains(line)) {
                 if(blockQueue.isEmpty()) {
-                    line--;
+                    addLastBlock = false;
                     break;
                 }
                 if(!validCodelines.contains(line)) {
@@ -129,11 +130,11 @@ public class ControlFlowCreator {
                 block.addBranch(blocks.get(circuitName));
                 suffixCounter++;
             }
-
-            line++;
+            int finalLine = line;
+            line = validCodelines.stream().filter(l -> (l > finalLine)).min(Integer::compareTo).orElse(-1);
         }
 
-        if(!validCodelines.contains(line)) {
+        if(addLastBlock) {
             block.addBranch(blocks.get(endBlockName));
         }
 
