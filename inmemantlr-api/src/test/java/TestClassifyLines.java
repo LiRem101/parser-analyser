@@ -22,6 +22,23 @@ public class TestClassifyLines {
     }
 
     @Test
+    public void memoryDescriptor() {
+        ParseTreeNode root = mockNode("quil", 1);
+        ParseTreeNode branch = mockNode("allInstr", 1);
+        when(root.getChildren()).thenReturn(Collections.singletonList(branch));
+
+        ParseTreeNode instr = mockNode("instr", 1);
+        when(branch.getChildren()).thenReturn(Collections.singletonList(instr));
+
+        ParseTreeNode mem = mockNode("memoryDescriptor", 1);
+        when(instr.getChildren()).thenReturn(Collections.singletonList(mem));
+
+        ClassifyLines cl = new ClassifyLines(root);
+        Map<Integer, LineType> result = cl.classifyLines();
+        assertEquals(LineType.CLASSICAL, result.get(1));
+    }
+
+    @Test
     public void testMeasurement() {
         ParseTreeNode root = mockNode("quil", 1);
         ParseTreeNode branch1 = mockNode("allInstr", 1);
