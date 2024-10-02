@@ -68,20 +68,56 @@ public class ClassifyLines {
             } else if(classical.contains(rule)) {
                 lineTypes.put(line, LineType.CLASSICAL);
             } else if(quantumInfluClassical.contains(rule)) {
-                // Measurement only influences classical if addr is given in which the result is saved
-                ParseTreeNode addr = currentNode.getChildren().stream().filter(n -> n.getRule().equals("addr")).findFirst().orElse(null);
-                if(addr != null) {
-                    lineTypes.put(line, LineType.QUANTUM_INFLUENCES_CLASSICAL);
-                } else {
-                    lineTypes.put(line, LineType.QUANTUM);
-                }
+                handleMeasurementNodes(currentNode, line);
             } else if(controlStructure.contains(rule)) {
                 lineTypes.put(line, LineType.CONTROL_STRUCTURE);
+            } else if(rule.equals("gate")) {
+                handleGateNodes(currentNode, line);
             } else {
                 nodeQueue.addAll(currentNode.getChildren());
             }
 
             currentNode = nodeQueue.poll();
+        }
+    }
+
+    /**
+     * Handles the classification of measurement nodes.
+     * Measurement only influences classical if addr is given in which the result is saved
+     * @param currentNode The current node to classify.
+     * @param line The line number of the current node.
+     */
+    private void handleMeasurementNodes(ParseTreeNode currentNode, int line) {
+        ParseTreeNode addr = currentNode.getChildren().stream().filter(n -> n.getRule().equals("addr")).findFirst().orElse(null);
+        if(addr != null) {
+            lineTypes.put(line, LineType.QUANTUM_INFLUENCES_CLASSICAL);
+        } else {
+            lineTypes.put(line, LineType.QUANTUM);
+        }
+    }
+
+    /**
+     * Handles the classification of gate nodes. They are classified as quantum if they do not have a param node or if
+     * the param node is just a number. Otherwise, they are classified as classical influences quantum.
+     * @param currentNode The current node to classify.
+     * @param line The line number of the current node.
+     */
+    private void handleGateNodes(ParseTreeNode currentNode, int line) {
+        ParseTreeNode param = currentNode.getChildren().stream().filter(n -> n.getRule().equals("param")).findFirst().orElse(null);
+        if(param == null) {
+            lineTypes.put(line, LineType.QUANTUM);
+        } else {
+            ParseTreeNode expression = param.getChildren().stream().filter(n -> n.getRule().equals("expression")).findFirst().orElse(null);
+            if(expression == null || param.getChildren().size() != 1) {
+                lineTypes.put(line, LineType.CLASSICAL_INFLUENCES_QUANTUM);
+            } else {
+                ParseTreeNode number = expression.getChildren().stream().filter(n -> n.getRule().equals("number")).findFirst().orElse(null);
+                if(number == null || expression.getChildren().size() != 1) {
+                    lineTypes.put(line, LineType.CLASSICAL_INFLUENCES_QUANTUM);
+                } else {
+                    lineTypes.put(line, LineType.QUANTUM);
+                }
+            }
         }
     }
 }
