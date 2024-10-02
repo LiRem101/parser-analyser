@@ -18,7 +18,7 @@ public class ClassifyLines {
     private static final Set<String> classical = new HashSet<>(Arrays.asList("classicalUnary", "classicalBinary", "classicalComparison", "load", "store",
             "memoryDescriptor"));
     private static final Set<String> quantumInfluClassical = new HashSet<>(Arrays.asList("measure", "circuitMeasure"));
-    private static final Set<String> controlStructure = new HashSet<>(Arrays.asList("defLabel", "halt", "jump", "jumpWhen", "jumpUnless"));
+    private static final Set<String> controlStructure = new HashSet<>(Arrays.asList("defLabel", "defCircuit", "halt", "jump", "jumpWhen", "jumpUnless"));
 
     private final Map<Integer, LineType> lineTypes = new java.util.HashMap<>();
     private final ParseTreeNode node;
@@ -68,7 +68,13 @@ public class ClassifyLines {
             } else if(classical.contains(rule)) {
                 lineTypes.put(line, LineType.CLASSICAL);
             } else if(quantumInfluClassical.contains(rule)) {
-                lineTypes.put(line, LineType.QUANTUM_INFLUENCES_CLASSICAL);
+                // Measurement only influences classical if addr is given in which the result is saved
+                ParseTreeNode addr = currentNode.getChildren().stream().filter(n -> n.getRule().equals("addr")).findFirst().orElse(null);
+                if(addr != null) {
+                    lineTypes.put(line, LineType.QUANTUM_INFLUENCES_CLASSICAL);
+                } else {
+                    lineTypes.put(line, LineType.QUANTUM);
+                }
             } else if(controlStructure.contains(rule)) {
                 lineTypes.put(line, LineType.CONTROL_STRUCTURE);
             } else {
