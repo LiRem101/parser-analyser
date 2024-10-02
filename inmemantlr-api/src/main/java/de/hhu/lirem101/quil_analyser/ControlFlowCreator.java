@@ -6,6 +6,7 @@ import org.apache.commons.collections4.bidimap.TreeBidiMap;
 import java.util.*;
 
 public class ControlFlowCreator {
+    private final String suffix;
     // The name of the labels and the line number in which they are defined.
     private final BidiMap<Integer, String> labels = new TreeBidiMap<>();
     // The name of the label a branch jumps to and the line number in which the jump is defined.
@@ -18,20 +19,37 @@ public class ControlFlowCreator {
     private final Set<Integer> validCodelines = new HashSet<>();
     // The name of a defined circuit and the line number in which the circuit is defined.
     private final BidiMap<Integer, String> linesCircuitsNextLevel = new TreeBidiMap<>();
-    // The name of a defined circuit and the ControlFlowCreator that represents the circuit.
-    private final Map<String, ControlFlowCreator> circuitsNextLevel = new HashMap<>();
+    // The name of a defined circuit and the ControlFlowBlock that represents the circuit.
+    private final Map<String, OneLevelCodeBlock> circuitsNextLevel = new HashMap<>();
 
     public ControlFlowCreator(OneLevelCodeBlock codeBlock) {
+        this.suffix = "";
         labels.putAll(codeBlock.getLabels());
         jumpsSameLevel.putAll(codeBlock.getJumpsSameLevel());
         jumpsCondSameLevel.putAll(codeBlock.getJumpsCondSameLevel());
         jumpToCircuits.putAll(codeBlock.getJumpToCircuits());
         validCodelines.addAll(codeBlock.getValidCodelines());
         linesCircuitsNextLevel.putAll(codeBlock.getLinesCircuitsNextLevel());
+        circuitsNextLevel.putAll(codeBlock.getCircuitsNextLevel());
+    }
+
+    private ControlFlowCreator(String suffix, OneLevelCodeBlock codeBlock, BidiMap<Integer, String> higherUpLabels) {
+        this.suffix = suffix;
+        addWithSuffix(suffix, codeBlock.getLabels(), this.labels);
+        labels.putAll(higherUpLabels);
+        addWithSuffix(suffix, codeBlock.getJumpsSameLevel(), this.jumpsSameLevel);
+        addWithSuffix(suffix, codeBlock.getJumpsCondSameLevel(), this.jumpsCondSameLevel);
+        addWithSuffix(suffix, codeBlock.getJumpToCircuits(), this.jumpToCircuits);
+        this.validCodelines.addAll(codeBlock.getValidCodelines());
+        addWithSuffix(suffix, codeBlock.getLinesCircuitsNextLevel(), this.linesCircuitsNextLevel);
         codeBlock.getCircuitsNextLevel().forEach((key, value) -> {
-            ControlFlowCreator cfc = new ControlFlowCreator(value);
-            cfc.addLabels(labels);
-            circuitsNextLevel.put(key, cfc);
+            circuitsNextLevel.put(key + suffix, value);
+        });
+    }
+
+    private void addWithSuffix(String suffix, Map<Integer, String> parameterMap, Map<Integer, String> objectMap) {
+        parameterMap.forEach((key, value) -> {
+            objectMap.put(key, value + suffix);
         });
     }
 
@@ -50,6 +68,7 @@ public class ControlFlowCreator {
     private void createControlFlowBlock(String name, int startline, String endBlockName, HashMap<String, ControlFlowBlock> blocks, LinkedList<ControlFlowBlock> blockQueue) {
         ControlFlowBlock block = blocks.get(name);
         int line = startline;
+        int suffixCounter = 0;
         boolean pollNextBlock = false;
 
         while(validCodelines.contains(line) || !blockQueue.isEmpty() || pollNextBlock) {
@@ -80,12 +99,14 @@ public class ControlFlowCreator {
 
             if(jumpsSameLevel.containsKey(line) && !pollNextBlock) {
                 String label = jumpsSameLevel.get(line);
+                label = getLabelFromThisOrUpperLevel(label);
                 int labelLine = labels.getKey(label);
                 addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labelLine);
                 block.addBranch(blocks.get(label));
                 pollNextBlock = true;
             } else if(jumpsCondSameLevel.containsKey(line) && !pollNextBlock) {
                 String label = jumpsCondSameLevel.get(line);
+                label = getLabelFromThisOrUpperLevel(label);
                 int labelLine = labels.getKey(label);
                 addBlockWithLabelNameIfNecessary(blocks, blockQueue, label, labelLine);
                 block.addBranch(blocks.get(label));
@@ -99,10 +120,14 @@ public class ControlFlowCreator {
 
                 String label = jumpToCircuits.get(line);
                 int circuitLine = linesCircuitsNextLevel.getKey(label);
-                addBlockWithLabelNameIfNecessary(blocks, new LinkedList<>(), label, circuitLine);
-                ControlFlowCreator circuitCreator = circuitsNextLevel.get(label);
-                circuitCreator.createControlFlowBlock(label, circuitLine + 1, nextBlockName, blocks, new LinkedList<>());
-                block.addBranch(blocks.get(label));
+                String circuitSuffix = "_" + suffixCounter;
+                String circuitName = label + circuitSuffix;
+                addBlockWithLabelNameIfNecessary(blocks, new LinkedList<>(), circuitName, circuitLine);
+                OneLevelCodeBlock circuitBlock = circuitsNextLevel.get(label);
+                ControlFlowCreator circuitCreator = new ControlFlowCreator(suffix + circuitSuffix, circuitBlock, labels);
+                circuitCreator.createControlFlowBlock(circuitName, circuitLine + 1, nextBlockName, blocks, new LinkedList<>());
+                block.addBranch(blocks.get(circuitName));
+                suffixCounter++;
             }
 
             line++;
@@ -112,6 +137,21 @@ public class ControlFlowCreator {
             block.addBranch(blocks.get(endBlockName));
         }
 
+    }
+
+    /**
+     * Returns the label name without the suffix if the label is not defined on this level.
+     * @param label The label name.
+     * @return The label name without the suffix.
+     */
+    private String getLabelFromThisOrUpperLevel(String label) {
+        if(!labels.containsValue(label)) {
+            int suffixIndex = label.lastIndexOf(suffix);
+            if(suffixIndex != -1) {
+                label = label.substring(0, suffixIndex);
+            }
+        }
+        return label;
     }
 
     /**
