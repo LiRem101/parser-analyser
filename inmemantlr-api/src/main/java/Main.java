@@ -1,3 +1,7 @@
+import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
+import de.hhu.lirem101.quil_analyser.ControlFlowCreator;
+import de.hhu.lirem101.quil_analyser.ControlFlowDrawer;
+import de.hhu.lirem101.quil_analyser.OneLevelCodeBlock;
 import org.snt.inmemantlr.GenericParser;
 import org.snt.inmemantlr.exceptions.CompilationException;
 import org.snt.inmemantlr.exceptions.IllegalWorkflowException;
@@ -15,7 +19,7 @@ public class Main {
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "defgate";
+        final String file = "simple";
 
         File f = new File(resourcePath + "Quil.g4");
         GenericParser gp = new GenericParser(f);
@@ -32,13 +36,20 @@ public class Main {
 
         ParseTree pt = dlist.getParseTree();
 
-        String xml = pt.toXml();
-        String json = pt.toJson();
-        String dot = pt.toDot();
+        File graphic = new File(resourcePath + "Quil/" + file + ".png");
+        OneLevelCodeBlock codeBlock = new OneLevelCodeBlock(pt.getRoot());
+        ControlFlowCreator cfc = new ControlFlowCreator(codeBlock);
+        ControlFlowBlock cfb = cfc.createControlFlowBlock();
+        ControlFlowDrawer cfd = new ControlFlowDrawer(cfb);
+        cfd.drawControlFlowGraph(graphic);
 
-        System.out.println(xml);
-        System.out.println(json);
-        System.out.println(dot);
+//        String xml = pt.toXml();
+//        String json = pt.toJson();
+//        String dot = pt.toDot();
+//
+//        System.out.println(xml);
+//        System.out.println(json);
+//        System.out.println(dot);
 
         // Save .dot file
 //        Path path = Paths.get(resourcePath + "Quil/" + file + ".dot");
