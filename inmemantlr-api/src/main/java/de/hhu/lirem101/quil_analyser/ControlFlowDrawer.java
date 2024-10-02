@@ -1,5 +1,6 @@
 package de.hhu.lirem101.quil_analyser;
 
+import guru.nidi.graphviz.attribute.Shape;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
@@ -47,6 +48,10 @@ public class ControlFlowDrawer {
         blocks.forEach(block -> {
             nodes.add(mutNode(block.getName()));
         });
+
+        for(MutableNode node : nodes) {
+            node.add(Shape.RECTANGLE);
+        }
 
         for (ControlFlowBlock block : blocks) {
             List<ControlFlowBlock> branches = block.getBranches();
