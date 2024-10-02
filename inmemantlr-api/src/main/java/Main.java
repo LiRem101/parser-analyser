@@ -11,20 +11,17 @@ import org.snt.inmemantlr.tree.ParseTree;
 import org.snt.inmemantlr.utils.FileUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
 
-    public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
-        System.out.println(System.getProperty("user.dir"));
-
-        final String file = "simple";
-
-        File f = new File(resourcePath + "Quil.g4");
-        GenericParser gp = new GenericParser(f);
+    private static void drawQuilCfg(String grammarFileName, String quilFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+        File grammarFile = new File(grammarFileName);
+        GenericParser gp = new GenericParser(grammarFile);
         // 2. load file content into string
-        String s = FileUtils.loadFileContent(resourcePath + "Quil/" + file + ".quil");
+        String s = FileUtils.loadFileContent(quilFileName);
         // 3. set listener for checking parse tree elements. Here you could use any ParseTreeListener implementation. The default listener is used per default
         // this listener will create a parse tree from the java file
         DefaultTreeListener dlist = new DefaultTreeListener();
@@ -36,24 +33,23 @@ public class Main {
 
         ParseTree pt = dlist.getParseTree();
 
-        File graphic = new File(resourcePath + "Quil/" + file + ".png");
+        File graphic = new File(graphImageFileName);
         OneLevelCodeBlock codeBlock = new OneLevelCodeBlock(pt.getRoot());
         ControlFlowCreator cfc = new ControlFlowCreator(codeBlock);
         ControlFlowBlock cfb = cfc.createControlFlowBlock();
         ControlFlowDrawer cfd = new ControlFlowDrawer(cfb);
-        cfd.drawControlFlowGraph(graphic);
+        cfd.drawControlFlowGraph(graphic, quilFileName);
+    }
 
-//        String xml = pt.toXml();
-//        String json = pt.toJson();
-//        String dot = pt.toDot();
-//
-//        System.out.println(xml);
-//        System.out.println(json);
-//        System.out.println(dot);
+    public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+        System.out.println(System.getProperty("user.dir"));
 
-        // Save .dot file
-//        Path path = Paths.get(resourcePath + "Quil/" + file + ".dot");
-//        Files.write(path, dot.getBytes());
+        final String file = "teleport-by-quil";
+        String grammarFileName = resourcePath + "Quil.g4";
+        String quilFileName = resourcePath + "Quil/" + file + ".quil";
+        String graphImageFileName = resourcePath + "Quil/" + file + ".ps";
+
+        drawQuilCfg(grammarFileName, quilFileName, graphImageFileName);
 
     }
 }
