@@ -35,7 +35,11 @@ public class ControlFlowDrawer {
         while (!blockQueue.isEmpty()) {
             ControlFlowBlock currentBlock = blockQueue.poll();
             blocks.add(currentBlock);
-            blockQueue.addAll(currentBlock.getBranches());
+            for (ControlFlowBlock b : currentBlock.getBranches()) {
+                if (!blocks.contains(b)) {
+                    blockQueue.add(b);
+                }
+            }
         }
         return blocks;
     }
