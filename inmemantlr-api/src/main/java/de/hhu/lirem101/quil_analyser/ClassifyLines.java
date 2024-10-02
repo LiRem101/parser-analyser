@@ -19,7 +19,8 @@ public class ClassifyLines {
     private static final Set<String> classical = new HashSet<>(Arrays.asList("classicalUnary", "classicalBinary", "classicalComparison", "load", "store",
             "memoryDescriptor"));
     private static final Set<String> quantumInfluClassical = new HashSet<>(Arrays.asList("measure", "circuitMeasure"));
-    private static final Set<String> controlStructure = new HashSet<>(Arrays.asList("defLabel", "halt", "jump", "jumpWhen", "jumpUnless"));
+    private static final Set<String> controlStructure = new HashSet<>(Arrays.asList("defLabel", "halt", "jump"));
+    private static final Set<String> controlStructureClassical = new HashSet<>(Arrays.asList("jumpWhen", "jumpUnless"));
 
     private final Map<Integer, LineType> lineTypes = new java.util.HashMap<>();
     private final ParseTreeNode node;
@@ -72,6 +73,8 @@ public class ClassifyLines {
                 handleMeasurementNodes(currentNode, line);
             } else if(controlStructure.contains(rule)) {
                 lineTypes.put(line, LineType.CONTROL_STRUCTURE);
+            } else if(controlStructureClassical.contains(rule)) {
+                lineTypes.put(line, LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL);
             } else if(rule.equals("gate") || rule.equals("circuitGate")) {
                 handleGateNodes(currentNode, line);
             } else if(rule.equals("defCircuit")) {
