@@ -71,7 +71,7 @@ public class SplitterQuantumClassical {
                     quantumBlock.addCodeline(codeline);
                 } else if (type == LineType.CLASSICAL) {
                     classicalBlock.addCodeline(codeline);
-                } else if (type == LineType.CONTROL_STRUCTURE) {
+                } else {
                     if (!quantumBlock.getCodelines().isEmpty()) {
                         currentBlock.addBranch(quantumBlock);
                     }
