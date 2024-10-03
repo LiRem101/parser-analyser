@@ -1,5 +1,6 @@
 package de.hhu.lirem101.quil_analyser;
 
+import javax.sound.sampled.Line;
 import java.util.*;
 
 public class SplitterQuantumClassical {
@@ -59,24 +60,57 @@ public class SplitterQuantumClassical {
             ControlFlowBlock originalBlock = originalBlocks.get(currentBlockName);
 
             List<Integer> codelines = originalBlock.getCodelines();
-            List<Integer> quantumCodelines = new ArrayList<>();
-            List<Integer> classicalCodelines = new ArrayList<>();
-            for (int codeline : codelines) {
-                LineType type = classes.get(codeline);
-                if (type == LineType.QUANTUM) {
-                    quantumCodelines.add(codeline);
-                } else if (type == LineType.CLASSICAL) {
-                    classicalCodelines.add(codeline);
-                }
-            }
             ControlFlowBlock quantumBlock = new ControlFlowBlock(currentBlockName + "quantum");
             quantumBlock.setLineType(LineType.QUANTUM);
-            quantumBlock.addCodelines(quantumCodelines);
-            currentBlock.addBranch(quantumBlock);
             ControlFlowBlock classicalBlock = new ControlFlowBlock(currentBlockName + "classical");
             classicalBlock.setLineType(LineType.CLASSICAL);
-            classicalBlock.addCodelines(classicalCodelines);
-            currentBlock.addBranch(classicalBlock);
+
+            for (Integer codeline : codelines) {
+                LineType type = classes.get(codeline);
+                if (type == LineType.QUANTUM) {
+                    quantumBlock.addCodeline(codeline);
+                } else if (type == LineType.CLASSICAL) {
+                    classicalBlock.addCodeline(codeline);
+                } else if (type == LineType.CONTROL_STRUCTURE) {
+                    if (!quantumBlock.getCodelines().isEmpty()) {
+                        currentBlock.addBranch(quantumBlock);
+                    }
+                    if (!classicalBlock.getCodelines().isEmpty()) {
+                        currentBlock.addBranch(classicalBlock);
+                    }
+                    if (currentBlock.getBranches().isEmpty()) {
+                        currentBlock.addCodeline(codeline);
+                    } else {
+                        ControlFlowBlock newBlock = new ControlFlowBlock(currentBlockName + "control");
+                        newBlock.setLineType(LineType.CONTROL_STRUCTURE);
+                        newBlock.addCodeline(codeline);
+                        if(currentBlock.getBranches().size() == 1) {
+                            currentBlock.addBranch(newBlock);
+                        } else {
+                            quantumBlock.addBranch(newBlock);
+                            classicalBlock.addBranch(newBlock);
+                        }
+                        currentBlock = newBlock;
+                        quantumBlock = new ControlFlowBlock(currentBlockName + "quantum");
+                        classicalBlock = new ControlFlowBlock(currentBlockName + "classical");
+                    }
+                }
+            }
+
+            ArrayList<ControlFlowBlock> lastBlocks = new ArrayList<>();
+            if(!quantumBlock.getCodelines().isEmpty() || !classicalBlock.getCodelines().isEmpty()) {
+                if(!quantumBlock.getCodelines().isEmpty()) {
+                    currentBlock.addBranch(quantumBlock);
+                    lastBlocks.add(quantumBlock);
+                }
+                if(!classicalBlock.getCodelines().isEmpty()) {
+                    currentBlock.addBranch(classicalBlock);
+                    lastBlocks.add(classicalBlock);
+                }
+            }
+            if(lastBlocks.size() != 2) {
+                lastBlocks.add(currentBlock);
+            }
 
             for (ControlFlowBlock b : originalBlock.getBranches()) {
                 String branchName = b.getName();
@@ -85,8 +119,9 @@ public class SplitterQuantumClassical {
                     newBlock.setLineType(LineType.CONTROL_STRUCTURE);
                     newBlocks.put(branchName, newBlock);
                     blockQueue.add(newBlock);
-                    quantumBlock.addBranch(newBlock);
-                    classicalBlock.addBranch(newBlock);
+                }
+                for(ControlFlowBlock prevBlock : lastBlocks) {
+                    prevBlock.addBranch(newBlocks.get(branchName));
                 }
             }
         }

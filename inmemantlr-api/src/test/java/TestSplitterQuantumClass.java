@@ -4,6 +4,7 @@ import de.hhu.lirem101.quil_analyser.SplitterQuantumClassical;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,6 +120,45 @@ public class TestSplitterQuantumClass {
         assertEquals(quantumBranch.getBranches().get(0), classicalBranch.getBranches().get(0));
         assertEquals("halt", quantumBranch.getBranches().get(0).getName());
         assertEquals(LineType.CONTROL_STRUCTURE, quantumBranch.getBranches().get(0).getLineType());
+    }
+
+    @Test
+    public void testWithControlStructures() {
+        Map<Integer, LineType> classes = createQuantumClassicalMap(0, 10);
+        classes.put(10, LineType.CONTROL_STRUCTURE);
+        classes.put(11, LineType.CONTROL_STRUCTURE);
+        classes.put(12, LineType.CONTROL_STRUCTURE);
+        ControlFlowBlock startBlock = createBlock("start", 0, 11);
+        ControlFlowBlock middleBlock = createBlock("middle", 11, 13);
+
+        startBlock.addBranch(middleBlock);
+        middleBlock.addBranch(new ControlFlowBlock("halt"));
+
+        SplitterQuantumClassical splitterQuantumClassical = new SplitterQuantumClassical(startBlock, classes);
+
+        ControlFlowBlock result = splitterQuantumClassical.getNewNode();
+
+        ControlFlowBlock branch1 = result.getBranches().get(0);
+        ControlFlowBlock branch2 = result.getBranches().get(1);
+
+        assertEquals(1, branch1.getBranches().size());
+        assertEquals(1, branch2.getBranches().size());
+
+        assertEquals(branch1.getBranches().get(0), branch2.getBranches().get(0));
+
+        ControlFlowBlock endOfStart = branch1.getBranches().get(0);
+        assertNotNull(endOfStart);
+        assertEquals(LineType.CONTROL_STRUCTURE, endOfStart.getLineType());
+        assertEquals(Collections.singletonList(10), endOfStart.getCodelines());
+
+        assertEquals(1, endOfStart.getBranches().size());
+        ControlFlowBlock middle = endOfStart.getBranches().get(0);
+        assertNotNull(middle);
+        assertEquals(LineType.CONTROL_STRUCTURE, middle.getLineType());
+        assertEquals(Arrays.asList(11, 12), middle.getCodelines());
+
+        assertEquals(1, middle.getBranches().size());
+        assertEquals("halt", middle.getBranches().get(0).getName());
     }
 
 }
