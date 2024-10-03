@@ -25,9 +25,15 @@ import static guru.nidi.graphviz.model.Factory.*;
 public class ControlFlowDrawer {
 
     private final ControlFlowBlock block;
+    private final Map<Integer, LineType> classes;
+    private static final String QUANTUM_COLOR = "#fe4eda";
+    private static final String CLASSICAL_COLOR = "#96c8a2";
+    private static final String QUANTUM_INFLUENCES_CLASSICAL_COLOR = "#008000";
+    private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#ff4500";
 
-    public ControlFlowDrawer(ControlFlowBlock block) {
+    public ControlFlowDrawer(ControlFlowBlock block, Map<Integer, LineType> classes) {
         this.block = block;
+        this.classes = classes;
     }
 
     private Set<ControlFlowBlock> setOfAllBlocks(ControlFlowBlock block) {
@@ -54,7 +60,17 @@ public class ControlFlowDrawer {
         int i = 2;
         for (int linenumber : block.getCodelines()) {
             String line = quilFileLines.get(linenumber - 1);
-            blockText[i] = linenumber + ": " + line;
+            String color = "#000000";
+            if (classes.get(linenumber) == LineType.QUANTUM) {
+                color = QUANTUM_COLOR;
+            } else if (classes.get(linenumber) == LineType.CLASSICAL) {
+                color = CLASSICAL_COLOR;
+            } else if (classes.get(linenumber) == LineType.QUANTUM_INFLUENCES_CLASSICAL) {
+                color = QUANTUM_INFLUENCES_CLASSICAL_COLOR;
+            } else if (classes.get(linenumber) == LineType.CLASSICAL_INFLUENCES_QUANTUM) {
+                color = CLASSICAL_INFLUENCES_QUANTUM_COLOR;
+            }
+            blockText[i] = "<font color=\"" + color + "\">" + linenumber + ": " + line + "</font>";
             i++;
         }
         return blockText;
@@ -69,7 +85,7 @@ public class ControlFlowDrawer {
         Set<Node> nodes = new HashSet<>();
         blocks.forEach(block -> {
             String[] blockText = getBlockText(block, fileLines);
-            Node node = node(block.getName()).with(Shape.RECTANGLE).with(Label.lines(LEFT, blockText));
+            Node node = node(block.getName()).with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, blockText));
             nodes.add(node);
         });
 

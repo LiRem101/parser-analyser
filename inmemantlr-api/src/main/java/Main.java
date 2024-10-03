@@ -1,7 +1,4 @@
-import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
-import de.hhu.lirem101.quil_analyser.ControlFlowCreator;
-import de.hhu.lirem101.quil_analyser.ControlFlowDrawer;
-import de.hhu.lirem101.quil_analyser.OneLevelCodeBlock;
+import de.hhu.lirem101.quil_analyser.*;
 import org.snt.inmemantlr.GenericParser;
 import org.snt.inmemantlr.exceptions.CompilationException;
 import org.snt.inmemantlr.exceptions.IllegalWorkflowException;
@@ -13,6 +10,8 @@ import org.snt.inmemantlr.utils.FileUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Map;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
@@ -33,11 +32,18 @@ public class Main {
 
         ParseTree pt = dlist.getParseTree();
 
+//        String dot = pt.toDot();
+//
+//        Files.write(new File(quilFileName + ".dot").toPath(), dot.getBytes());
+
+        ClassifyLines cl = new ClassifyLines(pt.getRoot());
+        Map<Integer, LineType> classes = cl.classifyLines();
+
         File graphic = new File(graphImageFileName);
         OneLevelCodeBlock codeBlock = new OneLevelCodeBlock(pt.getRoot());
         ControlFlowCreator cfc = new ControlFlowCreator(codeBlock);
         ControlFlowBlock cfb = cfc.createControlFlowBlock();
-        ControlFlowDrawer cfd = new ControlFlowDrawer(cfb);
+        ControlFlowDrawer cfd = new ControlFlowDrawer(cfb, classes);
         cfd.drawControlFlowGraph(graphic, quilFileName);
     }
 
