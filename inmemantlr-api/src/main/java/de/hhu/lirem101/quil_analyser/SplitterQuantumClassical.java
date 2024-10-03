@@ -72,24 +72,20 @@ public class SplitterQuantumClassical {
                 } else if (type == LineType.CLASSICAL) {
                     classicalBlock.addCodeline(codeline);
                 } else {
+                    ControlFlowBlock newBlock = new ControlFlowBlock(currentBlockName + "control");
                     if (!quantumBlock.getCodelines().isEmpty()) {
                         currentBlock.addBranch(quantumBlock);
+                        quantumBlock.addBranch(newBlock);
                     }
                     if (!classicalBlock.getCodelines().isEmpty()) {
                         currentBlock.addBranch(classicalBlock);
+                        classicalBlock.addBranch(newBlock);
                     }
                     if (currentBlock.getBranches().isEmpty()) {
                         currentBlock.addCodeline(codeline);
                     } else {
-                        ControlFlowBlock newBlock = new ControlFlowBlock(currentBlockName + "control");
                         newBlock.setLineType(LineType.CONTROL_STRUCTURE);
                         newBlock.addCodeline(codeline);
-                        if(currentBlock.getBranches().size() == 1) {
-                            currentBlock.addBranch(newBlock);
-                        } else {
-                            quantumBlock.addBranch(newBlock);
-                            classicalBlock.addBranch(newBlock);
-                        }
                         currentBlock = newBlock;
                         quantumBlock = new ControlFlowBlock(currentBlockName + "quantum");
                         classicalBlock = new ControlFlowBlock(currentBlockName + "classical");
