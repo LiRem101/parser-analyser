@@ -27,31 +27,69 @@ public class SplitterQuantumClassical {
         String name = "start";
         newRoot = new ControlFlowBlock(name);
         newRoot.setLineType(LineType.CONTROL_STRUCTURE);
-        List<Integer> codelines = originalRoot.getCodelines();
-        List<Integer> quantumCodelines = new ArrayList<>();
-        List<Integer> classicalCodelines = new ArrayList<>();
-        for (int codeline : codelines) {
-            LineType type = classes.get(codeline);
-            if (type == LineType.QUANTUM) {
-                quantumCodelines.add(codeline);
-            } else if(type == LineType.CLASSICAL) {
-                classicalCodelines.add(codeline);
-            }
-        }
-        ControlFlowBlock quantumBlock = new ControlFlowBlock(name + "quantum");
-        quantumBlock.setLineType(LineType.QUANTUM);
-        quantumBlock.addCodelines(quantumCodelines);
-        newRoot.addBranch(quantumBlock);
-        ControlFlowBlock classicalBlock = new ControlFlowBlock(name + "classical");
-        classicalBlock.setLineType(LineType.CLASSICAL);
-        classicalBlock.addCodelines(classicalCodelines);
-        newRoot.addBranch(classicalBlock);
 
-        ControlFlowBlock halt = new ControlFlowBlock("halt");
-        halt.setLineType(LineType.CONTROL_STRUCTURE);
-        quantumBlock.addBranch(halt);
-        classicalBlock.addBranch(halt);
+        HashMap<String, ControlFlowBlock> originalBlocks = createBlockMap(originalRoot);
+        HashMap<String, ControlFlowBlock> newBlocks = new HashMap<>();
+        LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
+        newBlocks.put(name, newRoot);
+        blockQueue.add(newRoot);
+        calculateBlocks(newBlocks, originalBlocks, blockQueue);
     }
 
+    private HashMap<String, ControlFlowBlock> createBlockMap(ControlFlowBlock root) {
+        HashMap<String, ControlFlowBlock> blocks = new HashMap<>();
+        LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
+        blockQueue.add(root);
+        while (!blockQueue.isEmpty()) {
+            ControlFlowBlock currentBlock = blockQueue.poll();
+            blocks.put(currentBlock.getName(), currentBlock);
+            for (ControlFlowBlock b : currentBlock.getBranches()) {
+                if (!blocks.containsKey(b.getName())) {
+                    blockQueue.add(b);
+                }
+            }
+        }
+        return blocks;
+    }
+
+    private void calculateBlocks(HashMap<String, ControlFlowBlock> newBlocks, HashMap<String, ControlFlowBlock> originalBlocks, LinkedList<ControlFlowBlock> blockQueue) {
+        while (!blockQueue.isEmpty()) {
+            ControlFlowBlock currentBlock = blockQueue.poll();
+            String currentBlockName = currentBlock.getName();
+            ControlFlowBlock originalBlock = originalBlocks.get(currentBlockName);
+
+            List<Integer> codelines = originalBlock.getCodelines();
+            List<Integer> quantumCodelines = new ArrayList<>();
+            List<Integer> classicalCodelines = new ArrayList<>();
+            for (int codeline : codelines) {
+                LineType type = classes.get(codeline);
+                if (type == LineType.QUANTUM) {
+                    quantumCodelines.add(codeline);
+                } else if (type == LineType.CLASSICAL) {
+                    classicalCodelines.add(codeline);
+                }
+            }
+            ControlFlowBlock quantumBlock = new ControlFlowBlock(currentBlockName + "quantum");
+            quantumBlock.setLineType(LineType.QUANTUM);
+            quantumBlock.addCodelines(quantumCodelines);
+            currentBlock.addBranch(quantumBlock);
+            ControlFlowBlock classicalBlock = new ControlFlowBlock(currentBlockName + "classical");
+            classicalBlock.setLineType(LineType.CLASSICAL);
+            classicalBlock.addCodelines(classicalCodelines);
+            currentBlock.addBranch(classicalBlock);
+
+            for (ControlFlowBlock b : originalBlock.getBranches()) {
+                String branchName = b.getName();
+                if (!newBlocks.containsKey(branchName)) {
+                    ControlFlowBlock newBlock = new ControlFlowBlock(branchName);
+                    newBlock.setLineType(LineType.CONTROL_STRUCTURE);
+                    newBlocks.put(branchName, newBlock);
+                    blockQueue.add(newBlock);
+                    quantumBlock.addBranch(newBlock);
+                    classicalBlock.addBranch(newBlock);
+                }
+            }
+        }
+    }
 
 }
