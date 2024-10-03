@@ -161,4 +161,66 @@ public class TestSplitterQuantumClass {
         assertEquals("halt", middle.getBranches().get(0).getName());
     }
 
+    @Test
+    public void testOnlyQuantum() {
+        // Arrange
+        ControlFlowBlock startBlock = createBlock("start", 0, 10);
+        Map<Integer, LineType> classes = new HashMap<>();
+        for(int i = 0; i < 10; i++) {
+            classes.put(i, LineType.QUANTUM);
+        }
+        startBlock.addBranch(new ControlFlowBlock("halt"));
+
+        SplitterQuantumClassical splitterQuantumClassical = new SplitterQuantumClassical(startBlock, classes);
+
+        // Act
+        ControlFlowBlock result = splitterQuantumClassical.getNewNode();
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getCodelines().isEmpty());
+        assertEquals(1, result.getBranches().size());
+        assertEquals(LineType.CONTROL_STRUCTURE, result.getLineType());
+
+        ControlFlowBlock quantumBranch = result.getBranches().get(0);
+        assertNotNull(quantumBranch);
+        assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), quantumBranch.getCodelines());
+        assertEquals(LineType.QUANTUM, quantumBranch.getLineType());
+        assertEquals(1, quantumBranch.getBranches().size());
+
+        assertEquals("halt", quantumBranch.getBranches().get(0).getName());
+        assertEquals(LineType.CONTROL_STRUCTURE, quantumBranch.getBranches().get(0).getLineType());
+    }
+
+    @Test
+    public void testOnlyClassical() {
+        // Arrange
+        ControlFlowBlock startBlock = createBlock("start", 0, 10);
+        Map<Integer, LineType> classes = new HashMap<>();
+        for(int i = 0; i < 10; i++) {
+            classes.put(i, LineType.CLASSICAL);
+        }
+        startBlock.addBranch(new ControlFlowBlock("halt"));
+
+        SplitterQuantumClassical splitterQuantumClassical = new SplitterQuantumClassical(startBlock, classes);
+
+        // Act
+        ControlFlowBlock result = splitterQuantumClassical.getNewNode();
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getCodelines().isEmpty());
+        assertEquals(1, result.getBranches().size());
+        assertEquals(LineType.CONTROL_STRUCTURE, result.getLineType());
+
+        ControlFlowBlock quantumBranch = result.getBranches().get(0);
+        assertNotNull(quantumBranch);
+        assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), quantumBranch.getCodelines());
+        assertEquals(LineType.CLASSICAL, quantumBranch.getLineType());
+        assertEquals(1, quantumBranch.getBranches().size());
+
+        assertEquals("halt", quantumBranch.getBranches().get(0).getName());
+        assertEquals(LineType.CONTROL_STRUCTURE, quantumBranch.getBranches().get(0).getLineType());
+    }
+
 }

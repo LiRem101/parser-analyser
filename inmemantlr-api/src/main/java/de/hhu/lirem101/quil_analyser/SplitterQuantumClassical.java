@@ -107,8 +107,7 @@ public class SplitterQuantumClassical {
                     currentBlock.addBranch(classicalBlock);
                     lastBlocks.add(classicalBlock);
                 }
-            }
-            if(lastBlocks.size() != 2) {
+            } else {
                 lastBlocks.add(currentBlock);
             }
 
