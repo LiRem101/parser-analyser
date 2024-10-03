@@ -1,6 +1,7 @@
 package de.hhu.lirem101.quil_analyser;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a control flow block that contains code lines and branches.
@@ -12,6 +13,8 @@ public class ControlFlowBlock {
     private final ArrayList<Integer> codelines = new ArrayList<>();
     // Pointers to the next control flow blocks.
     private final ArrayList<ControlFlowBlock> branches = new ArrayList<>();
+    // What kind of block this is.
+    private LineType type = null;
 
     public ControlFlowBlock(String name) {
         this.name = name;
@@ -19,6 +22,10 @@ public class ControlFlowBlock {
 
     public void addCodeline(int codeline) {
         codelines.add(codeline);
+    }
+
+    public void addCodelines(List<Integer> codelines) {
+        this.codelines.addAll(codelines);
     }
 
     public void addBranch(ControlFlowBlock block) {
@@ -35,5 +42,13 @@ public class ControlFlowBlock {
 
     public String getName() {
         return name;
+    }
+
+    public LineType getLineType() {
+        return type;
+    }
+
+    public void setLineType(LineType type) {
+        this.type = type;
     }
 }
