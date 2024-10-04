@@ -101,9 +101,7 @@ public class SplitterQuantumClassical {
                 addBranches(newBlocks, blockQueue, b, lastBlocks);
             }
         }
-        HashMap<String, ControlFlowBlock> blocks = createBlockMap(newRoot);
-
-        int i = 0;
+        removeEmptyBlocks(newRoot);
     }
 
     private void determineLastBlocks(ControlFlowBlock quantumBlock, ControlFlowBlock classicalBlock, ControlFlowBlock currentBlock, ArrayList<ControlFlowBlock> lastBlocks) {
@@ -131,6 +129,30 @@ public class SplitterQuantumClassical {
         }
         for(ControlFlowBlock prevBlock : lastBlocks) {
             prevBlock.addBranch(newBlocks.get(branchName));
+        }
+    }
+
+    private void removeEmptyBlocks(ControlFlowBlock root) {
+        HashMap<String, ControlFlowBlock> blocks = new HashMap<>();
+        LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
+        blocks.put(root.getName(), root);
+        blockQueue.add(root);
+        while (!blockQueue.isEmpty()) {
+            ControlFlowBlock currentBlock = blockQueue.poll();
+            if (currentBlock.getBranches().isEmpty()) {
+                continue;
+            }
+            for (ControlFlowBlock b : currentBlock.getBranches()) {
+                if (b.getCodelines().isEmpty() && !b.getBranches().isEmpty()) {
+                    currentBlock.removeBranch(b);
+                    for (ControlFlowBlock bb : b.getBranches()) {
+                        currentBlock.addBranch(bb);
+                    }
+                }
+                if (!blocks.containsKey(b.getName())) {
+                    blockQueue.add(b);
+                }
+            }
         }
     }
 

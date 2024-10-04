@@ -88,31 +88,21 @@ public class TestSplitterQuantumClass {
         ControlFlowBlock quantumBranch = result.getBranches().stream().filter(b -> b.getLineType() == LineType.QUANTUM).findFirst().orElse(null);
         assertNotNull(quantumBranch);
         assertEquals(Arrays.asList(1, 3), quantumBranch.getCodelines());
-        assertEquals(1, quantumBranch.getBranches().size());
+        assertEquals(2, quantumBranch.getBranches().size());
 
         ControlFlowBlock classicalBranch = result.getBranches().stream().filter(b -> b.getLineType() == LineType.CLASSICAL).findFirst().orElse(null);
         assertNotNull(classicalBranch);
         assertEquals(Arrays.asList(0, 2, 4), classicalBranch.getCodelines());
-        assertEquals(1, classicalBranch.getBranches().size());
+        assertEquals(2, classicalBranch.getBranches().size());
 
-        assertEquals(quantumBranch.getBranches().get(0), classicalBranch.getBranches().get(0));
-        assertEquals("middle", quantumBranch.getBranches().get(0).getName());
-        assertEquals(LineType.CONTROL_STRUCTURE, quantumBranch.getBranches().get(0).getLineType());
+        assertEquals(quantumBranch.getBranches(), classicalBranch.getBranches());
 
-        result = quantumBranch.getBranches().get(0) ;
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.getCodelines().isEmpty());
-        assertEquals(2, result.getBranches().size());
-        assertEquals(LineType.CONTROL_STRUCTURE, result.getLineType());
-
-        quantumBranch = result.getBranches().stream().filter(b -> b.getLineType() == LineType.QUANTUM).findFirst().orElse(null);
+        quantumBranch = quantumBranch.getBranches().stream().filter(b -> b.getLineType() == LineType.QUANTUM).findFirst().orElse(null);
         assertNotNull(quantumBranch);
         assertEquals(Arrays.asList(5, 7, 9), quantumBranch.getCodelines());
         assertEquals(1, quantumBranch.getBranches().size());
 
-        classicalBranch = result.getBranches().stream().filter(b -> b.getLineType() == LineType.CLASSICAL).findFirst().orElse(null);
+        classicalBranch = classicalBranch.getBranches().stream().filter(b -> b.getLineType() == LineType.CLASSICAL).findFirst().orElse(null);
         assertNotNull(classicalBranch);
         assertEquals(Arrays.asList(6, 8), classicalBranch.getCodelines());
         assertEquals(1, classicalBranch.getBranches().size());
@@ -221,6 +211,51 @@ public class TestSplitterQuantumClass {
 
         assertEquals("halt", quantumBranch.getBranches().get(0).getName());
         assertEquals(LineType.CONTROL_STRUCTURE, quantumBranch.getBranches().get(0).getLineType());
+    }
+
+    @Test
+    public void testMiddleNodeWithOnlyQuantum() {
+        ControlFlowBlock startBlock = createBlock("start", 0, 5);
+        ControlFlowBlock middleBlock = createBlock("middle", 5, 7);
+        Map<Integer, LineType> classes = new HashMap<>();
+        classes.put(0, LineType.CLASSICAL);
+        for(int i = 1; i < 5; i++) {
+            classes.put(i, LineType.CONTROL_STRUCTURE);
+        }
+        for(int i = 5; i < 7; i++) {
+            classes.put(i, LineType.QUANTUM);
+        }
+        startBlock.addBranch(middleBlock);
+        middleBlock.addBranch(new ControlFlowBlock("halt"));
+
+        SplitterQuantumClassical splitterQuantumClassical = new SplitterQuantumClassical(startBlock, classes);
+
+        ControlFlowBlock result = splitterQuantumClassical.getNewNode();
+
+        assertNotNull(result);
+        assertTrue(result.getCodelines().isEmpty());
+        assertEquals(1, result.getBranches().size());
+        assertEquals(LineType.CONTROL_STRUCTURE, result.getLineType());
+
+        ControlFlowBlock classicalBranch = result.getBranches().get(0);
+        assertNotNull(classicalBranch);
+        assertEquals(Collections.singletonList(0), classicalBranch.getCodelines());
+        assertEquals(LineType.CLASSICAL, classicalBranch.getLineType());
+        assertEquals(1, classicalBranch.getBranches().size());
+
+        ControlFlowBlock controlBranch = classicalBranch.getBranches().get(0);
+        assertNotNull(controlBranch);
+        assertEquals(Arrays.asList(1, 2, 3, 4), controlBranch.getCodelines());
+        assertEquals(LineType.CONTROL_STRUCTURE, controlBranch.getLineType());
+        assertEquals(1, controlBranch.getBranches().size());
+
+        ControlFlowBlock middleBranch = controlBranch.getBranches().get(0);
+        assertNotNull(middleBranch);
+        assertEquals(Arrays.asList(5, 6), middleBranch.getCodelines());
+        assertEquals(LineType.QUANTUM, middleBranch.getLineType());
+        assertEquals(1, middleBranch.getBranches().size());
+
+        assertEquals("halt", middleBranch.getBranches().get(0).getName());
     }
 
 }

@@ -32,6 +32,10 @@ public class ControlFlowBlock {
         branches.add(block);
     }
 
+    public void removeBranch(ControlFlowBlock block) {
+        branches.remove(block);
+    }
+
     public ArrayList<Integer> getCodelines() {
         return new ArrayList<>(codelines);
     }
