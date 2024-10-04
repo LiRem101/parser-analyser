@@ -1,17 +1,21 @@
 package de.hhu.lirem101.quil_analyser;
 
+import guru.nidi.graphviz.attribute.Color;
 import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.attribute.Shape;
+import guru.nidi.graphviz.attribute.Style;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.Node;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
 
 import static guru.nidi.graphviz.attribute.Label.Justification.LEFT;
 import static guru.nidi.graphviz.model.Factory.*;
@@ -81,8 +85,6 @@ public class ControlFlowDrawer {
 
     public void drawControlFlowGraph(File psFile, File dotFile, String filename) throws IOException {
         Graph g = graph("ControlFlowGraph").directed();
-        Graph quantumGraph = graph("quantum").cluster().graphAttr().with(Label.of("Quantum")).directed();
-        Graph classicalGraph = graph("classical").cluster().graphAttr().with(Label.of("Classical")).directed();
         Path filePath = new File(filename).toPath();
         List<String> fileLines = Files.readAllLines(filePath);
 
@@ -90,17 +92,15 @@ public class ControlFlowDrawer {
         Set<Node> nodes = new HashSet<>();
         for(ControlFlowBlock block : blocks) {
             String[] blockText = getBlockText(block, fileLines);
-            Node node = node(block.getName()).with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, blockText));
+            Color color = Color.BLACK;
             if(block.getLineType() == LineType.QUANTUM) {
-                quantumGraph = quantumGraph.with(node);
+                color = Color.rgb(QUANTUM_COLOR);
             } else if(block.getLineType() == LineType.CLASSICAL) {
-                classicalGraph = classicalGraph.with(node);
+                color = Color.rgb(CLASSICAL_COLOR);
             }
+            Node node = node(block.getName()).with(Shape.RECTANGLE, color, Label.htmlLines(LEFT, blockText));
             nodes.add(node);
         }
-
-        g = g.with(quantumGraph);
-        g = g.with(classicalGraph);
 
         for (ControlFlowBlock block : blocks) {
             List<ControlFlowBlock> branches = block.getBranches();
