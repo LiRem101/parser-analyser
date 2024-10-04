@@ -14,7 +14,7 @@ import java.util.Map;
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
 
-    private static void drawQuilCfg(String grammarFileName, String quilFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+    private static void drawQuilCfg(String grammarFileName, String quilFileName, String dotFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         File grammarFile = new File(grammarFileName);
         GenericParser gp = new GenericParser(grammarFile);
         // 2. load file content into string
@@ -33,6 +33,7 @@ public class Main {
         ClassifyLines cl = new ClassifyLines(pt.getRoot());
         Map<Integer, LineType> classes = cl.classifyLines();
 
+        File dotFile = new File(dotFileName);
         File graphic = new File(graphImageFileName);
         OneLevelCodeBlock codeBlock = new OneLevelCodeBlock(pt.getRoot());
         ControlFlowCreator cfc = new ControlFlowCreator(codeBlock);
@@ -40,7 +41,7 @@ public class Main {
         SplitterQuantumClassical sqc = new SplitterQuantumClassical(cfb, classes);
         ControlFlowBlock blocks = sqc.getNewNode();
         ControlFlowDrawer cfd = new ControlFlowDrawer(blocks, classes);
-        cfd.drawControlFlowGraph(graphic, quilFileName);
+        cfd.drawControlFlowGraph(graphic, dotFile, quilFileName);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
@@ -49,9 +50,10 @@ public class Main {
         final String file = "teleport-by-quil";
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + "Quil/" + file + ".quil";
+        String dotFileName = resourcePath + "Quil/" + file + ".dot";
         String graphImageFileName = resourcePath + "Quil/" + file + ".ps";
 
-        drawQuilCfg(grammarFileName, quilFileName, graphImageFileName);
+        drawQuilCfg(grammarFileName, quilFileName, dotFileName, graphImageFileName);
 
     }
 }

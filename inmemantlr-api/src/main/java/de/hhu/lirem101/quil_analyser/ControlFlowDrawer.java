@@ -78,7 +78,8 @@ public class ControlFlowDrawer {
         }
         return blockText;
     }
-    public void drawControlFlowGraph(File file, String filename) throws IOException {
+
+    public void drawControlFlowGraph(File psFile, File dotFile, String filename) throws IOException {
         Graph g = graph("ControlFlowGraph").directed();
         Graph quantumGraph = graph("quantum").cluster().graphAttr().with(Label.of("Quantum")).directed();
         Graph classicalGraph = graph("classical").cluster().graphAttr().with(Label.of("Classical")).directed();
@@ -112,11 +113,8 @@ public class ControlFlowDrawer {
             }
         }
 
-        try {
-            Graphviz.fromGraph(g).width(200).render(Format.PS).toFile(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Graphviz.fromGraph(g).render(Format.DOT).toFile(dotFile);
+        Graphviz.fromGraph(g).width(200).render(Format.PS).toFile(psFile);
 
     }
 
