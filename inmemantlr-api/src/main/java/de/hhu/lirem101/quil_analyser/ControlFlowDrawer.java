@@ -5,10 +5,7 @@ import guru.nidi.graphviz.attribute.Shape;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
-import guru.nidi.graphviz.model.MutableGraph;
-import guru.nidi.graphviz.model.MutableNode;
 import guru.nidi.graphviz.model.Node;
-import org.apache.commons.lang3.mutable.Mutable;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +51,16 @@ public class ControlFlowDrawer {
     }
 
     private String[] getBlockText(ControlFlowBlock block, List<String> quilFileLines) {
-        String[] blockText = new String[block.getCodelines().size() + 2];
-        blockText[0] = block.getName();
-        blockText[1] = "---";
-        int i = 2;
+        String[] blockText = new String[block.getCodelines().size()];
+        String name = block.getName();
+        if (name.equals("start")) {
+            return new String[]{"START"};
+        } else if (name.equals("halt")) {
+            return new String[]{"HALT"};
+        } else if(block.getCodelines().isEmpty()) {
+            return new String[]{name};
+        }
+        int i = 0;
         for (int linenumber : block.getCodelines()) {
             String line = quilFileLines.get(linenumber - 1);
             String color = "#000000";
@@ -77,34 +80,37 @@ public class ControlFlowDrawer {
     }
     public void drawControlFlowGraph(File file, String filename) throws IOException {
         Graph g = graph("ControlFlowGraph").directed();
-        Graph quantumGraph = graph().cluster().graphAttr().with(Label.of("Quantum")).directed();
-        Node qtest = node("qTest").with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, "qTest"));
-        Node test = node("test").with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, "test"));
-        quantumGraph = quantumGraph.with(qtest);
-        g = g.with(test);
+        Graph quantumGraph = graph("quantum").cluster().graphAttr().with(Label.of("Quantum")).directed();
+        Graph classicalGraph = graph("classical").cluster().graphAttr().with(Label.of("Classical")).directed();
+        Path filePath = new File(filename).toPath();
+        List<String> fileLines = Files.readAllLines(filePath);
+
+        Set<ControlFlowBlock> blocks = setOfAllBlocks(block);
+        Set<Node> nodes = new HashSet<>();
+        for(ControlFlowBlock block : blocks) {
+            String[] blockText = getBlockText(block, fileLines);
+            Node node = node(block.getName()).with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, blockText));
+            if(block.getLineType() == LineType.QUANTUM) {
+                quantumGraph = quantumGraph.with(node);
+            } else if(block.getLineType() == LineType.CLASSICAL) {
+                classicalGraph = classicalGraph.with(node);
+            }
+            nodes.add(node);
+        }
+
         g = g.with(quantumGraph);
-        g = g.with(test.link(to(qtest)));
-//        Path filePath = new File(filename).toPath();
-//        List<String> fileLines = Files.readAllLines(filePath);
-//
-//        Set<ControlFlowBlock> blocks = setOfAllBlocks(block);
-//        Set<Node> nodes = new HashSet<>();
-//        blocks.forEach(block -> {
-//            String[] blockText = getBlockText(block, fileLines);
-//            Node node = node(block.getName()).with(Shape.RECTANGLE).with(Label.htmlLines(LEFT, blockText));
-//            nodes.add(node);
-//        });
-//
-//        for (ControlFlowBlock block : blocks) {
-//            List<ControlFlowBlock> branches = block.getBranches();
-//            Node node = nodes.stream().filter(n -> n.name().toString().equals(block.getName())).findFirst().orElse(null);
-//            for (ControlFlowBlock branch : branches) {
-//                Node branchNode = nodes.stream().filter(n -> n.name().toString().equals(branch.getName())).findFirst().orElse(null);
-//                if (node != null && branchNode != null) {
-//                    g = g.with(node.link(to(branchNode)));
-//                }
-//            }
-//        }
+        g = g.with(classicalGraph);
+
+        for (ControlFlowBlock block : blocks) {
+            List<ControlFlowBlock> branches = block.getBranches();
+            Node node = nodes.stream().filter(n -> n.name().toString().equals(block.getName())).findFirst().orElse(null);
+            for (ControlFlowBlock branch : branches) {
+                Node branchNode = nodes.stream().filter(n -> n.name().toString().equals(branch.getName())).findFirst().orElse(null);
+                if (node != null && branchNode != null) {
+                    g = g.with(node.link(to(branchNode)));
+                }
+            }
+        }
 
         try {
             Graphviz.fromGraph(g).width(200).render(Format.PS).toFile(file);
