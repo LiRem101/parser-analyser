@@ -1,7 +1,9 @@
 package de.hhu.lirem101.quil_analyser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a control flow block that contains code lines and branches.
@@ -15,6 +17,8 @@ public class ControlFlowBlock {
     private final ArrayList<ControlFlowBlock> branches = new ArrayList<>();
     // What kind of block this is.
     private LineType type = null;
+    // Which blocks are between this node and start
+    private final Set<ControlFlowBlock> dominatingBlocks = new HashSet<>();
 
     public ControlFlowBlock(String name) {
         this.name = name;
@@ -54,5 +58,14 @@ public class ControlFlowBlock {
 
     public void setLineType(LineType type) {
         this.type = type;
+    }
+
+    public void setNewDominatingBlock(ControlFlowBlock block) {
+        dominatingBlocks.add(block);
+        dominatingBlocks.addAll(block.dominatingBlocks);
+    }
+
+    public boolean areAllDominatingBlocksIncluded(ArrayList<ControlFlowBlock> blocks) {
+        return blocks.containsAll(dominatingBlocks);
     }
 }
