@@ -2,7 +2,6 @@ import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.ControlFlowRanker;
 import org.junit.jupiter.api.Test;
 
-import javax.naming.ldap.Control;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
