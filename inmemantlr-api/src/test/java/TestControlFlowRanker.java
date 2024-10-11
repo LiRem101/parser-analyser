@@ -72,4 +72,31 @@ public class TestControlFlowRanker {
         assertEquals(root, ranking.get(0));
         assertEquals(halt, ranking.get(3));
     }
+
+    @Test
+    void bigBranching() {
+        ControlFlowBlock root = new ControlFlowBlock("start");
+        ControlFlowBlock middle1 = new ControlFlowBlock("middle1");
+        ControlFlowBlock middle2 = new ControlFlowBlock("middle2");
+        ControlFlowBlock middle3 = new ControlFlowBlock("middle3");
+        ControlFlowBlock middle4 = new ControlFlowBlock("middle4");
+        ControlFlowBlock middle5 = new ControlFlowBlock("middle5");
+        ControlFlowBlock halt = new ControlFlowBlock("halt");
+        root.addBranch(middle1);
+        root.addBranch(middle2);
+        middle1.addBranch(middle3);
+        middle2.addBranch(middle3);
+        middle3.addBranch(middle4);
+        middle3.addBranch(middle5);
+        middle4.addBranch(halt);
+        middle5.addBranch(halt);
+
+        ControlFlowRanker cfr = new ControlFlowRanker(root);
+        ArrayList<ControlFlowBlock> ranking = cfr.getRankedBlocks();
+        assertNotNull(ranking);
+        assertEquals(7, ranking.size());
+        assertEquals(root, ranking.get(0));
+        assertEquals(middle3, ranking.get(3));
+        assertEquals(halt, ranking.get(6));
+    }
 }
