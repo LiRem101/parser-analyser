@@ -24,6 +24,12 @@ public class SplitterQuantumClassical {
         return newRoot;
     }
 
+    /**
+     * Calculate the new blocks based on the original blocks. The new blocks are divided into quantum blocks, classical
+     * blocks and control blocks. The quantum blocks contain only quantum code lines, the classical blocks contain only
+     * classical code lines. The original blocks do not have this distinction. Blocks without any lines (except first
+     * and last block) are discarded.
+     */
     private void calculateBlocks() {
         String name = "start";
         newRoot = new ControlFlowBlock(name);
@@ -37,6 +43,11 @@ public class SplitterQuantumClassical {
         calculateBlocks(newBlocks, originalBlocks, blockQueue);
     }
 
+    /**
+     * Create a map of the blocks in the control flow graph. The keys of the map are the names of the blocks.
+     * @param root The root of the control flow graph.
+     * @return A map of the blocks in the control flow graph.
+     */
     private HashMap<String, ControlFlowBlock> createBlockMap(ControlFlowBlock root) {
         HashMap<String, ControlFlowBlock> blocks = new HashMap<>();
         LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
@@ -53,6 +64,15 @@ public class SplitterQuantumClassical {
         return blocks;
     }
 
+    /**
+     * Calculate the new blocks based on the original blocks. The new blocks are divided into quantum blocks, classical
+     * blocks and control blocks. The quantum blocks contain only quantum code lines, the classical blocks contain only
+     * classical code lines. The original blocks do not have this distinction. Blocks without any lines (except first
+     * and last block) are discarded.
+     * @param newBlocks The new blocks that are created.
+     * @param originalBlocks The original blocks.
+     * @param blockQueue A queue of blocks that need to be processed.
+     */
     private void calculateBlocks(HashMap<String, ControlFlowBlock> newBlocks, HashMap<String, ControlFlowBlock> originalBlocks,
                                  LinkedList<ControlFlowBlock> blockQueue) {
         while (!blockQueue.isEmpty()) {
@@ -104,6 +124,15 @@ public class SplitterQuantumClassical {
         removeEmptyBlocks(newRoot);
     }
 
+    /**
+     * Determine the last blocks of the current block. If the quantum block or the classical block is not empty, the
+     * corresponding block is added to the last blocks. If both blocks are empty, the current block is added to the
+     * last blocks.
+     * @param quantumBlock The quantum block.
+     * @param classicalBlock The classical block.
+     * @param currentBlock The current block.
+     * @param lastBlocks The determined last blocks of the current block.
+     */
     private void determineLastBlocks(ControlFlowBlock quantumBlock, ControlFlowBlock classicalBlock, ControlFlowBlock currentBlock, ArrayList<ControlFlowBlock> lastBlocks) {
         if(!quantumBlock.getCodelines().isEmpty() || !classicalBlock.getCodelines().isEmpty()) {
             if(!quantumBlock.getCodelines().isEmpty()) {
@@ -119,6 +148,13 @@ public class SplitterQuantumClassical {
         }
     }
 
+    /**
+     * Add branches to the new blocks. The branches are added to the last blocks of the current block.
+     * @param newBlocks The new blocks.
+     * @param blockQueue A queue of blocks that gets new blocks if new blocks are created.
+     * @param b The branch that gets the branches.
+     * @param lastBlocks The last blocks of the current block. The block b will be added to them.
+     */
     private void addBranches(HashMap<String, ControlFlowBlock> newBlocks, LinkedList<ControlFlowBlock> blockQueue, ControlFlowBlock b, ArrayList<ControlFlowBlock> lastBlocks) {
         String branchName = b.getName();
         if (!newBlocks.containsKey(branchName)) {
@@ -132,6 +168,11 @@ public class SplitterQuantumClassical {
         }
     }
 
+    /**
+     * Remove empty blocks from the control flow graph. An empty block is a block that does not contain any code lines
+     * and has branches. This only works if no two empty blocks follow after each other.
+     * @param root The root of the control flow graph.
+     */
     private void removeEmptyBlocks(ControlFlowBlock root) {
         HashMap<String, ControlFlowBlock> blocks = new HashMap<>();
         LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
@@ -148,9 +189,12 @@ public class SplitterQuantumClassical {
                     currentBlock.removeBranch(b);
                     for (ControlFlowBlock bb : b.getBranches()) {
                         currentBlock.addBranch(bb);
+                        if (!blockQueue.contains(bb)) {
+                            blockQueue.add(bb);
+                        }
                     }
                 }
-                if (!blocks.containsKey(b.getName())) {
+                else if (!blockQueue.contains(b)) {
                     blockQueue.add(b);
                 }
             }
