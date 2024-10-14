@@ -77,14 +77,15 @@ public class LineParameter implements Comparable<LineParameter> {
         }
     }
 
-    public ArrayList<LineParameter> getExecuteBeforeLines(String parameter) {
-        if (quantumParameters.containsKey(parameter)) {
-            return quantumParameters.get(parameter);
-        } else if (classicalParameters.containsKey(parameter)) {
-            return classicalParameters.get(parameter);
-        } else {
-            throw new IllegalArgumentException("Parameter " + parameter + " not found in line " + line);
+    public HashSet<LineParameter> getExecuteBeforeLines() {
+        HashSet<LineParameter> list = new HashSet<>();
+        for (ArrayList<LineParameter> lps : quantumParameters.values()) {
+            list.addAll(lps);
         }
+        for (ArrayList<LineParameter> lps : classicalParameters.values()) {
+            list.addAll(lps);
+        }
+        return list;
     }
 
     public boolean containsQuantumParameter(String parameter) {
