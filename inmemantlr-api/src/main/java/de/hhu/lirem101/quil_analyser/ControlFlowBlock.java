@@ -11,6 +11,8 @@ import java.util.Set;
 public class ControlFlowBlock {
     // Start label/name of the block.
     private final String name;
+    // Rank of the block.
+    private int rank = 0;
     // List of code lines in this control flow block, in the order that they are being executed.
     private final ArrayList<Integer> codelines = new ArrayList<>();
     // Pointers to the next control flow blocks.
@@ -60,6 +62,10 @@ public class ControlFlowBlock {
         this.type = type;
     }
 
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
     public void setNewDominatingBlock(ControlFlowBlock block) {
         dominatingBlocks.add(block);
         dominatingBlocks.addAll(block.dominatingBlocks);
@@ -67,5 +73,19 @@ public class ControlFlowBlock {
 
     public boolean areAllDominatingBlocksIncluded(ArrayList<ControlFlowBlock> blocks) {
         return blocks.containsAll(dominatingBlocks);
+    }
+
+    public ArrayList<Integer> getAllDominatingLines() {
+        ArrayList<Integer> lines = new ArrayList<>();
+        // Sort blocks inversely by rank
+        ArrayList<ControlFlowBlock> sortedBlocks = dominatingBlocks
+                .stream()
+                .sorted((b1, b2) -> Integer.compare(b2.rank, b1.rank))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+
+        for (ControlFlowBlock block : sortedBlocks) {
+            lines.addAll(block.getCodelines());
+        }
+        return lines;
     }
 }

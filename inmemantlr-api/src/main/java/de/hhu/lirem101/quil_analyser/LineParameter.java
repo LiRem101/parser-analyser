@@ -1,13 +1,12 @@
 package de.hhu.lirem101.quil_analyser;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class LineParameter implements Comparable<LineParameter> {
     private final int line;
     private final LineType type;
-    private final Set<String> quantumParameters = new HashSet<>();
-    private final Set<String> classicalParameters = new HashSet<>();
+    private final Map<String, ArrayList<LineParameter>> quantumParameters = new HashMap<>();
+    private final Map<String, ArrayList<LineParameter>> classicalParameters = new HashMap<>();
 
     public LineParameter(int line, LineType type) {
         this.line = line;
@@ -37,19 +36,25 @@ public class LineParameter implements Comparable<LineParameter> {
     }
 
     public void addQuantumParameter(String parameter) {
-        quantumParameters.add(parameter);
+        quantumParameters.put(parameter, new ArrayList<>());
     }
 
     public void addClassicalParameter(String parameter) {
-        classicalParameters.add(parameter);
+        classicalParameters.put(parameter, new ArrayList<>());
     }
 
     public HashSet<String> getQuantumParameters() {
-        return new HashSet<>(quantumParameters);
+        return new HashSet<>(quantumParameters.keySet());
     }
 
     public HashSet<String> getClassicalParameters() {
-        return new HashSet<>(classicalParameters);
+        return new HashSet<>(classicalParameters.keySet());
+    }
+
+    public HashSet<String> getParameters() {
+        HashSet<String> set = new HashSet<>(classicalParameters.keySet());
+        set.addAll(quantumParameters.keySet());
+        return set;
     }
 
     public int getLineNumber() {
@@ -60,11 +65,33 @@ public class LineParameter implements Comparable<LineParameter> {
         return type;
     }
 
+    public void addExecuteBeforeLine(String parameter, LineParameter lp) {
+        if (quantumParameters.containsKey(parameter)) {
+            ArrayList<LineParameter> list = quantumParameters.get(parameter);
+            list.add(lp);
+        } else if (classicalParameters.containsKey(parameter)) {
+            ArrayList<LineParameter> list = classicalParameters.get(parameter);
+            list.add(lp);
+        } else {
+            throw new IllegalArgumentException("Parameter " + parameter + " not found in line " + line);
+        }
+    }
+
+    public ArrayList<LineParameter> getExecuteBeforeLines(String parameter) {
+        if (quantumParameters.containsKey(parameter)) {
+            return quantumParameters.get(parameter);
+        } else if (classicalParameters.containsKey(parameter)) {
+            return classicalParameters.get(parameter);
+        } else {
+            throw new IllegalArgumentException("Parameter " + parameter + " not found in line " + line);
+        }
+    }
+
     public boolean containsQuantumParameter(String parameter) {
-        return quantumParameters.contains(parameter);
+        return quantumParameters.containsKey(parameter);
     }
 
     public boolean containsClassicalParameter(String parameter) {
-        return classicalParameters.contains(parameter);
+        return classicalParameters.containsKey(parameter);
     }
 }

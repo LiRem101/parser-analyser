@@ -50,6 +50,10 @@ public class ControlFlowRanker {
                 queue.add(currentBlock);
             }
         }
+
+        for(int i = 0; i < ranking.size(); i++) {
+            ranking.get(i).setRank(i);
+        }
     }
 
     public ArrayList<ControlFlowBlock> getRankedBlocks() {
