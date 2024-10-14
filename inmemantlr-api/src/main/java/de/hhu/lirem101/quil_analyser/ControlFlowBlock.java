@@ -1,9 +1,6 @@
 package de.hhu.lirem101.quil_analyser;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a control flow block that contains code lines and branches.
@@ -84,7 +81,9 @@ public class ControlFlowBlock {
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
         for (ControlFlowBlock block : sortedBlocks) {
-            lines.addAll(block.getCodelines());
+            ArrayList<Integer> blockLines = block.getCodelines();
+            Collections.reverse(blockLines);
+            lines.addAll(blockLines);
         }
         return lines;
     }

@@ -308,4 +308,44 @@ class TestDataDependencyGraphCreator {
         assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam2));
         assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam3));
     }
+
+    @Test
+    void calculatesGraphWithMultipleLinesPerBlock() {
+        ControlFlowBlock block1 = new ControlFlowBlock("block1");
+        block1.addCodeline(1);
+        block1.addCodeline(2);
+        block1.setRank(0);
+        ControlFlowBlock block2 = new ControlFlowBlock("block2");
+        block2.addCodeline(3);
+        block2.setRank(1);
+        block2.setNewDominatingBlock(block1);
+        block1.addBranch(block2);
+
+        LineParameter lineParam1 = new LineParameter(1, LineType.QUANTUM);
+        lineParam1.addQuantumParameter("param1");
+        LineParameter lineParam2 = new LineParameter(2, LineType.QUANTUM);
+        lineParam2.addQuantumParameter("param1");
+        LineParameter lineParam3 = new LineParameter(3, LineType.QUANTUM);
+        lineParam3.addQuantumParameter("param1");
+
+        ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
+        blocks.add(block1);
+        blocks.add(block2);
+        ArrayList<LineParameter> lines = new ArrayList<>();
+        lines.add(lineParam1);
+        lines.add(lineParam2);
+        lines.add(lineParam3);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+
+        ArrayList<LineParameter> result = creator.getDataDependencyGraph();
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(lineParam1));
+        assertTrue(result.contains(lineParam2));
+        assertTrue(result.contains(lineParam3));
+        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
+        assertTrue(lineParam2.getExecuteBeforeLines().contains(lineParam1));
+        assertTrue(lineParam3.getExecuteBeforeLines().contains(lineParam2));
+        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam1));
+    }
 }
