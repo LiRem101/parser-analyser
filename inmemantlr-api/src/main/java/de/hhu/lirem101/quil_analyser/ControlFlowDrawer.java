@@ -12,6 +12,7 @@ import guru.nidi.graphviz.model.Node;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -25,27 +26,28 @@ import static guru.nidi.graphviz.model.Factory.*;
  */
 public class ControlFlowDrawer {
 
-    private final ControlFlowBlock block;
+    private final DirectedGraphNode block;
     private final Map<Integer, LineType> classes;
     private static final String QUANTUM_COLOR = "#fe4eda";
     private static final String CLASSICAL_COLOR = "#96c8a2";
     private static final String QUANTUM_INFLUENCES_CLASSICAL_COLOR = "#008000";
     private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#ff4500";
 
-    public ControlFlowDrawer(ControlFlowBlock block, Map<Integer, LineType> classes) {
+    public ControlFlowDrawer(DirectedGraphNode block, Map<Integer, LineType> classes) {
         this.block = block;
         this.classes = classes;
     }
 
-    private Set<ControlFlowBlock> setOfAllBlocks(ControlFlowBlock block) {
-        Set<ControlFlowBlock> blocks = new HashSet<>();
-        LinkedList<ControlFlowBlock> blockQueue = new LinkedList<>();
+    private Set<DirectedGraphNode> setOfAllBlocks(DirectedGraphNode block) {
+        Set<DirectedGraphNode> blocks = new HashSet<>();
+        LinkedList<DirectedGraphNode> blockQueue = new LinkedList<>();
         blockQueue.add(block);
 
         while (!blockQueue.isEmpty()) {
-            ControlFlowBlock currentBlock = blockQueue.poll();
+            DirectedGraphNode currentBlock = blockQueue.poll();
             blocks.add(currentBlock);
-            for (ControlFlowBlock b : currentBlock.getBranches()) {
+            ArrayList<DirectedGraphNode> branches = currentBlock.getBranches();
+            for (DirectedGraphNode b : branches) {
                 if (!blocks.contains(b)) {
                     blockQueue.add(b);
                 }
@@ -54,7 +56,7 @@ public class ControlFlowDrawer {
         return blocks;
     }
 
-    private String[] getBlockText(ControlFlowBlock block, List<String> quilFileLines) {
+    private String[] getBlockText(DirectedGraphNode block, List<String> quilFileLines) {
         String[] blockText = new String[block.getCodelines().size()];
         String name = block.getName();
         if (name.equals("start")) {
@@ -65,7 +67,8 @@ public class ControlFlowDrawer {
             return new String[]{name};
         }
         int i = 0;
-        for (int linenumber : block.getCodelines()) {
+        ArrayList<Integer> codelines = block.getCodelines();
+        for (int linenumber : codelines) {
             String line = quilFileLines.get(linenumber - 1);
             String color = "#000000";
             if (classes.get(linenumber) == LineType.QUANTUM) {
@@ -88,9 +91,9 @@ public class ControlFlowDrawer {
         Path filePath = new File(filename).toPath();
         List<String> fileLines = Files.readAllLines(filePath);
 
-        Set<ControlFlowBlock> blocks = setOfAllBlocks(block);
+        Set<DirectedGraphNode> blocks = setOfAllBlocks(block);
         Set<Node> nodes = new HashSet<>();
-        for(ControlFlowBlock block : blocks) {
+        for(DirectedGraphNode block : blocks) {
             String[] blockText = getBlockText(block, fileLines);
             Color color = Color.BLACK;
             if(block.getLineType() == LineType.QUANTUM) {
@@ -102,10 +105,10 @@ public class ControlFlowDrawer {
             nodes.add(node);
         }
 
-        for (ControlFlowBlock block : blocks) {
-            List<ControlFlowBlock> branches = block.getBranches();
+        for (DirectedGraphNode block : blocks) {
+            List<DirectedGraphNode> branches = block.getBranches();
             Node node = nodes.stream().filter(n -> n.name().toString().equals(block.getName())).findFirst().orElse(null);
-            for (ControlFlowBlock branch : branches) {
+            for (DirectedGraphNode branch : branches) {
                 Node branchNode = nodes.stream().filter(n -> n.name().toString().equals(branch.getName())).findFirst().orElse(null);
                 if (node != null && branchNode != null) {
                     g = g.with(node.link(to(branchNode)));
