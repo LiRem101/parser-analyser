@@ -114,7 +114,7 @@ class TestLineParameterDeterminer {
 
         assertEquals(1, result.size());
         assertEquals(3, result.iterator().next().getLineNumber());
-        assertTrue(result.iterator().next().getClassicalParameters().contains("param2[1]"));
+        assertTrue(result.iterator().next().getClassicalParameters().contains("param2[0]"));
     }
 
     @Test

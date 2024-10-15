@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Represents a control flow block that contains code lines and branches.
  */
-public class ControlFlowBlock {
+public class ControlFlowBlock implements DirectedGraphNode {
     // Start label/name of the block.
     private final String name;
     // Rank of the block.

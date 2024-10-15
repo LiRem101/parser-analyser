@@ -2,7 +2,7 @@ package de.hhu.lirem101.quil_analyser;
 
 import java.util.*;
 
-public class LineParameter implements Comparable<LineParameter> {
+public class LineParameter implements Comparable<LineParameter>, DirectedGraphNode {
     private final int line;
     private final LineType type;
     private final Map<String, ArrayList<LineParameter>> quantumParameters = new HashMap<>();
@@ -94,5 +94,28 @@ public class LineParameter implements Comparable<LineParameter> {
 
     public boolean containsClassicalParameter(String parameter) {
         return classicalParameters.containsKey(parameter);
+    }
+
+
+    @Override
+    public ArrayList<LineParameter> getBranches() {
+        ArrayList<LineParameter> list = new ArrayList<>();
+        for (ArrayList<LineParameter> lps : quantumParameters.values()) {
+            list.addAll(lps);
+        }
+        for (ArrayList<LineParameter> lps : classicalParameters.values()) {
+            list.addAll(lps);
+        }
+        return list;
+    }
+
+    @Override
+    public ArrayList<Integer> getCodelines() {
+        return new ArrayList<>(Collections.singletonList(line));
+    }
+
+    @Override
+    public String getName() {
+        return "Line" + line;
     }
 }
