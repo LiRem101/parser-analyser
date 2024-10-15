@@ -8,13 +8,15 @@ import org.snt.inmemantlr.tree.ParseTree;
 import org.snt.inmemantlr.utils.FileUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
+import java.nio.file.Files;
+import java.util.*;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
 
-    private static void drawQuilCfg(String grammarFileName, String quilFileName, String dotFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+    private static ParseTree getParseTree(String grammarFileName, String quilFileName) throws FileNotFoundException, CompilationException, IllegalWorkflowException, ParsingException {
         File grammarFile = new File(grammarFileName);
         GenericParser gp = new GenericParser(grammarFile);
         // 2. load file content into string
@@ -28,32 +30,68 @@ public class Main {
         // 5. parse the string
         gp.parse(s, null, GenericParser.CaseSensitiveType.NONE);
 
-        ParseTree pt = dlist.getParseTree();
+        return dlist.getParseTree();
+    }
 
-        ClassifyLines cl = new ClassifyLines(pt.getRoot());
-        Map<Integer, LineType> classes = cl.classifyLines();
-
-        File dotFile = new File(dotFileName);
-        File graphic = new File(graphImageFileName);
+    private static ControlFlowBlock getControlFlow(ParseTree pt, Map<Integer, LineType> classes) {
         OneLevelCodeBlock codeBlock = new OneLevelCodeBlock(pt.getRoot());
         ControlFlowCreator cfc = new ControlFlowCreator(codeBlock);
         ControlFlowBlock cfb = cfc.createControlFlowBlock();
         SplitterQuantumClassical sqc = new SplitterQuantumClassical(cfb, classes);
         ControlFlowBlock blocks = sqc.getNewNode();
+        return blocks;
+    }
+
+    private static Set<DirectedGraphNode> getDirectedGraph(ControlFlowBlock blocks, ArrayList<LineParameter> lines) {
+        ControlFlowRanker cfr = new ControlFlowRanker(blocks);
+        ArrayList<ControlFlowBlock> rankedBlocks = cfr.getRankedBlocks();
+        DataDependencyGraphCreator ddgc = new DataDependencyGraphCreator(rankedBlocks, lines);
+        ArrayList<LineParameter> dataDependencyGraph = ddgc.getDataDependencyGraph();
+        Set<DirectedGraphNode> dataDependencySet = new TreeSet<>(dataDependencyGraph);
+        return dataDependencySet;
+    }
+
+    private static void drawDataDependencyGraph(ParseTree pt, String quilFileName, String dotFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+        ClassifyLines cl = new ClassifyLines(pt.getRoot());
+        Map<Integer, LineType> classes = cl.classifyLines();
+        ControlFlowBlock blocks = getControlFlow(pt, classes);
+
+        LineParameterDeterminer lpd = new LineParameterDeterminer(pt, cl);
+        ArrayList<LineParameter> lines = lpd.getLineParameters();
+        Set<DirectedGraphNode> dataDependencySet = getDirectedGraph(blocks, lines);
+
+        ControlFlowDrawer cfd = new ControlFlowDrawer(dataDependencySet, classes);
+        File dotFile = new File(dotFileName);
+        File graphic = new File(graphImageFileName);
+        cfd.drawControlFlowGraph(graphic, dotFile, quilFileName);
+    }
+
+    private static void drawQuilCfg(ParseTree pt, String quilFileName, String dotFileName, String graphImageFileName) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+        ClassifyLines cl = new ClassifyLines(pt.getRoot());
+        Map<Integer, LineType> classes = cl.classifyLines();
+        ControlFlowBlock blocks = getControlFlow(pt, classes);
+
         ControlFlowDrawer cfd = new ControlFlowDrawer(blocks, classes);
+        File dotFile = new File(dotFileName);
+        File graphic = new File(graphImageFileName);
         cfd.drawControlFlowGraph(graphic, dotFile, quilFileName);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "teleport-by-quil";
+        final String file = "iterative-phase-estimation";
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + "Quil/" + file + ".quil";
         String dotFileName = resourcePath + "Quil/" + file + ".dot";
         String graphImageFileName = resourcePath + "Quil/" + file + ".ps";
+        String dotFileNameDDG = resourcePath + "Quil/" + file + "ddg.dot";
+        String graphImageFileNameDDG = resourcePath + "Quil/" + file + "ddg.ps";
 
-        drawQuilCfg(grammarFileName, quilFileName, dotFileName, graphImageFileName);
+        ParseTree pt = getParseTree(grammarFileName, quilFileName);
+
+        drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
 
     }
 }

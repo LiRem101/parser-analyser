@@ -3,16 +3,13 @@ package de.hhu.lirem101.quil_analyser;
 import guru.nidi.graphviz.attribute.Color;
 import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.attribute.Shape;
-import guru.nidi.graphviz.attribute.Style;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.Node;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -26,7 +23,7 @@ import static guru.nidi.graphviz.model.Factory.*;
  */
 public class ControlFlowDrawer {
 
-    private final DirectedGraphNode block;
+    private final Set<DirectedGraphNode> blocks;
     private final Map<Integer, LineType> classes;
     private static final String QUANTUM_COLOR = "#fe4eda";
     private static final String CLASSICAL_COLOR = "#96c8a2";
@@ -34,7 +31,12 @@ public class ControlFlowDrawer {
     private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#ff4500";
 
     public ControlFlowDrawer(DirectedGraphNode block, Map<Integer, LineType> classes) {
-        this.block = block;
+        this.blocks = setOfAllBlocks(block);
+        this.classes = classes;
+    }
+
+    public ControlFlowDrawer(Set<DirectedGraphNode> blocks, Map<Integer, LineType> classes) {
+        this.blocks = blocks;
         this.classes = classes;
     }
 
@@ -91,7 +93,7 @@ public class ControlFlowDrawer {
         Path filePath = new File(filename).toPath();
         List<String> fileLines = Files.readAllLines(filePath);
 
-        Set<DirectedGraphNode> blocks = setOfAllBlocks(block);
+        // Set<DirectedGraphNode> blocks = setOfAllBlocks(this.blocks);
         Set<Node> nodes = new HashSet<>();
         for(DirectedGraphNode block : blocks) {
             String[] blockText = getBlockText(block, fileLines);
