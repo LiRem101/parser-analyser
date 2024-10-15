@@ -184,18 +184,19 @@ public class SplitterQuantumClassical {
                 continue;
             }
             for (ControlFlowBlock b : currentBlock.getBranches()) {
-                blocks.put(b.getName(), b);
                 if (b.getCodelines().isEmpty() && !b.getBranches().isEmpty()) {
                     currentBlock.removeBranch(b);
                     for (ControlFlowBlock bb : b.getBranches()) {
                         currentBlock.addBranch(bb);
-                        if (!blockQueue.contains(bb)) {
+                        if (!blocks.containsValue(bb) && !blockQueue.contains(bb)) {
                             blockQueue.add(bb);
+                            blocks.put(b.getName(), b);
                         }
                     }
                 }
-                else if (!blockQueue.contains(b)) {
+                else if (!blocks.containsValue(b) && !blockQueue.contains(b)) {
                     blockQueue.add(b);
+                    blocks.put(b.getName(), b);
                 }
             }
         }
