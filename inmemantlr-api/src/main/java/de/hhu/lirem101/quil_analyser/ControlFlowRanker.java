@@ -9,6 +9,7 @@ public class ControlFlowRanker {
     private final ControlFlowBlock root;
     private final ArrayList<ControlFlowBlock> ranking = new ArrayList<>();
     private final Set<Integer> conditionalJumps;
+    private ArrayList<ControlFlowBlock> startBlocks = new ArrayList<>();
 
     public ControlFlowRanker(ControlFlowBlock root, ArrayList<LineParameter> lines) {
         this.root = root;
@@ -78,7 +79,7 @@ public class ControlFlowRanker {
      * removed before that, to remove circles. This could end into multiple unconnected graphs.
      */
     private void calculateRanking() {
-        ArrayList<ControlFlowBlock> startBlocks = getStartBlocks(root);
+        startBlocks = getStartBlocks(root);
         determineDominatingBlocks(startBlocks);
         Queue<ControlFlowBlock> queue = new LinkedList<>();
         for (ControlFlowBlock startBlock : startBlocks) {
@@ -112,5 +113,13 @@ public class ControlFlowRanker {
             calculateRanking();
         }
         return ranking;
+    }
+
+    public ArrayList<Integer> getIndizesOfStartBlocks() {
+        if(!calculated) {
+            calculated = true;
+            calculateRanking();
+        }
+        return startBlocks.stream().map(ControlFlowBlock::getRank).collect(Collectors.toCollection(ArrayList::new));
     }
 }

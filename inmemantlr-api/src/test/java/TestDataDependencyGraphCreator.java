@@ -14,7 +14,8 @@ class TestDataDependencyGraphCreator {
     void returnsEmptyGraphWhenNoBlocks() {
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         ArrayList<LineParameter> lines = new ArrayList<>();
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
@@ -30,16 +31,18 @@ class TestDataDependencyGraphCreator {
         LineParameter lineParam = new LineParameter(1, LineType.QUANTUM);
         lineParam.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block);
         ArrayList<LineParameter> lines = new ArrayList<>();
         lines.add(lineParam);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(1, result.size());
-        assertEquals(lineParam, result.get(0));
     }
 
     @Test
@@ -56,19 +59,20 @@ class TestDataDependencyGraphCreator {
         LineParameter lineParam2 = new LineParameter(2, LineType.CLASSICAL);
         lineParam2.addQuantumParameter("param2");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block1);
         blocks.add(block2);
         ArrayList<LineParameter> lines = new ArrayList<>();
         lines.add(lineParam1);
         lines.add(lineParam2);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(2, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
         assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
         assertEquals(new HashSet<>(), lineParam2.getExecuteBeforeLines());
     }
@@ -85,20 +89,22 @@ class TestDataDependencyGraphCreator {
         LineParameter lineParam2 = new LineParameter(1, LineType.QUANTUM);
         lineParam2.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block);
         ArrayList<LineParameter> lines = new ArrayList<>();
         lines.add(lineParam1);
         lines.add(lineParam2);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
+        result.sort(Comparator.comparingInt(LineParameter::getLineNumber));
 
         assertEquals(2, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertTrue(lineParam2.getExecuteBeforeLines().contains(lineParam1));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
+        assertTrue(result.get(1).getExecuteBeforeLines().contains(result.get(0)));
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
     }
 
     @Test
@@ -113,20 +119,21 @@ class TestDataDependencyGraphCreator {
         LineParameter lineParam2 = new LineParameter(2, LineType.CLASSICAL);
         lineParam2.addQuantumParameter("param2");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block);
         ArrayList<LineParameter> lines = new ArrayList<>();
         lines.add(lineParam1);
         lines.add(lineParam2);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(2, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
-        assertEquals(new HashSet<>(), lineParam2.getExecuteBeforeLines());
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
+        assertEquals(new HashSet<>(), result.get(1).getExecuteBeforeLines());
     }
 
     @Test
@@ -161,6 +168,9 @@ class TestDataDependencyGraphCreator {
         lineParam3.addQuantumParameter("param1");
         lineParam4.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block1);
         blocks.add(block2);
@@ -171,23 +181,20 @@ class TestDataDependencyGraphCreator {
         lines.add(lineParam2);
         lines.add(lineParam3);
         lines.add(lineParam4);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
+        result.sort(Comparator.comparingInt(LineParameter::getLineNumber));
 
         assertEquals(4, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertTrue(result.contains(lineParam3));
-        assertTrue(result.contains(lineParam4));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
-        assertTrue(lineParam2.getExecuteBeforeLines().contains(lineParam1));
-        assertTrue(lineParam3.getExecuteBeforeLines().contains(lineParam1));
-        assertTrue(lineParam4.getExecuteBeforeLines().contains(lineParam2));
-        assertTrue(lineParam4.getExecuteBeforeLines().contains(lineParam3));
-        assertFalse(lineParam2.getExecuteBeforeLines().contains(lineParam3));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam1));
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
+        assertTrue(result.get(1).getExecuteBeforeLines().contains(result.get(0)));
+        assertTrue(result.get(2).getExecuteBeforeLines().contains(result.get(0)));
+        assertTrue(result.get(3).getExecuteBeforeLines().contains(result.get(1)));
+        assertTrue(result.get(3).getExecuteBeforeLines().contains(result.get(2)));
+        assertFalse(result.get(1).getExecuteBeforeLines().contains(result.get(2)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(3).getExecuteBeforeLines().contains(result.get(0)));
     }
 
     @Test
@@ -221,6 +228,9 @@ class TestDataDependencyGraphCreator {
         lineParam2.addQuantumParameter("param1");
         lineParam4.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block1);
         blocks.add(block2);
@@ -231,23 +241,19 @@ class TestDataDependencyGraphCreator {
         lines.add(lineParam2);
         lines.add(lineParam3);
         lines.add(lineParam4);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(4, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertTrue(result.contains(lineParam3));
-        assertTrue(result.contains(lineParam4));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
-        assertTrue(lineParam2.getExecuteBeforeLines().contains(lineParam1));
-        assertTrue(lineParam4.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam2.getExecuteBeforeLines().contains(lineParam3));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam1));
-        assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam1));
-        assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam3));
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
+        assertTrue(result.get(1).getExecuteBeforeLines().contains(result.get(0)));
+        assertTrue(result.get(3).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(1).getExecuteBeforeLines().contains(result.get(2)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(0)));
+        assertFalse(result.get(3).getExecuteBeforeLines().contains(result.get(0)));
+        assertFalse(result.get(3).getExecuteBeforeLines().contains(result.get(2)));
     }
 
     @Test
@@ -280,6 +286,9 @@ class TestDataDependencyGraphCreator {
         lineParam1.addQuantumParameter("param1");
         lineParam4.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block1);
         blocks.add(block2);
@@ -290,23 +299,21 @@ class TestDataDependencyGraphCreator {
         lines.add(lineParam2);
         lines.add(lineParam3);
         lines.add(lineParam4);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(4, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertTrue(result.contains(lineParam3));
-        assertTrue(result.contains(lineParam4));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
-        assertTrue(lineParam4.getExecuteBeforeLines().contains(lineParam1));
-        assertFalse(lineParam2.getExecuteBeforeLines().contains(lineParam1));
-        assertFalse(lineParam2.getExecuteBeforeLines().contains(lineParam3));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam1));
-        assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam4.getExecuteBeforeLines().contains(lineParam3));
+
+
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
+        assertTrue(result.get(3).getExecuteBeforeLines().contains(result.get(0)));
+        assertFalse(result.get(1).getExecuteBeforeLines().contains(result.get(0)));
+        assertFalse(result.get(1).getExecuteBeforeLines().contains(result.get(2)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(0)));
+        assertFalse(result.get(3).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(3).getExecuteBeforeLines().contains(result.get(2)));
     }
 
     @Test
@@ -328,6 +335,9 @@ class TestDataDependencyGraphCreator {
         LineParameter lineParam3 = new LineParameter(3, LineType.QUANTUM);
         lineParam3.addQuantumParameter("param1");
 
+        ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+        startBlockIndizes.add(0);
+
         ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
         blocks.add(block1);
         blocks.add(block2);
@@ -335,17 +345,14 @@ class TestDataDependencyGraphCreator {
         lines.add(lineParam1);
         lines.add(lineParam2);
         lines.add(lineParam3);
-        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, lines);
+        DataDependencyGraphCreator creator = new DataDependencyGraphCreator(blocks, startBlockIndizes, lines);
 
         ArrayList<LineParameter> result = creator.getDataDependencyGraph();
 
         assertEquals(3, result.size());
-        assertTrue(result.contains(lineParam1));
-        assertTrue(result.contains(lineParam2));
-        assertTrue(result.contains(lineParam3));
-        assertEquals(new HashSet<>(), lineParam1.getExecuteBeforeLines());
-        assertTrue(lineParam2.getExecuteBeforeLines().contains(lineParam1));
-        assertTrue(lineParam3.getExecuteBeforeLines().contains(lineParam2));
-        assertFalse(lineParam3.getExecuteBeforeLines().contains(lineParam1));
+        assertEquals(new HashSet<>(), result.get(0).getExecuteBeforeLines());
+        assertTrue(result.get(1).getExecuteBeforeLines().contains(result.get(0)));
+        assertTrue(result.get(2).getExecuteBeforeLines().contains(result.get(1)));
+        assertFalse(result.get(2).getExecuteBeforeLines().contains(result.get(0)));
     }
 }

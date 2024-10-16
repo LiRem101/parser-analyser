@@ -94,7 +94,8 @@ public class ControlFlowDrawer {
         List<String> fileLines = Files.readAllLines(filePath);
 
         // Set<DirectedGraphNode> blocks = setOfAllBlocks(this.blocks);
-        Set<Node> nodes = new HashSet<>();
+        Map<DirectedGraphNode, Node> nodes = new HashMap<>();
+        int i = 0;
         for(DirectedGraphNode block : blocks) {
             String[] blockText = getBlockText(block, fileLines);
             Color color = Color.BLACK;
@@ -103,15 +104,16 @@ public class ControlFlowDrawer {
             } else if(block.getLineType() == LineType.CLASSICAL) {
                 color = Color.rgb(CLASSICAL_COLOR);
             }
-            Node node = node(block.getName()).with(Shape.RECTANGLE, color, Label.htmlLines(LEFT, blockText));
-            nodes.add(node);
+            Node node = node(block.getName() + i).with(Shape.RECTANGLE, color, Label.htmlLines(LEFT, blockText));
+            nodes.put(block, node);
+            i++;
         }
 
         for (DirectedGraphNode block : blocks) {
             List<DirectedGraphNode> branches = block.getBranches();
-            Node node = nodes.stream().filter(n -> n.name().toString().equals(block.getName())).findFirst().orElse(null);
+            Node node = nodes.get(block);
             for (DirectedGraphNode branch : branches) {
-                Node branchNode = nodes.stream().filter(n -> n.name().toString().equals(branch.getName())).findFirst().orElse(null);
+                Node branchNode = nodes.get(branch);
                 if (node != null && branchNode != null) {
                     g = g.with(node.link(to(branchNode)));
                 }

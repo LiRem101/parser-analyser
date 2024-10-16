@@ -13,17 +13,17 @@ public class LineParameter implements Comparable<LineParameter>, DirectedGraphNo
         this.type = type;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof LineParameter)) {
-            return false;
-        }
-        LineParameter lp = (LineParameter) obj;
-        return lp.line == line;
-    }
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj == this) {
+//            return true;
+//        }
+//        if (!(obj instanceof LineParameter)) {
+//            return false;
+//        }
+//        LineParameter lp = (LineParameter) obj;
+//        return lp.line == line;
+//    }
 
     @Override
     public int compareTo(LineParameter o) {
@@ -94,6 +94,17 @@ public class LineParameter implements Comparable<LineParameter>, DirectedGraphNo
 
     public boolean containsClassicalParameter(String parameter) {
         return classicalParameters.containsKey(parameter);
+    }
+
+    public LineParameter copyLineParameter() {
+        LineParameter copy = new LineParameter(line, type);
+        for (String key : quantumParameters.keySet()) {
+            copy.addQuantumParameter(key);
+        }
+        for (String key : classicalParameters.keySet()) {
+            copy.addClassicalParameter(key);
+        }
+        return copy;
     }
 
 

@@ -43,11 +43,12 @@ public class Main {
     }
 
     private static Set<DirectedGraphNode> getDirectedGraph(ControlFlowBlock blocks, ArrayList<LineParameter> lines) {
-        ControlFlowRanker cfr = new ControlFlowRanker(blocks);
+        ControlFlowRanker cfr = new ControlFlowRanker(blocks, lines);
         ArrayList<ControlFlowBlock> rankedBlocks = cfr.getRankedBlocks();
-        DataDependencyGraphCreator ddgc = new DataDependencyGraphCreator(rankedBlocks, lines);
+        ArrayList<Integer> startBlockIndizes = cfr.getIndizesOfStartBlocks();
+        DataDependencyGraphCreator ddgc = new DataDependencyGraphCreator(rankedBlocks, startBlockIndizes, lines);
         ArrayList<LineParameter> dataDependencyGraph = ddgc.getDataDependencyGraph();
-        Set<DirectedGraphNode> dataDependencySet = new TreeSet<>(dataDependencyGraph);
+        Set<DirectedGraphNode> dataDependencySet = new HashSet<>(dataDependencyGraph);
         return dataDependencySet;
     }
 
@@ -80,7 +81,7 @@ public class Main {
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "iterative-phase-estimation";
+        final String file = "repeat-until-success";
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + "Quil/" + file + ".quil";
         String dotFileName = resourcePath + "Quil/" + file + ".dot";
@@ -90,7 +91,7 @@ public class Main {
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
-        drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        // drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
         drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
 
     }

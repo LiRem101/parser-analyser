@@ -55,6 +55,10 @@ public class ControlFlowBlock implements DirectedGraphNode {
         return type;
     }
 
+    public int getRank() {
+        return rank;
+    }
+
     public void setLineType(LineType type) {
         this.type = type;
     }

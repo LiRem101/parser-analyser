@@ -1,18 +1,20 @@
 package de.hhu.lirem101.quil_analyser;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class DataDependencyGraphCreator {
 
     private final ArrayList<ControlFlowBlock> blocks = new ArrayList<>();
-    private final ArrayList<LineParameter> lines;
+    private final ArrayList<Integer> startBlockIndizes = new ArrayList<>();
+    private final ArrayList<LineParameter> originalLines = new ArrayList<>();
+    private final ArrayList<LineParameter> newLines = new ArrayList<>();
     private boolean calculated = false;
     private final ArrayList<LineParameter> dataDependencyGraph = new ArrayList<>();
 
-    public DataDependencyGraphCreator(ArrayList<ControlFlowBlock> rankedControlFlowBlocks, ArrayList<LineParameter> lines) {
+    public DataDependencyGraphCreator(ArrayList<ControlFlowBlock> rankedControlFlowBlocks, ArrayList<Integer> startBlockIndizes, ArrayList<LineParameter> lines) {
         this.blocks.addAll(rankedControlFlowBlocks);
-        this.lines = lines;
+        this.originalLines.addAll(lines);
+        this.startBlockIndizes.addAll(startBlockIndizes);
     }
 
     /**
@@ -37,18 +39,31 @@ public class DataDependencyGraphCreator {
      */
     private void calculateDataDependencyGraph() {
         Map<String, ArrayList<LineParameter>> params = new HashMap<>();
+        ArrayList<LineParameter> currentLineParams = new ArrayList<>();
+        int index = 0;
 
         for (ControlFlowBlock block : blocks) {
             for (int line : block.getCodelines()) {
-                LineParameter currentLine = lines.stream().filter(lp -> lp.getLineNumber() == line).findFirst().orElse(null);
-                if (currentLine == null) {
+                LineParameter originalLine = originalLines.stream().filter(lp -> lp.getLineNumber() == line).findFirst().orElse(null);
+                if (originalLine == null) {
                     continue;
                 }
+                LineParameter currentLine = originalLine.copyLineParameter();
+                currentLineParams.add(currentLine);
                 for (String param : currentLine.getParameters()) {
-                    addParameterDependency(block, param, params, currentLine, blocks);
+                    addParameterDependency(block, param, params, currentLine, currentLineParams, blocks);
                 }
                 dataDependencyGraph.add(currentLine);
             }
+
+            if(index == blocks.size() - 1 || startBlockIndizes.contains(index + 1)) {
+                params = new HashMap<>();
+                newLines.addAll(currentLineParams);
+                currentLineParams = new ArrayList<>();
+            }
+
+            index++;
+
         }
     }
 
@@ -61,7 +76,7 @@ public class DataDependencyGraphCreator {
      * @param blocks A list of all blocks.
      * @param currentLine The LineParameter that potentially gets a new link.
      */
-    private void addParameterDependency(ControlFlowBlock block, String param, Map<String, ArrayList<LineParameter>> params, LineParameter currentLine, ArrayList<ControlFlowBlock> blocks) {
+    private void addParameterDependency(ControlFlowBlock block, String param, Map<String, ArrayList<LineParameter>> params, LineParameter currentLine, ArrayList<LineParameter> currentLineParams, ArrayList<ControlFlowBlock> blocks) {
         if (!params.containsKey(param)) {
             ArrayList<LineParameter> list = new ArrayList<>();
             list.add(currentLine);
@@ -72,7 +87,7 @@ public class DataDependencyGraphCreator {
             LinkedList<Integer> queue = new LinkedList<>(allPreviousLines);
             while(!queue.isEmpty()) {
                 int line = queue.poll();
-                LineParameter lp = lines.stream().filter(l -> l.getLineNumber() == line).findFirst().orElse(null);
+                LineParameter lp = currentLineParams.stream().filter(l -> l.getLineNumber() == line).findFirst().orElse(null);
                 if (lp == null) {
                     continue;
                 }
