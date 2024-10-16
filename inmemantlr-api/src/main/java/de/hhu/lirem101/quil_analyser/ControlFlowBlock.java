@@ -87,4 +87,17 @@ public class ControlFlowBlock implements DirectedGraphNode {
         }
         return lines;
     }
+
+    public ControlFlowBlock copyControlFlowBlock() {
+        ControlFlowBlock copy = new ControlFlowBlock(name);
+        copy.rank = rank;
+        copy.codelines.addAll(codelines);
+        copy.type = type;
+        copy.dominatingBlocks.addAll(dominatingBlocks);
+        for(ControlFlowBlock branch : branches) {
+            ControlFlowBlock newBranch = branch.copyControlFlowBlock();
+            copy.addBranch(newBranch);
+        }
+        return copy;
+    }
 }
