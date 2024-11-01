@@ -26,7 +26,7 @@ public class ControlFlowDrawer {
     private final Set<DirectedGraphNode> blocks;
     private final Map<Integer, LineType> classes;
     private static final String QUANTUM_COLOR = "#fe4eda";
-    private static final String CLASSICAL_COLOR = "#96c8a2";
+    private static final String CLASSICAL_COLOR = "#464df7";
     private static final String QUANTUM_INFLUENCES_CLASSICAL_COLOR = "#008000";
     private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#ff4500";
 
