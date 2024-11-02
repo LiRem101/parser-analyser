@@ -21,11 +21,11 @@ public class LinkedDDGCreator {
     }
 
     /**
-     * Creates lists of instructions from the control flow block and the AST. The instructions are saved in
-     * the instructions list.
+     * Creates lists of instructions from the control flow block and the AST. The instructions are returned.
+     * @return The instructions of the program.
      */
-    private void calculateInstructions() {
-        ArrayList<ArrayList<Integer>> allLines = calculateExecutionOrder();
+    private ArrayList<ArrayList<InstructionNode>> calculateInstructions(ArrayList<ArrayList<Integer>> allLines) {
+        ArrayList<ArrayList<InstructionNode>> allInstructions = new ArrayList<>();
         for(ArrayList<Integer> lines : allLines) {
             ArrayList<InstructionNode> currentInstructions = new ArrayList<>();
             for(int line : lines) {
@@ -33,8 +33,9 @@ public class LinkedDDGCreator {
                 InstructionNode node = new InstructionNode(line, type);
                 currentInstructions.add(node);
             }
-            instructions.add(currentInstructions);
+            allInstructions.add(currentInstructions);
         }
+        return allInstructions;
     }
 
     /**
