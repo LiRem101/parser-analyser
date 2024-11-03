@@ -88,7 +88,6 @@ public class InstructionListCreator {
             boolean handledConditionalJump = false;
 
             // If currentBlock has codelines, add them to currentLines
-            // Do not add non-conditional control structures to currentLines
             // If the line is a control structure (conditional and non-cond), sort all lines between this control
             // structure and the last one
             if(!currentBlock.getCodelines().isEmpty()) {
@@ -150,8 +149,7 @@ public class InstructionListCreator {
 
     /**
      * Adds the codelines of a block to the ArrayList. If the block is a control structure, the codelines of the blocks
-     * between this and the last control structure are sorted. If the control structure is non-conditional, the
-     * codelines are not added to the ArrayList.
+     * between this and the last control structure are sorted.
      * The index of the last control structure is returned.
      * @param block The block with the codelines to be added.
      * @param lines The ArrayList to which the codelines are added.
@@ -166,9 +164,7 @@ public class InstructionListCreator {
                 Collections.sort(lines.subList(indexLastControl, lines.size()));
                 indexLastControl = lines.size() - 1;
             }
-            if(classes.get(line) != LineType.CONTROL_STRUCTURE) {
-                lines.add(line);
-            }
+            lines.add(line);
         }
         return indexLastControl;
     }

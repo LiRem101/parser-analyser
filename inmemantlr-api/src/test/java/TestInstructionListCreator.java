@@ -62,11 +62,15 @@ class TestInstructionListCreator {
 
         assertEquals(1, result.size());
         ArrayList<InstructionNode> instructions = result.get(0);
-        assertEquals(2, instructions.size());
-        assertEquals(2, instructions.get(0).getLine());
-        assertEquals(3, instructions.get(1).getLine());
-        assertEquals(LineType.QUANTUM, instructions.get(0).getLineType());
-        assertEquals(LineType.CLASSICAL, instructions.get(1).getLineType());
+        assertEquals(4, instructions.size());
+        assertEquals(1, instructions.get(0).getLine());
+        assertEquals(2, instructions.get(1).getLine());
+        assertEquals(3, instructions.get(2).getLine());
+        assertEquals(4, instructions.get(3).getLine());
+        assertEquals(LineType.CONTROL_STRUCTURE, instructions.get(0).getLineType());
+        assertEquals(LineType.QUANTUM, instructions.get(1).getLineType());
+        assertEquals(LineType.CLASSICAL, instructions.get(2).getLineType());
+        assertEquals(LineType.CONTROL_STRUCTURE, instructions.get(3).getLineType());
     }
 
     @Test
@@ -127,9 +131,9 @@ class TestInstructionListCreator {
         ArrayList<ArrayList<InstructionNode>> result = creator.getInstructions();
 
         assertEquals(3, result.size());
-        ArrayList<ArrayList<InstructionNode>> threeInstructions = result
+        ArrayList<ArrayList<InstructionNode>> fourInstructions = result
                 .stream()
-                .filter(x -> x.size() == 3)
+                .filter(x -> x.size() == 4)
                 .collect(Collectors.toCollection(ArrayList::new));
         ArrayList<InstructionNode> oneInstruction = result
                 .stream()
@@ -137,7 +141,7 @@ class TestInstructionListCreator {
                 .findFirst()
                 .orElse(null);
 
-        assertEquals(2, threeInstructions.size());
+        assertEquals(2, fourInstructions.size());
         assertNotNull(oneInstruction);
     }
 }
