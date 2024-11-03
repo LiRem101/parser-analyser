@@ -4,7 +4,6 @@ import de.hhu.lirem101.quil_optimizer.InstructionListCreator;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
