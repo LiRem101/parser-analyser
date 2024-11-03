@@ -85,6 +85,7 @@ public class InstructionListCreator {
         int indexOfLastControlStructure = 0;
         while(!queues.isEmpty() && currentBlock != null) {
             boolean branchesConditionally = false;
+            boolean handledConditionalJump = false;
 
             // If currentBlock has codelines, add them to currentLines
             // Do not add non-conditional control structures to currentLines
@@ -95,7 +96,8 @@ public class InstructionListCreator {
                 // If the last line of currentBlock is a conditional jump, add the two succeeding blocks to two next queues
                 // If this conditional jump has not already been handled
                 int lastLine = currentBlock.getCodelines().get(currentBlock.getCodelines().size() - 1);
-                if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJumps.contains(lastLine)) {
+                handledConditionalJump = handledConditionalJumps.contains(lastLine);
+                if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJump) {
                     branchesConditionally = true;
                     handledConditionalJumps.add(lastLine);
                 }
@@ -104,7 +106,7 @@ public class InstructionListCreator {
 
             if(branchesConditionally) {
                 putBranchesInQueue(currentBlock, queues);
-            } else {
+            } else if(!handledConditionalJump) {
                 // Add branches to current Queue
                 currentBlocks.addAll(currentBlock.getBranches());
             }

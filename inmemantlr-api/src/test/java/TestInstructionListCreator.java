@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 class TestInstructionListCreator {
 
@@ -98,5 +99,46 @@ class TestInstructionListCreator {
         assertEquals(LineType.QUANTUM, instructionsQuantum.get(0).getLineType());
         assertEquals(3, instructionsClassical.get(0).getLine());
         assertEquals(LineType.CLASSICAL, instructionsClassical.get(0).getLineType());
+    }
+
+    @Test
+    void handlesLoops() {
+        ControlFlowBlock blockControl1 = new ControlFlowBlock("testControl1");
+        blockControl1.addCodeline(1);
+        ControlFlowBlock blockQuantum = new ControlFlowBlock("testQuantum");
+        blockQuantum.addCodeline(2);
+        ControlFlowBlock blockControl2 = new ControlFlowBlock("testControl2");
+        blockControl2.addCodeline(3);
+        blockControl2.addCodeline(4);
+        ControlFlowBlock blockClassical = new ControlFlowBlock("testClassical");
+        blockClassical.addCodeline(5);
+        blockControl1.addBranch(blockQuantum);
+        blockQuantum.addBranch(blockControl2);
+        blockControl2.addBranch(blockClassical);
+        blockControl2.addBranch(blockControl1);
+
+        Map<Integer, LineType> classes = new HashMap<>();
+        classes.put(1, LineType.CONTROL_STRUCTURE);
+        classes.put(2, LineType.QUANTUM);
+        classes.put(3, LineType.CLASSICAL_INFLUENCES_QUANTUM);
+        classes.put(4, LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL);
+        classes.put(5, LineType.CLASSICAL);
+
+        InstructionListCreator creator = new InstructionListCreator(blockControl1, classes);
+        ArrayList<ArrayList<InstructionNode>> result = creator.getInstructions();
+
+        assertEquals(3, result.size());
+        ArrayList<ArrayList<InstructionNode>> threeInstructions = result
+                .stream()
+                .filter(x -> x.size() == 3)
+                .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<InstructionNode> oneInstruction = result
+                .stream()
+                .filter(x -> x.size() == 1)
+                .findFirst()
+                .orElse(null);
+
+        assertEquals(2, threeInstructions.size());
+        assertNotNull(oneInstruction);
     }
 }
