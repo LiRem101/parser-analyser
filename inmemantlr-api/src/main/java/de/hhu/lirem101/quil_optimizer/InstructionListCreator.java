@@ -38,7 +38,7 @@ public class InstructionListCreator {
      * @param instructions The list of lists of instructions to be copied.
      * @return The copied list of lists of instructions.
      */
-    public static ArrayList<ArrayList<InstructionNode>> copyInstructions(ArrayList<ArrayList<InstructionNode>> instructions) {
+    private ArrayList<ArrayList<InstructionNode>> copyInstructions(ArrayList<ArrayList<InstructionNode>> instructions) {
         ArrayList<ArrayList<InstructionNode>> copy = new ArrayList<>();
         for (ArrayList<InstructionNode> list : instructions) {
             ArrayList<InstructionNode> copyList = new ArrayList<>();
@@ -84,19 +84,25 @@ public class InstructionListCreator {
         Set<Integer> handledConditionalJumps = new HashSet<>();
         int indexOfLastControlStructure = 0;
         while(!queues.isEmpty() && currentBlock != null) {
+            boolean branchesConditionally = false;
+
             // If currentBlock has codelines, add them to currentLines
             // Do not add non-conditional control structures to currentLines
             // If the line is a control structure (conditional and non-cond), sort all lines between this control
             // structure and the last one
-            if(currentBlock.getCodelines().isEmpty()) {
+            if(!currentBlock.getCodelines().isEmpty()) {
                 indexOfLastControlStructure = addCodelinesToInstructions(currentBlock, currentLines, indexOfLastControlStructure);
+                // If the last line of currentBlock is a conditional jump, add the two succeeding blocks to two next queues
+                // If this conditional jump has not already been handled
+                int lastLine = currentBlock.getCodelines().get(currentBlock.getCodelines().size() - 1);
+                if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJumps.contains(lastLine)) {
+                    branchesConditionally = true;
+                    handledConditionalJumps.add(lastLine);
+                }
             }
 
-            // If the last line of currentBlock is a conditional jump, add the two succeeding blocks to two next queues
-            // If this conditional jump has not already been handled
-            int lastLine = currentBlock.getCodelines().get(currentBlock.getCodelines().size() - 1);
-            if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJumps.contains(lastLine)) {
-                handledConditionalJumps.add(lastLine);
+
+            if(branchesConditionally) {
                 putBranchesInQueue(currentBlock, queues);
             } else {
                 // Add branches to current Queue
@@ -107,6 +113,7 @@ public class InstructionListCreator {
             // Set indexOfLastControlStructure to zero
             if(currentBlocks.isEmpty()) {
                 queues.remove(0);
+                Collections.sort(currentLines.subList(indexOfLastControlStructure, currentLines.size()));
                 if(!queues.isEmpty()) {
                     currentBlocks = queues.get(0);
                     currentBlock = currentBlocks.poll();
@@ -118,6 +125,8 @@ public class InstructionListCreator {
                 currentBlock = currentBlocks.poll();
             }
         }
+        // Remove empty lists
+        allLines.removeIf(ArrayList::isEmpty);
         return allLines;
     }
 
@@ -150,10 +159,10 @@ public class InstructionListCreator {
     private int addCodelinesToInstructions(ControlFlowBlock block, ArrayList<Integer> lines, int indexLastControl) {
         ArrayList<Integer> codelines = block.getCodelines();
         for(int line : codelines) {
-            if(classes.get(line) == LineType.CONTROL_STRUCTURE || classes.get(line) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL) {
+            if(!lines.isEmpty() && (classes.get(line) == LineType.CONTROL_STRUCTURE || classes.get(line) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL)) {
                 // Sort the codelines between the last control structure and this one
                 Collections.sort(lines.subList(indexLastControl, lines.size()));
-                indexLastControl = instructions.size() - 1;
+                indexLastControl = lines.size() - 1;
             }
             if(classes.get(line) != LineType.CONTROL_STRUCTURE) {
                 lines.add(line);

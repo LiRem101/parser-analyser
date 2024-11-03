@@ -60,6 +60,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         return type;
     }
 
+    public int getLine() {
+        return line;
+    }
+
     /**
      * Returns all next InstructionNodes from both the quantum and classical parameters.
      * @return ArrayList of next InstructionNodes
