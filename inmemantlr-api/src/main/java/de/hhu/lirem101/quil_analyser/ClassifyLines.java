@@ -2,25 +2,15 @@ package de.hhu.lirem101.quil_analyser;
 
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
-import javax.sound.sampled.Line;
 import java.util.*;
+
+import static de.hhu.lirem101.quil_analyser.RulesOfParseTree.*;
 
 /**
  * Class that classifies lines of a Quil file depending on the states they act on.
  * The classes are: Quantum, classical, quantum that influences classical and classical that influences quantum.
  */
 public class ClassifyLines {
-    // Gate: Depends on param, just like circuitGate
-    // Measure only influences classical if addr is given
-    // Param (expression) classical (or rather C -> Q) if it is not exclusively a number
-    // defCircuit is a control structure, but its children have to be checked as well
-
-    private static final Set<String> quantum = new HashSet<>(Arrays.asList("defGate", "qubitVariable", "circuitQubit", "resetState", "circuitResetState"));
-    private static final Set<String> classical = new HashSet<>(Arrays.asList("classicalUnary", "classicalBinary", "classicalComparison", "load", "store",
-            "memoryDescriptor"));
-    private static final Set<String> quantumInfluClassical = new HashSet<>(Arrays.asList("measure", "circuitMeasure"));
-    private static final Set<String> controlStructure = new HashSet<>(Arrays.asList("defLabel", "halt", "jump"));
-    private static final Set<String> controlStructureClassical = new HashSet<>(Arrays.asList("jumpWhen", "jumpUnless"));
 
     private final Map<Integer, LineType> lineTypes = new java.util.HashMap<>();
     private final ParseTreeNode node;
