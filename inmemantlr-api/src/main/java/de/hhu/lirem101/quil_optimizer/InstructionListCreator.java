@@ -6,22 +6,51 @@ import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.*;
 
-public class LinkedDDGCreator {
+public class InstructionListCreator {
     private final ControlFlowBlock block;
-    private final ParseTreeNode ast;
     private final Map<Integer, LineType> classes;
     // A list holding all instructions of the program divided into sections without conditional jumps
     // And sorted by the order of execution
-    private final ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
+    private ArrayList<ArrayList<InstructionNode>> instructions;
+    boolean calculated = false;
 
-    public LinkedDDGCreator(ControlFlowBlock block, ParseTreeNode ast, Map<Integer, LineType> classes) {
+    public InstructionListCreator(ControlFlowBlock block, Map<Integer, LineType> classes) {
         this.block = block;
-        this.ast = ast;
         this.classes = classes;
     }
 
     /**
-     * Creates lists of instructions from the control flow block and the AST. The instructions are returned.
+     * Creates list of lists of instructions from the control flow block and the AST. The list returned.
+     * @return The instructions of the program.
+     */
+    public ArrayList<ArrayList<InstructionNode>> getInstructions() {
+        if (!calculated) {
+            ArrayList<ArrayList<Integer>> allLines = calculateExecutionOrder();
+            instructions = calculateInstructions(allLines);
+            calculated = true;
+        }
+        return copyInstructions(instructions);
+    }
+
+
+    /**
+     * Copies a list of lists of instructions.
+     * @param instructions The list of lists of instructions to be copied.
+     * @return The copied list of lists of instructions.
+     */
+    public static ArrayList<ArrayList<InstructionNode>> copyInstructions(ArrayList<ArrayList<InstructionNode>> instructions) {
+        ArrayList<ArrayList<InstructionNode>> copy = new ArrayList<>();
+        for (ArrayList<InstructionNode> list : instructions) {
+            ArrayList<InstructionNode> copyList = new ArrayList<>();
+            copyList.addAll(list);
+            copy.add(copyList);
+        }
+        return copy;
+    }
+
+
+    /**
+     * Creates lists of instructions from the control flow block. The instructions are returned.
      * @return The instructions of the program.
      */
     private ArrayList<ArrayList<InstructionNode>> calculateInstructions(ArrayList<ArrayList<Integer>> allLines) {
