@@ -64,6 +64,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         return line;
     }
 
+    public ParseTreeNode getParseTreeNode() {
+        return ptNode;
+    }
+
     /**
      * Returns all next InstructionNodes from both the quantum and classical parameters.
      * @return ArrayList of next InstructionNodes
