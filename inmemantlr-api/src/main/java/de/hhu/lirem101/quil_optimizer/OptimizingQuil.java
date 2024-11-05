@@ -5,6 +5,7 @@ import de.hhu.lirem101.quil_analyser.LineType;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 public class OptimizingQuil {
@@ -24,5 +25,19 @@ public class OptimizingQuil {
         SortNodesIntoInstructions sorter = new SortNodesIntoInstructions(sortedNodes);
         this.instructions = ilc.getInstructions();
         sorter.appendNodeToInstructions(this.instructions);
+        createLinksOfInstructions();
+    }
+
+
+    /**
+     * Let instructions create their linking.
+     */
+    private void createLinksOfInstructions() {
+        for (ArrayList<InstructionNode> instruction : instructions) {
+            Map<String, InstructionNode> lastInstructionOfParams = new HashMap<>();
+            for (InstructionNode node : instruction) {
+                node.setParameterLinks(lastInstructionOfParams);
+            }
+        }
     }
 }
