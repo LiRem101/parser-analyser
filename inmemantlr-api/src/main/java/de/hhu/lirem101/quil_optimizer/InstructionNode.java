@@ -1,7 +1,6 @@
 package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.DirectedGraphNode;
-import de.hhu.lirem101.quil_analyser.LineParameter;
 import de.hhu.lirem101.quil_analyser.LineType;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
@@ -68,11 +67,18 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         return ptNode;
     }
 
+    public ArrayList<String> getParameters() {
+        ArrayList<String> parameters = new ArrayList<>();
+        parameters.addAll(quantumParameters.keySet());
+        parameters.addAll(classicalParameters.keySet());
+        return parameters;
+    }
+
     /**
      * Returns all next InstructionNodes from both the quantum and classical parameters.
      * @return ArrayList of next InstructionNodes
      */
-    public ArrayList<InstructionNode> getnextInstructions() {
+    public ArrayList<InstructionNode> getNextInstructions() {
         Set<InstructionNode> branches = quantumParameters
                 .values()
                 .stream()
@@ -86,6 +92,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         return new ArrayList<>(branches);
     }
 
+    /**
+     * Adds the instruction's node to the instruction and extracts all parameters associated with the node.
+     * @param ptNode The node to add to the instruction.
+     */
     public void setParseTreeNode(ParseTreeNode ptNode) {
         this.ptNode = ptNode;
         calculateLineParameters(ptNode);
@@ -129,6 +139,57 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
                     this.quantumParameters.put(node.getLabel(), new connectedInstructions());
                 }
                 break;
+        }
+    }
+
+    /**
+     * Sets the previous instruction node and the next instruction node for the given parameters. On the previous
+     * instruction node, the next instruction node is set to this instruction node.
+     * Changes the previous parameters such that it can be given to the next node.
+     * @param previousParameters The previous instruction nodes.
+     */
+    public void setParameterLinks(Map<String, InstructionNode> previousParameters) {
+        ArrayList<String> parameters = getParameters();
+        for (String parameter : parameters) {
+            if (!previousParameters.containsKey(parameter)) {
+                // If parameter is not in the previousParameters, add it to previous Parameters
+                previousParameters.put(parameter, this);
+            } else {
+                // If parameter is in the previousParameters, set the next instruction node for the parameter
+                setPreviousInstruction(parameter, previousParameters.get(parameter));
+                setNextInstruction(parameter, previousParameters.get(parameter));
+                previousParameters.put(parameter, this);
+            }
+        }
+    }
+
+    /**
+     * Sets the previous instruction node for the given parameter.
+     * @param parameter The parameter to set the previous instruction node for.
+     * @param previous The previous instruction node.
+     */
+    private void setPreviousInstruction(String parameter, InstructionNode previous) {
+        if (quantumParameters.containsKey(parameter)) {
+            quantumParameters.get(parameter).previous.add(previous);
+        } else if (classicalParameters.containsKey(parameter)) {
+            classicalParameters.get(parameter).previous.add(previous);
+        } else {
+            throw new IllegalArgumentException("Parameter " + parameter + " not found in instruction " + line);
+        }
+    }
+
+    /**
+     * Sets the next instruction node for the given parameter and previous instruction.
+     * @param parameter The parameter to set the next instruction node for.
+     * @param previous The previous instruction node.
+     */
+    private void setNextInstruction(String parameter, InstructionNode previous) {
+        if (previous.quantumParameters.containsKey(parameter)) {
+            previous.quantumParameters.get(parameter).next.add(this);
+        } else if (previous.classicalParameters.containsKey(parameter)) {
+            previous.classicalParameters.get(parameter).next.add(this);
+        } else {
+            throw new IllegalArgumentException("Parameter " + parameter + " not found in instruction " + line);
         }
     }
 }
