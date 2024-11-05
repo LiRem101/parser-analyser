@@ -108,6 +108,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
                 if(this.line == line) {
                     this.classicalParameters.put(node.getLabel(), new connectedInstructions());
                 }
+                break;
             case "memoryDescriptor":
                 String param = node.getLabel();
                 // Remove 'DECLARE' in the front
@@ -119,7 +120,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
                 param = param.replaceAll("\\[1\\]", "[0]");
                 String finalParam = param;
                 if(this.line == line) {
-                    this.classicalParameters.put(node.getLabel(), new connectedInstructions());
+                    this.classicalParameters.put(param, new connectedInstructions());
                 }
                 break;
             case "qubit":

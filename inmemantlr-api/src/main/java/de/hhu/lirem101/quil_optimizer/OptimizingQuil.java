@@ -23,6 +23,6 @@ public class OptimizingQuil {
         Map<Integer, ParseTreeNode> sortedNodes = snl.getSortedNodes();
         SortNodesIntoInstructions sorter = new SortNodesIntoInstructions(sortedNodes);
         this.instructions = ilc.getInstructions();
-        sorter.appendNodeToInstructions(instructions);
+        sorter.appendNodeToInstructions(this.instructions);
     }
 }
