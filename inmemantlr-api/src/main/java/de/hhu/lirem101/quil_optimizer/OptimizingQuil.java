@@ -4,12 +4,14 @@ import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
+    private final ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
 
 
     /**
@@ -26,6 +28,7 @@ public class OptimizingQuil {
         this.instructions = ilc.getInstructions();
         sorter.appendNodeToInstructions(this.instructions);
         createLinksOfInstructions();
+        createEmptyListsForOrderedInstructions();
     }
 
 
@@ -38,6 +41,12 @@ public class OptimizingQuil {
             for (InstructionNode node : instruction) {
                 node.setParameterLinks(lastInstructionOfParams);
             }
+        }
+    }
+
+    private void createEmptyListsForOrderedInstructions() {
+        for (ArrayList<InstructionNode> instruction : instructions) {
+            currentOrder.add(new ArrayList<>());
         }
     }
 }
