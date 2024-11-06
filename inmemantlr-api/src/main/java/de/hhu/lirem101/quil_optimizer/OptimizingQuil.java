@@ -4,7 +4,6 @@ import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,5 +47,10 @@ public class OptimizingQuil {
         for (ArrayList<InstructionNode> instruction : instructions) {
             currentOrder.add(new ArrayList<>());
         }
+    }
+
+    private ArrayList<ArrayList<InstructionNode>> getExecutableInstructions() {
+        ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(instructions);
+        return eie.getExecutableInstructions(currentOrder);
     }
 }
