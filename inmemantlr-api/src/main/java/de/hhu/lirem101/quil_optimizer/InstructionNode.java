@@ -2,6 +2,8 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.DirectedGraphNode;
 import de.hhu.lirem101.quil_analyser.LineType;
+import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalVariable;
+import de.hhu.lirem101.quil_optimizer.quil_variable.QuantumVariable;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.*;
@@ -9,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
-    private class connectedInstructions {
+    private static class connectedInstructions {
         private final ArrayList<InstructionNode> previous = new ArrayList<>();
         private final ArrayList<InstructionNode> next = new ArrayList<>();
     }
@@ -17,8 +19,8 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     private final int line;
     private final LineType type;
     private ParseTreeNode ptNode;
-    private final Map<String, connectedInstructions> quantumParameters = new HashMap<>();
-    private final Map<String, connectedInstructions> classicalParameters = new HashMap<>();
+    private final Map<QuantumVariable, connectedInstructions> quantumParameters = new HashMap<>();
+    private final Map<ClassicalVariable, connectedInstructions> classicalParameters = new HashMap<>();
 
     public InstructionNode(int line, LineType type) {
         this.line = line;
@@ -69,9 +71,17 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
     public ArrayList<String> getParameters() {
         ArrayList<String> parameters = new ArrayList<>();
-        parameters.addAll(quantumParameters.keySet());
-        parameters.addAll(classicalParameters.keySet());
+        parameters.addAll(quantumParameters.keySet().stream().map(QuantumVariable::getName).collect(Collectors.toSet()));
+        parameters.addAll(classicalParameters.keySet().stream().map(ClassicalVariable::getName).collect(Collectors.toSet()));
         return parameters;
+    }
+
+    private QuantumVariable getQuantumVariable(String name) {
+        return quantumParameters.keySet().stream().filter(x -> x.getName().equals(name)).findFirst().orElse(null);
+    }
+
+    private ClassicalVariable getClassicalVariable(String name) {
+        return classicalParameters.keySet().stream().filter(x -> x.getName().equals(name)).findFirst().orElse(null);
     }
 
     /**
@@ -116,7 +126,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         switch (node.getRule()) {
             case "addr":
                 if(this.line == line) {
-                    this.classicalParameters.put(node.getLabel(), new connectedInstructions());
+                    this.classicalParameters.put(new ClassicalVariable(node.getLabel(), null), new connectedInstructions());
                 }
                 break;
             case "memoryDescriptor":
@@ -130,13 +140,13 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
                 param = param.replaceAll("\\[1\\]", "[0]");
                 String finalParam = param;
                 if(this.line == line) {
-                    this.classicalParameters.put(param, new connectedInstructions());
+                    this.classicalParameters.put(new ClassicalVariable(param, null), new connectedInstructions());
                 }
                 break;
             case "qubit":
             case "qubitVariable":
                 if(this.line == line) {
-                    this.quantumParameters.put(node.getLabel(), new connectedInstructions());
+                    this.quantumParameters.put(new QuantumVariable(node.getLabel(), null), new connectedInstructions());
                 }
                 break;
         }
@@ -169,10 +179,12 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      * @param previous The previous instruction node.
      */
     private void setPreviousInstruction(String parameter, InstructionNode previous) {
-        if (quantumParameters.containsKey(parameter)) {
-            quantumParameters.get(parameter).previous.add(previous);
-        } else if (classicalParameters.containsKey(parameter)) {
-            classicalParameters.get(parameter).previous.add(previous);
+        QuantumVariable qv = getQuantumVariable(parameter);
+        ClassicalVariable cv = getClassicalVariable(parameter);
+        if (qv != null) {
+            quantumParameters.get(qv).previous.add(previous);
+        } else if (cv != null) {
+            classicalParameters.get(cv).previous.add(previous);
         } else {
             throw new IllegalArgumentException("Parameter " + parameter + " not found in instruction " + line);
         }
@@ -184,10 +196,14 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      * @param previous The previous instruction node.
      */
     private void setNextInstruction(String parameter, InstructionNode previous) {
-        if (previous.quantumParameters.containsKey(parameter)) {
-            previous.quantumParameters.get(parameter).next.add(this);
-        } else if (previous.classicalParameters.containsKey(parameter)) {
-            previous.classicalParameters.get(parameter).next.add(this);
+        QuantumVariable qv = getQuantumVariable(parameter);
+        ClassicalVariable cv = getClassicalVariable(parameter);
+        if (qv != null) {
+            QuantumVariable prevQv = previous.getQuantumVariable(parameter);
+            previous.quantumParameters.get(prevQv).next.add(this);
+        } else if (cv != null) {
+            ClassicalVariable prevCv = previous.getClassicalVariable(parameter);
+            previous.classicalParameters.get(prevCv).next.add(this);
         } else {
             throw new IllegalArgumentException("Parameter " + parameter + " not found in instruction " + line);
         }
