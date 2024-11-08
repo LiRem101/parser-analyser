@@ -4,6 +4,7 @@ import de.hhu.lirem101.quil_analyser.DirectedGraphNode;
 import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalVariable;
 import de.hhu.lirem101.quil_optimizer.quil_variable.QuantumVariable;
+import de.hhu.lirem101.quil_optimizer.quil_variable.VariableCalculator;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.*;
@@ -112,43 +113,14 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     }
 
     private void calculateLineParameters(ParseTreeNode node) {
-        LinkedList<ParseTreeNode> queue = new LinkedList<>();
-        queue.add(node);
-        while(!queue.isEmpty()) {
-            ParseTreeNode currentNode = queue.pollLast();
-            handleParametersOfThisNode(currentNode);
-            queue.addAll(currentNode.getChildren());
+        VariableCalculator vc = new VariableCalculator(node);
+        Set<QuantumVariable> quantumVariables = vc.getQuantumVariables();
+        Set<ClassicalVariable> classicalVariables = vc.getClassicalVariables();
+        for (QuantumVariable qv : quantumVariables) {
+            quantumParameters.put(qv, new connectedInstructions());
         }
-    }
-
-    private void handleParametersOfThisNode(ParseTreeNode node) {
-        int line = node.getLine();
-        switch (node.getRule()) {
-            case "addr":
-                if(this.line == line) {
-                    this.classicalParameters.put(new ClassicalVariable(node.getLabel(), null), new connectedInstructions());
-                }
-                break;
-            case "memoryDescriptor":
-                String param = node.getLabel();
-                // Remove 'DECLARE' in the front
-                param = param.substring(7);
-                // Remove BIT, FLOAT, INTEGER, OCTET or REAL in the middle
-                param = param.replaceAll("[BIT|FLOAT|INTEGER|OCTET|REAL]", "");
-                // Replace "[1]" with "[0]"
-                // TODO: Make this work for all numbers
-                param = param.replaceAll("\\[1\\]", "[0]");
-                String finalParam = param;
-                if(this.line == line) {
-                    this.classicalParameters.put(new ClassicalVariable(param, null), new connectedInstructions());
-                }
-                break;
-            case "qubit":
-            case "qubitVariable":
-                if(this.line == line) {
-                    this.quantumParameters.put(new QuantumVariable(node.getLabel(), null), new connectedInstructions());
-                }
-                break;
+        for (ClassicalVariable cv : classicalVariables) {
+            classicalParameters.put(cv, new connectedInstructions());
         }
     }
 
