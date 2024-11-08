@@ -34,6 +34,10 @@ public class ClassicalVariable implements Variable {
         return isConstant;
     }
 
+    public ClassicalUsage getUsage() {
+        return usage;
+    }
+
     public void setValue(double value) {
         this.value = value;
         isConstant = true;

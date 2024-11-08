@@ -37,6 +37,10 @@ public class QuantumVariable implements Variable {
         return cliffordState != null;
     }
 
+    public QuantumUsage getUsage() {
+        return usage;
+    }
+
     public void setCliffordState(QuantumCliffordState cliffordState) {
         this.cliffordState = cliffordState;
     }
