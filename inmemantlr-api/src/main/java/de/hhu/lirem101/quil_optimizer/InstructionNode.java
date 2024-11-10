@@ -2,6 +2,7 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.DirectedGraphNode;
 import de.hhu.lirem101.quil_analyser.LineType;
+import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalUsage;
 import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalVariable;
 import de.hhu.lirem101.quil_optimizer.quil_variable.QuantumVariable;
 import de.hhu.lirem101.quil_optimizer.quil_variable.VariableCalculator;
@@ -20,6 +21,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     private final int line;
     private final LineType type;
     private ParseTreeNode ptNode;
+    private boolean shownToBeDead = false;
     private final Map<QuantumVariable, connectedInstructions> quantumParameters = new HashMap<>();
     private final Map<ClassicalVariable, connectedInstructions> classicalParameters = new HashMap<>();
 
@@ -60,6 +62,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     @Override
     public LineType getLineType() {
         return type;
+    }
+
+    public boolean getShownToBeDead() {
+        return shownToBeDead;
     }
 
     public int getLine() {
@@ -179,5 +185,24 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         } else {
             throw new IllegalArgumentException("Parameter " + parameter + " not found in instruction " + line);
         }
+    }
+
+    /**
+     * Calculates if the instruction is dead code. An instruction is dead code if it is not a control structure or
+     * measure structure and:
+     * - All its quantum parameters are dead and
+     * - All its classical parameters that are not usage type are dead
+     */
+    public void calculateDeadCode() {
+        if (type == LineType.CONTROL_STRUCTURE || type == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL || shownToBeDead) {
+            return;
+        }
+        boolean quantumDead = quantumParameters.keySet().stream().allMatch(QuantumVariable::isShownToBeDead);
+        boolean classicalDead = classicalParameters
+                .keySet()
+                .stream()
+                .filter(x -> x.getUsage() != ClassicalUsage.USAGE)
+                .allMatch(ClassicalVariable::isShownToBeDead);
+        shownToBeDead = quantumDead && classicalDead;
     }
 }
