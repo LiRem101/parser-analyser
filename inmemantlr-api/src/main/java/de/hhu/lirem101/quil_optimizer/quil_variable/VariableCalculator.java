@@ -143,7 +143,13 @@ public class VariableCalculator {
             // Calculate the usage type of the classical variables
             List<ClassicalUsage> usages = RelevantNodeRules.classicalUsage().get(classicalNode);
             for(int i = 0; i < classicalVariableNames.size(); i++) {
-                classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), usages.get(i)));
+                ClassicalUsage usage = usages.get(i);
+                if(usage == ClassicalUsage.USAGE_ASSIGNMENT) {
+                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.USAGE));
+                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.ASSIGNMENT));
+                } else {
+                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), usage));
+                }
             }
             // quantumVariables have to be empty
             if (!quantumVariableNames.isEmpty()) {
