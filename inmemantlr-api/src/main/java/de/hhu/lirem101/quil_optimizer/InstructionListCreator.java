@@ -12,6 +12,7 @@ public class InstructionListCreator {
     // A list holding all instructions of the program divided into sections without conditional jumps
     // And sorted by the order of execution
     private ArrayList<ArrayList<InstructionNode>> instructions;
+    private final ArrayList<ArrayList<Integer>> linestoJumpTo = new ArrayList<>();
     boolean calculated = false;
 
     public InstructionListCreator(ControlFlowBlock block, Map<Integer, LineType> classes) {
@@ -81,7 +82,7 @@ public class InstructionListCreator {
         Queue<ControlFlowBlock> currentBlocks = new LinkedList<>();
         ArrayList<Queue<ControlFlowBlock>> queues = new ArrayList<>();
         queues.add(currentBlocks);
-        Set<Integer> handledConditionalJumps = new HashSet<>();
+        Set<Integer> handledJumpTos = new HashSet<>();
         int indexOfLastControlStructure = 0;
         while(!queues.isEmpty() && currentBlock != null) {
             boolean branchesConditionally = false;
@@ -95,10 +96,10 @@ public class InstructionListCreator {
                 // If the last line of currentBlock is a conditional jump, add the two succeeding blocks to two next queues
                 // If this conditional jump has not already been handled
                 int lastLine = currentBlock.getCodelines().get(currentBlock.getCodelines().size() - 1);
-                handledConditionalJump = handledConditionalJumps.contains(lastLine);
+                handledConditionalJump = handledJumpTos.contains(lastLine);
                 if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJump) {
                     branchesConditionally = true;
-                    handledConditionalJumps.add(lastLine);
+                    handledJumpTos.add(lastLine);
                 }
             }
 
