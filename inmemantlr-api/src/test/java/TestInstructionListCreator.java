@@ -93,8 +93,14 @@ class TestInstructionListCreator {
 
         assertEquals(3, result.size());
         ArrayList<InstructionNode> instructionsControl = result.get(0);
-        ArrayList<InstructionNode> instructionsQuantum = result.get(1);
-        ArrayList<InstructionNode> instructionsClassical = result.get(2);
+        ArrayList<InstructionNode> instructionsQuantum = result.stream()
+                .filter(x -> x.get(0).getLineType() == LineType.QUANTUM)
+                .findFirst()
+                .orElse(null);
+        ArrayList<InstructionNode> instructionsClassical = result.stream()
+                .filter(x -> x.get(0).getLineType() == LineType.CLASSICAL)
+                .findFirst()
+                .orElse(null);
 
         assertEquals(1, instructionsControl.get(0).getLine());
         assertEquals(LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL, instructionsControl.get(0).getLineType());
@@ -130,18 +136,19 @@ class TestInstructionListCreator {
         InstructionListCreator creator = new InstructionListCreator(blockControl1, classes);
         ArrayList<ArrayList<InstructionNode>> result = creator.getInstructions();
 
-        assertEquals(3, result.size());
-        ArrayList<ArrayList<InstructionNode>> fourInstructions = result
+        assertEquals(2, result.size());
+        ArrayList<InstructionNode> fourInstruction = result
                 .stream()
                 .filter(x -> x.size() == 4)
-                .collect(Collectors.toCollection(ArrayList::new));
+                .findFirst()
+                .orElse(null);
         ArrayList<InstructionNode> oneInstruction = result
                 .stream()
                 .filter(x -> x.size() == 1)
                 .findFirst()
                 .orElse(null);
 
-        assertEquals(2, fourInstructions.size());
+        assertNotNull(fourInstruction);
         assertNotNull(oneInstruction);
     }
 }

@@ -2,9 +2,10 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
-import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class InstructionListCreator {
     private final ControlFlowBlock block;
@@ -78,11 +79,16 @@ public class InstructionListCreator {
         ArrayList<Integer> currentLines = new ArrayList<>();
         ArrayList<ArrayList<Integer>> allLines = new ArrayList<>();
         allLines.add(currentLines);
+        ArrayList<Integer> currentJumpTos = new ArrayList<>();
+        linestoJumpTo.add(currentJumpTos);
         // Queues blocks before the next conditional jump
         Queue<ControlFlowBlock> currentBlocks = new LinkedList<>();
         ArrayList<Queue<ControlFlowBlock>> queues = new ArrayList<>();
         queues.add(currentBlocks);
         Set<Integer> handledJumpTos = new HashSet<>();
+        if(!currentBlock.getCodelines().isEmpty()) {
+            handledJumpTos.add(currentBlock.getCodelines().get(0));
+        }
         int indexOfLastControlStructure = 0;
         while(!queues.isEmpty() && currentBlock != null) {
             boolean branchesConditionally = false;
@@ -96,17 +102,14 @@ public class InstructionListCreator {
                 // If the last line of currentBlock is a conditional jump, add the two succeeding blocks to two next queues
                 // If this conditional jump has not already been handled
                 int lastLine = currentBlock.getCodelines().get(currentBlock.getCodelines().size() - 1);
-                handledConditionalJump = handledJumpTos.contains(lastLine);
-                if(classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL && !handledConditionalJump) {
-                    branchesConditionally = true;
-                    handledJumpTos.add(lastLine);
-                }
+                branchesConditionally = classes.get(lastLine) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL;
             }
 
 
             if(branchesConditionally) {
-                putBranchesInQueue(currentBlock, queues);
-            } else if(!handledConditionalJump) {
+                putBranchesInQueue(currentBlock, queues, handledJumpTos, currentJumpTos);
+                branchesConditionally = false;
+            } else {
                 // Add branches to current Queue
                 currentBlocks.addAll(currentBlock.getBranches());
             }
@@ -120,32 +123,62 @@ public class InstructionListCreator {
                     currentBlocks = queues.get(0);
                     currentBlock = currentBlocks.poll();
                     currentLines = new ArrayList<>();
+                    currentJumpTos = new ArrayList<>();
                     allLines.add(currentLines);
+                    linestoJumpTo.add(currentJumpTos);
                     indexOfLastControlStructure = 0;
                 }
             } else {
                 currentBlock = currentBlocks.poll();
             }
         }
+        // Indizes of emppty lists
+        List<Integer> emptyListIndices = IntStream.range(0, allLines.size())
+                .filter(i -> allLines.get(i).isEmpty())
+                .boxed()
+                .collect(Collectors.toList());
+
         // Remove empty lists
         allLines.removeIf(ArrayList::isEmpty);
+        for(int i = allLines.size()-1; i >= 0; i--) {
+            if(emptyListIndices.contains(i)) {
+                linestoJumpTo.remove(i);
+            }
+        }
         return allLines;
     }
 
     /**
-     * Adds the two branches of a block to new queues and add these queues to the list of queues.
+     * Adds the two branches of a block to new queues and add these queues to the list of queues. Olny if the first line
+     * of the branch is not handled yet.
      * @param currentBlock The block with the branches to be added.
      * @param queues The queues to which the new queues are added.
+     * @param handledJumpTos The set of handled jumps.
+     * @param jumpTos The list of lines the array jumps to.
      */
-    private void putBranchesInQueue(ControlFlowBlock currentBlock, ArrayList<Queue<ControlFlowBlock>> queues) {
+    private void putBranchesInQueue(ControlFlowBlock currentBlock, ArrayList<Queue<ControlFlowBlock>> queues, Set<Integer> handledJumpTos, ArrayList<Integer> jumpTos) {
         ControlFlowBlock nextBlock1 = currentBlock.getBranches().get(0);
         ControlFlowBlock nextBlock2 = currentBlock.getBranches().get(1);
-        Queue<ControlFlowBlock> nextBlocks1 = new LinkedList<>();
-        Queue<ControlFlowBlock> nextBlocks2 = new LinkedList<>();
-        nextBlocks1.add(nextBlock1);
-        nextBlocks2.add(nextBlock2);
-        queues.add(nextBlocks1);
-        queues.add(nextBlocks2);
+        if(!nextBlock1.getCodelines().isEmpty()) {
+            int firstLine1 = nextBlock1.getCodelines().get(0);
+            jumpTos.add(firstLine1);
+            if(!handledJumpTos.contains(firstLine1)) {
+                handledJumpTos.add(firstLine1);
+                Queue<ControlFlowBlock> nextBlocks1 = new LinkedList<>();
+                nextBlocks1.add(nextBlock1);
+                queues.add(nextBlocks1);
+            }
+        }
+        if(!nextBlock2.getCodelines().isEmpty()) {
+            int firstLine2 = nextBlock2.getCodelines().get(0);
+            jumpTos.add(firstLine2);
+            if(!handledJumpTos.contains(firstLine2)) {
+                handledJumpTos.add(firstLine2);
+                Queue<ControlFlowBlock> nextBlocks2 = new LinkedList<>();
+                nextBlocks2.add(nextBlock2);
+                queues.add(nextBlocks2);
+            }
+        }
     }
 
     /**
