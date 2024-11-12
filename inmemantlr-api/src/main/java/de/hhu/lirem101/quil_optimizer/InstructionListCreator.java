@@ -28,22 +28,36 @@ public class InstructionListCreator {
     public ArrayList<ArrayList<InstructionNode>> getInstructions() {
         if (!calculated) {
             ArrayList<ArrayList<Integer>> allLines = calculateExecutionOrder();
-            instructions = calculateInstructions(allLines);
+            calculateInstructions(allLines);
             calculated = true;
         }
-        return copyInstructions(instructions);
+        return copyList(instructions);
+    }
+
+    /**
+     * Returns a list of lists of integers. Every entry holds the line numbers of the lines the corresponding
+     * instruction block in the instructions list jumps to.
+     * @return The list of lists of integers.
+     */
+    public ArrayList<ArrayList<Integer>> getLinesToJumpTo() {
+        if (!calculated) {
+            ArrayList<ArrayList<Integer>> allLines = calculateExecutionOrder();
+            calculateInstructions(allLines);
+            calculated = true;
+        }
+        return copyList(linestoJumpTo);
     }
 
 
     /**
-     * Copies a list of lists of instructions.
-     * @param instructions The list of lists of instructions to be copied.
-     * @return The copied list of lists of instructions.
+     * Copies a list of lists.
+     * @param instructions The list of lists to be copied.
+     * @return The copied list of lists.
      */
-    private ArrayList<ArrayList<InstructionNode>> copyInstructions(ArrayList<ArrayList<InstructionNode>> instructions) {
-        ArrayList<ArrayList<InstructionNode>> copy = new ArrayList<>();
-        for (ArrayList<InstructionNode> list : instructions) {
-            ArrayList<InstructionNode> copyList = new ArrayList<>();
+    private <T> ArrayList<ArrayList<T>> copyList(ArrayList<ArrayList<T>> instructions) {
+        ArrayList<ArrayList<T>> copy = new ArrayList<>();
+        for (ArrayList<T> list : instructions) {
+            ArrayList<T> copyList = new ArrayList<>();
             copyList.addAll(list);
             copy.add(copyList);
         }
@@ -52,10 +66,9 @@ public class InstructionListCreator {
 
 
     /**
-     * Creates lists of instructions from the control flow block. The instructions are returned.
-     * @return The instructions of the program.
+     * Calculates lists of instructions from the control flow block.
      */
-    private ArrayList<ArrayList<InstructionNode>> calculateInstructions(ArrayList<ArrayList<Integer>> allLines) {
+    private void calculateInstructions(ArrayList<ArrayList<Integer>> allLines) {
         ArrayList<ArrayList<InstructionNode>> allInstructions = new ArrayList<>();
         for(ArrayList<Integer> lines : allLines) {
             ArrayList<InstructionNode> currentInstructions = new ArrayList<>();
@@ -66,7 +79,7 @@ public class InstructionListCreator {
             }
             allInstructions.add(currentInstructions);
         }
-        return allInstructions;
+        instructions = allInstructions;
     }
 
     /**
