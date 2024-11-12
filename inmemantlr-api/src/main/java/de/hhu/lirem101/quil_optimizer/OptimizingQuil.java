@@ -4,13 +4,12 @@ import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
     private final ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
+    private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
 
 
     /**
@@ -28,6 +27,8 @@ public class OptimizingQuil {
         sorter.appendNodeToInstructions(this.instructions);
         createLinksOfInstructions();
         createEmptyListsForOrderedInstructions();
+        ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
+        replaceLinesByIndex(indexToJumpTo, linesToJumpTo);
     }
 
 
@@ -52,5 +53,25 @@ public class OptimizingQuil {
     private ArrayList<ArrayList<InstructionNode>> getExecutableInstructions() {
         ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(instructions);
         return eie.getExecutableInstructions(currentOrder);
+    }
+
+    /** Take a list of lists of line numbers the corresponding instruction block jumps to. Replace the line numbers by
+     * the index numbers of the corresponding instruction block in the instructions list. Save result in indexToJumpTo.
+     * @param indexToJumpTo The list of lists of index numbers.
+     * @param linesToJumpTo The list of lists of line numbers.
+     */
+    private void replaceLinesByIndex(ArrayList<Set<Integer>> indexToJumpTo, ArrayList<ArrayList<Integer>> linesToJumpTo) {
+        for (ArrayList<Integer> lines : linesToJumpTo) {
+            Set<Integer> indexSet = new HashSet<>();
+            for(int i = 0; i < instructions.size(); i++) {
+                if(!instructions.get(i).isEmpty()) {
+                    InstructionNode node = instructions.get(i).get(0);
+                    if (lines.contains(node.getLine())) {
+                        indexSet.add(i);
+                    }
+                }
+            }
+            indexToJumpTo.add(indexSet);
+        }
     }
 }

@@ -209,7 +209,7 @@ public class InstructionListCreator {
             if(!lines.isEmpty() && (classes.get(line) == LineType.CONTROL_STRUCTURE || classes.get(line) == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL)) {
                 // Sort the codelines between the last control structure and this one
                 Collections.sort(lines.subList(indexLastControl, lines.size()));
-                indexLastControl = lines.size() - 1;
+                indexLastControl = lines.size();
             }
             lines.add(line);
         }
