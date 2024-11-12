@@ -10,6 +10,7 @@ public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
     private final ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
     private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
+    private final Set<String> readoutParams = new HashSet<>();
 
 
     /**
@@ -17,8 +18,10 @@ public class OptimizingQuil {
      * @param block The control flow block to create the instructions from.
      * @param classes A map with the line number as key and the line type as value.
      * @param root The root node of the parse tree.
+     * @param readoutParams The classical params whose values are read out at the end of the program, i.e. that will not
+     *                      be dead.
      */
-    public OptimizingQuil(ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root) {
+    public OptimizingQuil(ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root, Set<String> readoutParams) {
         InstructionListCreator ilc = new InstructionListCreator(block, classes);
         SortingNodesToLines snl = new SortingNodesToLines(root);
         Map<Integer, ParseTreeNode> sortedNodes = snl.getSortedNodes();
@@ -29,6 +32,7 @@ public class OptimizingQuil {
         createEmptyListsForOrderedInstructions();
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
         replaceLinesByIndex(indexToJumpTo, linesToJumpTo);
+        this.readoutParams.addAll(readoutParams);
     }
 
 
