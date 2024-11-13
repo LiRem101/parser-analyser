@@ -3,6 +3,8 @@ package de.hhu.lirem101.quil_optimizer.analysis;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import de.hhu.lirem101.quil_optimizer.quil_variable.*;
 
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,6 +36,26 @@ public class LiveVariableAnalyser {
             findDeadVariables();
         }
         return variablesSetToDead;
+    }
+
+    /**
+     * Add information about dead variables into JsonObjectBuilder.
+     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     */
+    public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+        if (!calculated) {
+            findDeadVariables();
+        }
+        for(ArrayList<BoxedVariableProperties> variables : variablesSetToDead) {
+            JsonObjectBuilder deadVariables = Json.createObjectBuilder();
+            for(BoxedVariableProperties variable : variables) {
+                JsonObjectBuilder variableBuilder = Json.createObjectBuilder();
+                variableBuilder.add("line", variable.line);
+                variableBuilder.add("isQuantum", variable.isQuantum);
+                deadVariables.add(variable.name, variableBuilder);
+            }
+            jsonBuilder.add("DeadVariableAnalysis", deadVariables);
+        }
     }
 
     /**

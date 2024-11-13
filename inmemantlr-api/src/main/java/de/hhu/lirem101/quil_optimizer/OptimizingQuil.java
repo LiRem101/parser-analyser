@@ -2,9 +2,15 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
+import de.hhu.lirem101.quil_optimizer.analysis.BoxedVariableProperties;
+import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
@@ -29,10 +35,37 @@ public class OptimizingQuil {
         this.instructions = ilc.getInstructions();
         sorter.appendNodeToInstructions(this.instructions);
         createLinksOfInstructions();
-        createEmptyListsForOrderedInstructions();
+        createListsForOrderedInstructions();
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
         replaceLinesByIndex(indexToJumpTo, linesToJumpTo);
         this.readoutParams.addAll(readoutParams);
+    }
+
+
+    /**
+     * Apply optimization steps to the instructions. Save the optimized instructions in currentOrder. Create a json
+     * string with the optimized instructions.
+     * @param optimizationSteps The optimization steps to apply as strings.
+     * @return The json string with the optimized instructions.
+     */
+    public String applyOptimizationSteps(ArrayList<String> optimizationSteps){
+        JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder startBuilder = Json.createObjectBuilder();
+        startBuilder.add("codeLines", instructionsToLines(instructions).toString());
+        jsonBuilder.add("Start", startBuilder);
+
+        for(String optimizationStep : optimizationSteps) {
+            switch (optimizationStep) {
+                case "LiveVariableAnalysis":
+                    LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams);
+                    lva.addDeadVariablesToJson(jsonBuilder);
+                    break;
+            }
+        }
+        JsonObject json = jsonBuilder.build();
+        String jsonString = json.toString();
+
+        return jsonString;
     }
 
 
@@ -48,9 +81,10 @@ public class OptimizingQuil {
         }
     }
 
-    private void createEmptyListsForOrderedInstructions() {
-        for (ArrayList<InstructionNode> instruction : instructions) {
+    private void createListsForOrderedInstructions() {
+        for (ArrayList<InstructionNode> instructionList : instructions) {
             currentOrder.add(new ArrayList<>());
+            currentOrder.get(currentOrder.size() - 1).addAll(instructionList);
         }
     }
 
@@ -77,5 +111,18 @@ public class OptimizingQuil {
             }
             indexToJumpTo.add(indexSet);
         }
+    }
+
+    /**
+     * Transform list of list of instructions to a list of list of line of ints (of the lines of the instructions).
+     * @param instructions The list of list of instructions.
+     * @return The list of list of line of ints.
+     */
+    private ArrayList<ArrayList<Integer>> instructionsToLines(ArrayList<ArrayList<InstructionNode>> instructions) {
+        ArrayList<ArrayList<Integer>> lines = new ArrayList<>();
+        for (ArrayList<InstructionNode> instruction : instructions) {
+            lines.add(new ArrayList<>(instruction.stream().map(InstructionNode::getLine).collect(Collectors.toList())));
+        }
+        return lines;
     }
 }
