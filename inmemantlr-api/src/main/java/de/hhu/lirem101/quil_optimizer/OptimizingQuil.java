@@ -54,7 +54,7 @@ public class OptimizingQuil {
     public String applyOptimizationSteps(ArrayList<String> optimizationSteps){
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
         JsonObjectBuilder startBuilder = Json.createObjectBuilder();
-        startBuilder.add("codeLines", instructionsToLines(instructions).toString());
+        addInstructionsToJson(startBuilder, instructions);
         jsonBuilder.add("Start", startBuilder);
 
         for(String optimizationStep : optimizationSteps) {
@@ -117,18 +117,17 @@ public class OptimizingQuil {
     }
 
     /**
-     * Transform list of list of instructions to a list of list of lines in the form of "LineNumber: LineContent".
+     * Adds lines to jsonBuilder in the form of "LineNumber: LineContent".
+     * The list of list of instructions is used for that.
      * @param instructions The list of list of instructions.
-     * @return The list of list of lines.
      */
-    private ArrayList<ArrayList<String>> instructionsToLines(ArrayList<ArrayList<InstructionNode>> instructions) {
-        ArrayList<ArrayList<String>> lines = new ArrayList<>();
+    private void addInstructionsToJson(JsonObjectBuilder json, ArrayList<ArrayList<InstructionNode>> instructions) {
         for (ArrayList<InstructionNode> instruction : instructions) {
-            lines.add(new ArrayList<>(instruction
-                    .stream()
-                    .map(x -> Integer.toString(x.getLine()) + ": " + quilCode[x.getLine()-1])
-                    .collect(Collectors.toList())));
+            JsonObjectBuilder instructionBuilder = Json.createObjectBuilder();
+            for (InstructionNode node : instruction) {
+                instructionBuilder.add(Integer.toString(node.getLine()), quilCode[node.getLine()-1]);
+            }
+            json.add(instruction.get(0).getName(), instructionBuilder);
         }
-        return lines;
     }
 }
