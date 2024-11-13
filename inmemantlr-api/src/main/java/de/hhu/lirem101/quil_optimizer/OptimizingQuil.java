@@ -17,6 +17,7 @@ public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
     private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
     private final Set<String> readoutParams = new HashSet<>();
+    private final String[] quilCode;
 
 
     /**
@@ -26,8 +27,9 @@ public class OptimizingQuil {
      * @param root The root node of the parse tree.
      * @param readoutParams The classical params whose values are read out at the end of the program, i.e. that will not
      *                      be dead.
+     * @param quilCode The Quil code as an array of strings.
      */
-    public OptimizingQuil(ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root, Set<String> readoutParams) {
+    public OptimizingQuil(ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root, Set<String> readoutParams, String[] quilCode) {
         InstructionListCreator ilc = new InstructionListCreator(block, classes);
         SortingNodesToLines snl = new SortingNodesToLines(root);
         Map<Integer, ParseTreeNode> sortedNodes = snl.getSortedNodes();
@@ -39,6 +41,7 @@ public class OptimizingQuil {
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
         replaceLinesByIndex(indexToJumpTo, linesToJumpTo);
         this.readoutParams.addAll(readoutParams);
+        this.quilCode = quilCode.clone();
     }
 
 
@@ -114,14 +117,17 @@ public class OptimizingQuil {
     }
 
     /**
-     * Transform list of list of instructions to a list of list of line of ints (of the lines of the instructions).
+     * Transform list of list of instructions to a list of list of lines in the form of "LineNumber: LineContent".
      * @param instructions The list of list of instructions.
-     * @return The list of list of line of ints.
+     * @return The list of list of lines.
      */
-    private ArrayList<ArrayList<Integer>> instructionsToLines(ArrayList<ArrayList<InstructionNode>> instructions) {
-        ArrayList<ArrayList<Integer>> lines = new ArrayList<>();
+    private ArrayList<ArrayList<String>> instructionsToLines(ArrayList<ArrayList<InstructionNode>> instructions) {
+        ArrayList<ArrayList<String>> lines = new ArrayList<>();
         for (ArrayList<InstructionNode> instruction : instructions) {
-            lines.add(new ArrayList<>(instruction.stream().map(InstructionNode::getLine).collect(Collectors.toList())));
+            lines.add(new ArrayList<>(instruction
+                    .stream()
+                    .map(x -> Integer.toString(x.getLine()) + ": " + quilCode[x.getLine()-1])
+                    .collect(Collectors.toList())));
         }
         return lines;
     }
