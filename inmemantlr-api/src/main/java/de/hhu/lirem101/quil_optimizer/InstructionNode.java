@@ -83,6 +83,14 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         return parameters;
     }
 
+    public ArrayList<QuantumVariable> getQuantumParameters() {
+        return new ArrayList<>(quantumParameters.keySet());
+    }
+
+    public ArrayList<ClassicalVariable> getClassicalParameters() {
+        return new ArrayList<>(classicalParameters.keySet());
+    }
+
     private QuantumVariable getQuantumVariable(String name) {
         return quantumParameters.keySet().stream().filter(x -> x.getName().equals(name)).findFirst().orElse(null);
     }
