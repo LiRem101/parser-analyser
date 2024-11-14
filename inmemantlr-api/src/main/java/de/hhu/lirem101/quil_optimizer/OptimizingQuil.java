@@ -2,7 +2,7 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
-import de.hhu.lirem101.quil_optimizer.analysis.BoxedVariableProperties;
+import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
@@ -10,7 +10,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
@@ -62,6 +61,10 @@ public class OptimizingQuil {
                 case "LiveVariableAnalysis":
                     LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams);
                     lva.addDeadVariablesToJson(jsonBuilder);
+                    break;
+                case "DeadCodeAnalysis":
+                    DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
+                    dca.addDeadVariablesToJson(jsonBuilder);
                     break;
             }
         }
