@@ -5,7 +5,8 @@ import de.hhu.lirem101.quil_optimizer.quantum_gates.QuantumCliffordGate;
 public class QuantumVariable implements Variable {
     private final String name;
     private boolean shownToBeDead = false;
-    private QuantumCliffordState cliffordState = null;
+    private QuantumCliffordState cliffordStateBeforeGate = null;
+    private QuantumCliffordState cliffordStateAfterGate = null;
     private final QuantumUsage usage;
 
     public QuantumVariable(String name, QuantumUsage usage) {
@@ -14,7 +15,7 @@ public class QuantumVariable implements Variable {
     }
 
     public QuantumCliffordState applyGate(QuantumCliffordGate gate) {
-        return gate.apply(cliffordState);
+        return gate.apply(cliffordStateBeforeGate);
     }
 
     @Override
@@ -34,18 +35,22 @@ public class QuantumVariable implements Variable {
 
     @Override
     public boolean isConstant() {
-        return cliffordState != null;
+        return cliffordStateBeforeGate != null;
     }
 
     public QuantumUsage getUsage() {
         return usage;
     }
 
-    public void setCliffordState(QuantumCliffordState cliffordState) {
-        this.cliffordState = cliffordState;
+    public void setCliffordStateBeforeGate(QuantumCliffordState cliffordStateBeforeGate) {
+        this.cliffordStateBeforeGate = cliffordStateBeforeGate;
     }
 
-    public QuantumCliffordState getCliffordState() {
-        return cliffordState;
+    public QuantumCliffordState getCliffordStateBeforeGate() {
+        return cliffordStateBeforeGate;
+    }
+
+    public QuantumCliffordState getCliffordStateAfterGate() {
+        return cliffordStateAfterGate;
     }
 }
