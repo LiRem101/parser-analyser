@@ -1,9 +1,6 @@
 package de.hhu.lirem101.quil_optimizer.analysis;
 
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
-import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalUsage;
-import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalVariable;
-import de.hhu.lirem101.quil_optimizer.quil_variable.QuantumVariable;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
