@@ -88,7 +88,7 @@ public class DeadCodeAnalyser {
         if(instructions.size() == 1) {
             return;
         }
-        indizesOfDeadLines.addAll(IntStream.range(0, instructions.size()).boxed().collect(Collectors.toSet()));
+        indizesOfDeadLines.addAll(IntStream.range(1, instructions.size()).boxed().collect(Collectors.toSet()));
         Set<Integer> aliveIndizes = indexToJumpTo.stream().flatMap(Set::stream).collect(Collectors.toSet());
         indizesOfDeadLines.removeAll(aliveIndizes);
     }

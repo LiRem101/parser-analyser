@@ -123,8 +123,9 @@ public class InstructionListCreator {
                 putBranchesInQueue(currentBlock, queues, handledJumpTos, currentJumpTos);
                 branchesConditionally = false;
             } else {
-                // Add branches to current Queue
-                currentBlocks.addAll(currentBlock.getBranches());
+                // Add branches that are not already in queue to current Queue
+                Queue<ControlFlowBlock> finalCurrentBlocks = currentBlocks;
+                currentBlocks.addAll(currentBlock.getBranches().stream().filter(x -> !finalCurrentBlocks.contains(x)).collect(Collectors.toSet()));
             }
 
             // If currentBlocks is empty, remove from queues and take the next block from the next queue

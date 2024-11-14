@@ -1,8 +1,6 @@
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import org.junit.jupiter.api.Test;
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
