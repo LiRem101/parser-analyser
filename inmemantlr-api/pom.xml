@@ -55,6 +55,13 @@
             <version>5.12.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-numbers-complex -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-numbers-complex</artifactId>
+            <version>1.2</version>
+        </dependency>
     </dependencies>
 
     <build>

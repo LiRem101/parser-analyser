@@ -1,13 +1,13 @@
 package de.hhu.lirem101.quil_optimizer.quil_variable;
 
-import de.hhu.lirem101.quil_optimizer.quantum_gates.QuantumCliffordGate;
+import org.apache.commons.numbers.complex.Complex;
 
 public class ClassicalVariable implements Variable {
     private final String name;
     private boolean shownToBeDead = false;
     private boolean isConstant = false;
-    private double value;
     private final ClassicalUsage usage;
+    private Complex value;
 
     public ClassicalVariable(String name, ClassicalUsage usage) {
         this.name = name;
@@ -39,11 +39,16 @@ public class ClassicalVariable implements Variable {
     }
 
     public void setValue(double value) {
+        this.value = Complex.ofCartesian(value, 0);
+        isConstant = true;
+    }
+
+    public void setValue(Complex value) {
         this.value = value;
         isConstant = true;
     }
 
-    public double getValue() {
+    public Complex getValue() {
         if(isConstant) {
             return value;
         } else {
