@@ -1,11 +1,9 @@
-import de.hhu.lirem101.ControlStructureRemover;
 import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import org.junit.jupiter.api.Test;
 
-import static de.hhu.lirem101.ControlStructureRemover.removeControlStructures;
+import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.util.*;
 

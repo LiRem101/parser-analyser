@@ -1,10 +1,8 @@
-package de.hhu.lirem101;
+package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.LineType;
-import de.hhu.lirem101.quil_optimizer.InstructionNode;
 
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 

@@ -10,7 +10,10 @@ import org.snt.inmemantlr.tree.ParseTreeNode;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import java.lang.reflect.Array;
 import java.util.*;
+
+import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
@@ -34,14 +37,15 @@ public class OptimizingQuil {
         SortingNodesToLines snl = new SortingNodesToLines(root);
         Map<Integer, ParseTreeNode> sortedNodes = snl.getSortedNodes();
         SortNodesIntoInstructions sorter = new SortNodesIntoInstructions(sortedNodes);
-        this.instructions = ilc.getInstructions();
-        sorter.appendNodeToInstructions(this.instructions);
-        createLinksOfInstructions();
-        createListsForOrderedInstructions();
+        ArrayList<ArrayList<InstructionNode>> instructionsWithControlStructures = ilc.getInstructions();
+        sorter.appendNodeToInstructions(instructionsWithControlStructures);
+        createLinksOfInstructions(instructionsWithControlStructures);
+        createListsForOrderedInstructions(instructionsWithControlStructures);
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
-        replaceLinesByIndex(indexToJumpTo, linesToJumpTo);
+        replaceLinesByIndex(indexToJumpTo, linesToJumpTo, instructionsWithControlStructures);
         this.readoutParams.addAll(readoutParams);
         this.quilCode = quilCode.clone();
+        this.instructions = removeControlStructures(instructionsWithControlStructures);
     }
 
 
@@ -82,9 +86,10 @@ public class OptimizingQuil {
 
     /**
      * Let instructions create their linking.
+     * @param instructionList Instruction lists that need parameter links.
      */
-    private void createLinksOfInstructions() {
-        for (ArrayList<InstructionNode> instruction : instructions) {
+    private void createLinksOfInstructions(ArrayList<ArrayList<InstructionNode>> instructionList) {
+        for (ArrayList<InstructionNode> instruction : instructionList) {
             Map<String, InstructionNode> lastInstructionOfParams = new HashMap<>();
             for (InstructionNode node : instruction) {
                 node.setParameterLinks(lastInstructionOfParams);
@@ -92,8 +97,8 @@ public class OptimizingQuil {
         }
     }
 
-    private void createListsForOrderedInstructions() {
-        for (ArrayList<InstructionNode> instructionList : instructions) {
+    private void createListsForOrderedInstructions(ArrayList<ArrayList<InstructionNode>> instructionLists) {
+        for (ArrayList<InstructionNode> instructionList : instructionLists) {
             currentOrder.add(new ArrayList<>());
             currentOrder.get(currentOrder.size() - 1).addAll(instructionList);
         }
@@ -108,13 +113,14 @@ public class OptimizingQuil {
      * the index numbers of the corresponding instruction block in the instructions list. Save result in indexToJumpTo.
      * @param indexToJumpTo The list of lists of index numbers.
      * @param linesToJumpTo The list of lists of line numbers.
+     * @param instructionLists
      */
-    private void replaceLinesByIndex(ArrayList<Set<Integer>> indexToJumpTo, ArrayList<ArrayList<Integer>> linesToJumpTo) {
+    private void replaceLinesByIndex(ArrayList<Set<Integer>> indexToJumpTo, ArrayList<ArrayList<Integer>> linesToJumpTo, ArrayList<ArrayList<InstructionNode>> instructionLists) {
         for (ArrayList<Integer> lines : linesToJumpTo) {
             Set<Integer> indexSet = new HashSet<>();
-            for(int i = 0; i < instructions.size(); i++) {
-                if(!instructions.get(i).isEmpty()) {
-                    InstructionNode node = instructions.get(i).get(0);
+            for(int i = 0; i < instructionLists.size(); i++) {
+                if(!instructionLists.get(i).isEmpty()) {
+                    InstructionNode node = instructionLists.get(i).get(0);
                     if (lines.contains(node.getLine())) {
                         indexSet.add(i);
                     }
