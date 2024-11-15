@@ -213,4 +213,32 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
                 .allMatch(ClassicalVariable::isShownToBeDead);
         shownToBeDead = quantumDead && classicalDead;
     }
+
+    /**
+     * Fetch all previous instructions that this instruction depends on.
+     * @return List of previous instructions.
+     */
+    public Set<InstructionNode> getDependencies() {
+        Set<InstructionNode> dependencies = new HashSet<>();
+        dependencies.addAll(quantumParameters
+                .values()
+                .stream()
+                .flatMap(x -> x.previous.stream())
+                .collect(Collectors.toSet()));
+        dependencies.addAll(classicalParameters
+                .values()
+                .stream()
+                .flatMap(x -> x.previous.stream())
+                .collect(Collectors.toSet()));
+        Queue<InstructionNode> queue = new LinkedList<>(dependencies);
+        while(!queue.isEmpty()) {
+            InstructionNode node = queue.poll();
+            Set<InstructionNode> newDependencies = node.getDependencies().stream()
+                    .filter(x -> !dependencies.contains(x))
+                    .collect(Collectors.toSet());
+            dependencies.addAll(newDependencies);
+            queue.addAll(newDependencies);
+        }
+        return dependencies;
+    }
 }

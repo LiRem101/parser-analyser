@@ -4,13 +4,13 @@ import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.analysis.ConstantPropagator;
 import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
+import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
@@ -40,12 +40,12 @@ public class OptimizingQuil {
         ArrayList<ArrayList<InstructionNode>> instructionsWithControlStructures = ilc.getInstructions();
         sorter.appendNodeToInstructions(instructionsWithControlStructures);
         createLinksOfInstructions(instructionsWithControlStructures);
-        createListsForOrderedInstructions(instructionsWithControlStructures);
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
         replaceLinesByIndex(indexToJumpTo, linesToJumpTo, instructionsWithControlStructures);
         this.readoutParams.addAll(readoutParams);
         this.quilCode = quilCode.clone();
         this.instructions = removeControlStructures(instructionsWithControlStructures);
+        createListsForOrderedInstructions(this.instructions);
     }
 
 
@@ -74,6 +74,10 @@ public class OptimizingQuil {
                 case "ConstantPropagation":
                     ConstantPropagator cp = new ConstantPropagator(currentOrder);
                     cp.addConstantVariablesToJson(jsonBuilder);
+                    break;
+                case "HybridDependencies":
+                    FindHybridDependencies fhd = new FindHybridDependencies(currentOrder);
+                    fhd.addDeadVariablesToJson(jsonBuilder);
                     break;
             }
         }
