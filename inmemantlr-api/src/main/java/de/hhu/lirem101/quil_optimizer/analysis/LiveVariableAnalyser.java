@@ -124,7 +124,7 @@ public class LiveVariableAnalyser {
             String name = quantumVariable.getName();
             if(allDead) {
                 quantumVariable.setDead();
-                setToDeadVariables.add(new BoxedVariableProperties(name, instruction.getLine(), true));
+                setToDeadVariables.add(new BoxedVariableProperties(name, instruction.getLine(), true, true));
             } else if(multiGate) {
                 variables.put(name, Variables.USED_MULTI_QUBIT);
             }
@@ -151,7 +151,7 @@ public class LiveVariableAnalyser {
             String name = var.getName();
             if(!variables.containsKey(name)) {
                 var.setDead();
-                setToDeadVariables.add(new BoxedVariableProperties(name, instruction.getLine(), false));
+                setToDeadVariables.add(new BoxedVariableProperties(name, instruction.getLine(), false, true));
             } else {
                 variables.remove(name);
             }

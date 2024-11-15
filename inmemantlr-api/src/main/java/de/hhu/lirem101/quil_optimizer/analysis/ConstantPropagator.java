@@ -1,6 +1,5 @@
 package de.hhu.lirem101.quil_optimizer.analysis;
 
-import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalUsage;
 import de.hhu.lirem101.quil_optimizer.quil_variable.ClassicalVariable;
@@ -64,7 +63,8 @@ public class ConstantPropagator {
                     if(constantValue.isQuantum) {
                         lineBuilder.add(constantValue.name, constantValue.constantQuantumState.toString());
                     } else {
-                        lineBuilder.add(constantValue.name, constantValue.constantValue.toString());
+                        String name = constantValue.name + "; " + (constantValue.assignment ? "assignment" : "usage");
+                        lineBuilder.add(name, constantValue.constantValue.toString());
                     }
                 }
                 theseConstantVariables.add(String.valueOf(line), lineBuilder);
@@ -169,7 +169,8 @@ public class ConstantPropagator {
                 variableValues.put(variableName, variable.getValue());
             } else if(variable.getUsage() == ClassicalUsage.USAGE && variableValues.containsKey(variableName)) {
                 variable.setValue(variableValues.get(variableName));
-                BoxedVariableProperties boxedVariable = new BoxedVariableProperties(variableName, instruction.getLine(), variableValues.get(variableName));
+                boolean assignment = variable.getUsage() == ClassicalUsage.ASSIGNMENT;
+                BoxedVariableProperties boxedVariable = new BoxedVariableProperties(variableName, instruction.getLine(), variableValues.get(variableName), assignment);
                 foundConstantValues.add(boxedVariable);
             } else if(variable.getUsage() == ClassicalUsage.ASSIGNMENT) {
                 variableValues.remove(variableName);
@@ -212,7 +213,7 @@ public class ConstantPropagator {
         }
         if(foundValue) {
             assignedVariable.setValue(value);
-            BoxedVariableProperties boxedVariable = new BoxedVariableProperties(assignedVariable.getName(), moveNode.getLine(), value);
+            BoxedVariableProperties boxedVariable = new BoxedVariableProperties(assignedVariable.getName(), moveNode.getLine(), value, true);
             foundConstantValues.add(boxedVariable);
             variableValues.put(assignedVariable.getName(), value);
         }
