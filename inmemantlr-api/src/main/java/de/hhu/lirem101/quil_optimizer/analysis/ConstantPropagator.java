@@ -46,37 +46,32 @@ public class ConstantPropagator {
         if (!calculated) {
             propagateConstants();
         }
-        for(ArrayList<BoxedVariableProperties> constantValuesList : newConstantValues) {
-            JsonObjectBuilder constantVariables = Json.createObjectBuilder();
-            ArrayList<BoxedVariableProperties> quantumVariables = constantValuesList
-                    .stream()
-                    .filter(variable -> variable.isQuantum)
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-            ArrayList<BoxedVariableProperties> classicalVariables = constantValuesList
-                    .stream()
-                    .filter(variable -> !variable.isQuantum)
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-
-            JsonObjectBuilder quantumVariablesBuilder = Json.createObjectBuilder();
-            for(BoxedVariableProperties quantumVariable : quantumVariables) {
-                JsonObjectBuilder variableBuilder = Json.createObjectBuilder();
-                variableBuilder.add("line", quantumVariable.line);
-                variableBuilder.add("state", quantumVariable.constantQuantumState.toString());
-                quantumVariablesBuilder.add(quantumVariable.name, variableBuilder);
+        JsonObjectBuilder allConstantVariables = Json.createObjectBuilder();
+        for(int i = 0; i < newConstantValues.size(); i++) {
+            JsonObjectBuilder theseConstantVariables = Json.createObjectBuilder();
+            ArrayList<BoxedVariableProperties> constantValuesList = newConstantValues.get(i);
+            ArrayList<Integer> lines = constantValuesList.stream()
+                    .map(x -> x.line)
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toCollection(ArrayList::new));
+            for(int line : lines) {
+                JsonObjectBuilder lineBuilder = Json.createObjectBuilder();
+                ArrayList<BoxedVariableProperties> constantValues = constantValuesList.stream()
+                        .filter(x -> x.line == line)
+                        .collect(Collectors.toCollection(ArrayList::new));
+                for(BoxedVariableProperties constantValue : constantValues) {
+                    if(constantValue.isQuantum) {
+                        lineBuilder.add(constantValue.name, constantValue.constantQuantumState.toString());
+                    } else {
+                        lineBuilder.add(constantValue.name, constantValue.constantValue.toString());
+                    }
+                }
+                theseConstantVariables.add(String.valueOf(line), lineBuilder);
             }
-            constantVariables.add("QuantumVariables", quantumVariablesBuilder);
-
-            JsonObjectBuilder classicalVariablesBuilder = Json.createObjectBuilder();
-            for(BoxedVariableProperties classicalVariable : classicalVariables) {
-                JsonObjectBuilder variableBuilder = Json.createObjectBuilder();
-                variableBuilder.add("line", classicalVariable.line);
-                variableBuilder.add("value", classicalVariable.constantValue.toString());
-                classicalVariablesBuilder.add(classicalVariable.name, variableBuilder);
-            }
-            constantVariables.add("ClassicalVariables", classicalVariablesBuilder);
-
-            jsonBuilder.add("ConstantPropagation", constantVariables);
+            allConstantVariables.add("Block " + i, theseConstantVariables);
         }
+        jsonBuilder.add("ConstantPropagation", allConstantVariables);
     }
 
     /**
@@ -147,10 +142,10 @@ public class ConstantPropagator {
      * They are also constant if they are assigned a constant value through the MOVE instruction.
      */
     private void propagateClassicalValues() {
-        for (ArrayList<InstructionNode> instructionList : instructions) {
+        for(int i = 0; i < instructions.size(); i++) {
             Map<String, Complex> variableValues = new HashMap<>();
-            for (InstructionNode instruction : instructionList) {
-                checkIfClassicalValuesAreConstant(instruction, variableValues);
+            for(InstructionNode instruction : instructions.get(i)) {
+                checkIfClassicalValuesAreConstant(instruction, variableValues, newConstantValues.get(i));
             }
         }
     }
@@ -159,13 +154,14 @@ public class ConstantPropagator {
      * Check if the classical values are constant and save the new constant values in the newConstantValues list.
      * @param instruction The instruction to check.
      * @param variableValues The values of the variables that are known to be constant.
+     * @param foundConstantValues The list of constant values that have been found so far.
      */
-    private void checkIfClassicalValuesAreConstant(InstructionNode instruction, Map<String, Complex> variableValues) {
+    private void checkIfClassicalValuesAreConstant(InstructionNode instruction, Map<String, Complex> variableValues, ArrayList<BoxedVariableProperties> foundConstantValues) {
         ArrayList<ClassicalVariable> classicalVariables = instruction.getClassicalParameters();
         ParseTreeNode ptNode = instruction.getParseTreeNode();
         ParseTreeNode moveNode = getMoveNode(ptNode);
         if(moveNode != null) {
-            handleMoveNode(classicalVariables, moveNode, variableValues);
+            handleMoveNode(classicalVariables, moveNode, variableValues, foundConstantValues);
         }
         for(ClassicalVariable variable : classicalVariables) {
             String variableName = variable.getName();
@@ -174,7 +170,7 @@ public class ConstantPropagator {
             } else if(variable.getUsage() == ClassicalUsage.USAGE && variableValues.containsKey(variableName)) {
                 variable.setValue(variableValues.get(variableName));
                 BoxedVariableProperties boxedVariable = new BoxedVariableProperties(variableName, instruction.getLine(), variableValues.get(variableName));
-                newConstantValues.get(instruction.getLine()).add(boxedVariable);
+                foundConstantValues.add(boxedVariable);
             } else if(variable.getUsage() == ClassicalUsage.ASSIGNMENT) {
                 variableValues.remove(variableName);
             }
@@ -186,8 +182,9 @@ public class ConstantPropagator {
      * @param classicalVariables The classical variables that have constant values.
      * @param moveNode The MOVE node.
      * @param variableValues The values of the variables that are known to be constant.
+     * @param foundConstantValues The list of constant values that have been found so far.
      */
-    private void handleMoveNode(ArrayList<ClassicalVariable> classicalVariables, ParseTreeNode moveNode, Map<String, Complex> variableValues) {
+    private void handleMoveNode(ArrayList<ClassicalVariable> classicalVariables, ParseTreeNode moveNode, Map<String, Complex> variableValues, ArrayList<BoxedVariableProperties> foundConstantValues) {
         ClassicalVariable assignedVariable = classicalVariables.get(0);
         ParseTreeNode numberVar = moveNode.getChildren().get(1);
         Complex value = Complex.ofCartesian(0, 0);
@@ -216,7 +213,7 @@ public class ConstantPropagator {
         if(foundValue) {
             assignedVariable.setValue(value);
             BoxedVariableProperties boxedVariable = new BoxedVariableProperties(assignedVariable.getName(), moveNode.getLine(), value);
-            newConstantValues.get(moveNode.getLine()).add(boxedVariable);
+            foundConstantValues.add(boxedVariable);
             variableValues.put(assignedVariable.getName(), value);
         }
     }

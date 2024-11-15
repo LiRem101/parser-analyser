@@ -2,6 +2,7 @@ package de.hhu.lirem101.quil_optimizer;
 
 import de.hhu.lirem101.quil_analyser.ControlFlowBlock;
 import de.hhu.lirem101.quil_analyser.LineType;
+import de.hhu.lirem101.quil_optimizer.analysis.ConstantPropagator;
 import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import org.snt.inmemantlr.tree.ParseTreeNode;
@@ -65,6 +66,10 @@ public class OptimizingQuil {
                 case "DeadCodeAnalysis":
                     DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
                     dca.addDeadVariablesToJson(jsonBuilder);
+                    break;
+                case "ConstantPropagation":
+                    ConstantPropagator cp = new ConstantPropagator(currentOrder);
+                    cp.addConstantVariablesToJson(jsonBuilder);
                     break;
             }
         }
