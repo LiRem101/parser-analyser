@@ -30,7 +30,8 @@ public class FindHybridDependencies {
                     .collect(java.util.stream.Collectors.toList());
             for (InstructionNode hybridNode : hybridNodes) {
                 int line = hybridNode.getCodelines().get(0);
-                Set<Integer> dependentLines = hybridNode.getDependencies().stream()
+                Set<InstructionNode> dep = hybridNode.getDependencies();
+                Set<Integer> dependentLines = dep.stream()
                         .flatMap(x -> x.getCodelines().stream())
                         .filter(x -> !handledLines.contains(x))
                         .collect(java.util.stream.Collectors.toCollection(HashSet::new));
