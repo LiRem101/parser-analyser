@@ -6,6 +6,7 @@ import de.hhu.lirem101.quil_optimizer.analysis.ConstantPropagator;
 import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
+import de.hhu.lirem101.quil_optimizer.transformation.DeadCodeEliminator;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import javax.json.Json;
@@ -61,6 +62,9 @@ public class OptimizingQuil {
         addInstructionsToJson(startBuilder, instructions);
         jsonBuilder.add("Start", startBuilder);
 
+        Set<Integer> indizesOfDeadLineBlocks = new HashSet<>();
+        ArrayList<Set<Integer>> deadLines = new ArrayList<>();
+
         for(String optimizationStep : optimizationSteps) {
             switch (optimizationStep) {
                 case "LiveVariableAnalysis":
@@ -69,6 +73,8 @@ public class OptimizingQuil {
                     break;
                 case "DeadCodeAnalysis":
                     DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
+                    indizesOfDeadLineBlocks = dca.getIndizesOfDeadLines();
+                    deadLines = dca.getDeadLines();
                     dca.addDeadVariablesToJson(jsonBuilder);
                     break;
                 case "ConstantPropagation":
@@ -78,6 +84,10 @@ public class OptimizingQuil {
                 case "HybridDependencies":
                     FindHybridDependencies fhd = new FindHybridDependencies(currentOrder);
                     fhd.addDeadVariablesToJson(jsonBuilder);
+                    break;
+                case "DeadCodeElimination":
+                    DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
+                    dce.addDeadVariablesToJson(jsonBuilder);
                     break;
             }
         }
