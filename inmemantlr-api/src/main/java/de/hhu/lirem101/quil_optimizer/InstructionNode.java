@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
-    private static class connectedInstructions {
+    private static class ConnectedInstructions {
         private final ArrayList<InstructionNode> previous = new ArrayList<>();
         private final ArrayList<InstructionNode> next = new ArrayList<>();
     }
@@ -22,8 +22,8 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     private final LineType type;
     private ParseTreeNode ptNode;
     private boolean shownToBeDead = false;
-    private final Map<QuantumVariable, connectedInstructions> quantumParameters = new HashMap<>();
-    private final Map<ClassicalVariable, connectedInstructions> classicalParameters = new HashMap<>();
+    private final Map<QuantumVariable, ConnectedInstructions> quantumParameters = new HashMap<>();
+    private final Map<ClassicalVariable, ConnectedInstructions> classicalParameters = new HashMap<>();
 
     public InstructionNode(int line, LineType type) {
         this.line = line;
@@ -131,10 +131,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         Set<QuantumVariable> quantumVariables = vc.getQuantumVariables();
         Set<ClassicalVariable> classicalVariables = vc.getClassicalVariables();
         for (QuantumVariable qv : quantumVariables) {
-            quantumParameters.put(qv, new connectedInstructions());
+            quantumParameters.put(qv, new ConnectedInstructions());
         }
         for (ClassicalVariable cv : classicalVariables) {
-            classicalParameters.put(cv, new connectedInstructions());
+            classicalParameters.put(cv, new ConnectedInstructions());
         }
     }
 
@@ -236,4 +236,38 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
         return dependencies;
     }
+
+    /**
+     * Prepare the removal of th einstruction by removing the connections to other instructions.
+     * The previous instruction becomes the previous instruction of thenext instruction and vice versa.
+     */
+    public void removeConnections(){
+        for(QuantumVariable qv : quantumParameters.keySet()){
+            ConnectedInstructions ci = quantumParameters.get(qv);
+            ArrayList<InstructionNode> prevNodes = ci.previous;
+            ArrayList<InstructionNode> nextNodes = ci.next;
+            for(InstructionNode prevNode : prevNodes){
+                prevNode.quantumParameters.get(qv).next.remove(this);
+                prevNode.quantumParameters.get(qv).next.addAll(nextNodes);
+            }
+            for(InstructionNode nextNode : nextNodes){
+                nextNode.quantumParameters.get(qv).previous.remove(this);
+                nextNode.quantumParameters.get(qv).previous.addAll(prevNodes);
+            }
+        }
+        for(ClassicalVariable cv : classicalParameters.keySet()){
+            ConnectedInstructions ci = classicalParameters.get(cv);
+            ArrayList<InstructionNode> prevNodes = ci.previous;
+            ArrayList<InstructionNode> nextNodes = ci.next;
+            for(InstructionNode prevNode : prevNodes){
+                prevNode.classicalParameters.get(cv).next.remove(this);
+                prevNode.classicalParameters.get(cv).next.addAll(nextNodes);
+            }
+            for(InstructionNode nextNode : nextNodes){
+                nextNode.classicalParameters.get(cv).previous.remove(this);
+                nextNode.classicalParameters.get(cv).previous.addAll(prevNodes);
+            }
+        }
+    }
+
 }
