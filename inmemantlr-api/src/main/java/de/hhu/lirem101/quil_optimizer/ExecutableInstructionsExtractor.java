@@ -21,16 +21,25 @@ public class ExecutableInstructionsExtractor {
                     " must be the same.");
         }
         for(int i = 0; i < instructions.size(); i++) {
-            ArrayList<InstructionNode> instructionList = instructions.get(i);
-            ArrayList<InstructionNode> executionQueueList = executionQueue.get(i);
-            ArrayList<InstructionNode> executableInstructions = new ArrayList<>();
-            for(InstructionNode node : instructionList) {
-                if(!executionQueueList.contains(node) && executionQueueList.containsAll(node.getBranches())) {
-                    executableInstructions.add(node);
-                }
-            }
-            executableInstructionsList.add(executableInstructions);
+            executableInstructionsList.add(getExecutableInstructionsOfOneBlock(i, executionQueue.get(i)));
         }
         return executableInstructionsList;
+    }
+
+    /**
+     * Get the executable instructions for a given index.
+     * @index The index of the instructions to look at.
+     * @param executionQueue The list of instrcutions that are already in the execution queue.
+     * @return A list of instructions whose previous instructions are already in the execution queue.
+     */
+    public ArrayList<InstructionNode> getExecutableInstructionsOfOneBlock(int index, ArrayList<InstructionNode> executionQueue) {
+        ArrayList<InstructionNode> instructionList = instructions.get(index);
+        ArrayList<InstructionNode> executableInstructions = new ArrayList<>();
+        for(InstructionNode node : instructionList) {
+            if(!executionQueue.contains(node) && executionQueue.containsAll(node.getBranches())) {
+                executableInstructions.add(node);
+            }
+        }
+        return executableInstructions;
     }
 }
