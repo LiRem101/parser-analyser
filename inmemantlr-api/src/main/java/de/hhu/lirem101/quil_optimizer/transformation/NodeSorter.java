@@ -16,14 +16,25 @@ public class NodeSorter {
      */
     public static ArrayList<InstructionNode> sortNodes(ArrayList<InstructionNode> instructionList) {
         ArrayList<InstructionNode> newOrder = new ArrayList<>();
-        while (!newOrder.containsAll(instructionList)) {
+        sortNodesWithGivenExecutables(instructionList, newOrder);
+        return newOrder;
+    }
+
+    /**
+     * Sorts nodes from instructionList into executionOrder.
+     * @param instructionList The list of instructions to sort.
+     * @param executionOrder The list of instructions that are already in the execution queue.
+     */
+    public static void sortNodesWithGivenExecutables(ArrayList<InstructionNode> instructionList, ArrayList<InstructionNode> executionOrder) {
+        boolean newNodes = true;
+        instructionList.removeAll(executionOrder);
+        while (!executionOrder.containsAll(instructionList) && newNodes && !instructionList.isEmpty()) {
             ExecutableInstructionsExtractor executableExtractor = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructionList)));
-            ArrayList<InstructionNode> executable = executableExtractor.getExecutableInstructionsOfOneBlock(0, newOrder);
-            newOrder.addAll(executable);
+            ArrayList<InstructionNode> executable = executableExtractor.getExecutableInstructionsOfOneBlock(0, executionOrder);
+            newNodes = !executable.isEmpty();
+            executionOrder.addAll(executable);
             instructionList.removeAll(executable);
         }
-
-        return newOrder;
     }
 
 }

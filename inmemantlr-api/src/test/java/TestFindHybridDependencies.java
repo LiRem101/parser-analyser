@@ -16,7 +16,7 @@ class TestFindHybridDependencies {
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
         FindHybridDependencies finder = new FindHybridDependencies(instructions);
 
-        ArrayList<Map<Integer, Set<Integer>>> result = finder.getHybridDependencies();
+        ArrayList<LinkedHashMap<Integer, Set<Integer>>> result = finder.getHybridDependencies();
 
         assertTrue(result.isEmpty());
     }
@@ -30,7 +30,7 @@ class TestFindHybridDependencies {
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Collections.singletonList(hybridNode))));
         FindHybridDependencies finder = new FindHybridDependencies(instructions);
 
-        ArrayList<Map<Integer, Set<Integer>>> result = finder.getHybridDependencies();
+        ArrayList<LinkedHashMap<Integer, Set<Integer>>> result = finder.getHybridDependencies();
 
         assertEquals(1, result.size());
         assertTrue(result.get(0).containsKey(1));
@@ -53,7 +53,7 @@ class TestFindHybridDependencies {
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(instructionList));
         FindHybridDependencies finder = new FindHybridDependencies(instructions);
 
-        ArrayList<Map<Integer, Set<Integer>>> result = finder.getHybridDependencies();
+        ArrayList<LinkedHashMap<Integer, Set<Integer>>> result = finder.getHybridDependencies();
 
         assertEquals(1, result.size());
         assertTrue(result.get(0).containsKey(1));
@@ -91,7 +91,7 @@ class TestFindHybridDependencies {
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(instructionList));
         FindHybridDependencies finder = new FindHybridDependencies(instructions);
 
-        ArrayList<Map<Integer, Set<Integer>>> result = finder.getHybridDependencies();
+        ArrayList<LinkedHashMap<Integer, Set<Integer>>> result = finder.getHybridDependencies();
 
         assertEquals(1, result.size());
 
