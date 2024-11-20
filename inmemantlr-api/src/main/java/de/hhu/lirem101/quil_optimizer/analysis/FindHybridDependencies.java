@@ -11,7 +11,7 @@ import java.util.*;
 public class FindHybridDependencies {
 
     private final ArrayList<ArrayList<InstructionNode>> instructions;
-    private final ArrayList<Map<Integer, Set<Integer>>> hybridDependencyList = new ArrayList<>();
+    private final ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependencyList = new ArrayList<>();
     private boolean calculated = false;
 
     public FindHybridDependencies(ArrayList<ArrayList<InstructionNode>> instructions) {
@@ -23,7 +23,7 @@ public class FindHybridDependencies {
      */
     private void findHybridNodes() {
         for (ArrayList<InstructionNode> instructionList : instructions) {
-            Map<Integer, Set<Integer>> hybridDependencies = new HashMap<>();
+            LinkedHashMap<Integer, Set<Integer>> hybridDependencies = new LinkedHashMap<>();
             Set<Integer> handledLines = new HashSet<>();
             ArrayList<InstructionNode> hybridNodes = (ArrayList<InstructionNode>) instructionList.stream()
                     .filter(instruction -> instruction.getLineType() != LineType.CLASSICAL && instruction.getLineType() != LineType.QUANTUM)
@@ -43,7 +43,7 @@ public class FindHybridDependencies {
         }
     }
 
-    public ArrayList<Map<Integer, Set<Integer>>> getHybridDependencies() {
+    public ArrayList<LinkedHashMap<Integer, Set<Integer>>> getHybridDependencies() {
         if (!calculated) {
             findHybridNodes();
             calculated = true;

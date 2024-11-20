@@ -64,6 +64,7 @@ public class OptimizingQuil {
 
         Set<Integer> indizesOfDeadLineBlocks = new HashSet<>();
         ArrayList<Set<Integer>> deadLines = new ArrayList<>();
+        ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependencies = new ArrayList<>();
 
         for(String optimizationStep : optimizationSteps) {
             switch (optimizationStep) {
@@ -83,6 +84,7 @@ public class OptimizingQuil {
                     break;
                 case "HybridDependencies":
                     FindHybridDependencies fhd = new FindHybridDependencies(currentOrder);
+                    hybridDependencies = fhd.getHybridDependencies();
                     fhd.addDeadVariablesToJson(jsonBuilder);
                     break;
                 case "DeadCodeElimination":
