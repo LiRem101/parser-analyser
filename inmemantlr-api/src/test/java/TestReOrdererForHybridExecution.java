@@ -26,11 +26,11 @@ class TestReOrdererForHybridExecution {
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependenciesList = new ArrayList<>(Collections.singletonList(hybridDependencies));
         ReOrdererForHybridExecution reOrderer = new ReOrdererForHybridExecution(instructions, hybridDependenciesList);
 
-        ArrayList<ArrayList<Integer>> result = reOrderer.reOrderInstructions();
+        ArrayList<ArrayList<InstructionNode>> result = reOrderer.reOrderInstructions();
 
         assertEquals(1, result.size());
-        assertEquals(1, result.get(0).get(0));
-        assertEquals(2, result.get(0).get(1));
+        assertEquals(1, result.get(0).get(0).getLine());
+        assertEquals(2, result.get(0).get(1).getLine());
     }
 
     @Test
@@ -39,7 +39,7 @@ class TestReOrdererForHybridExecution {
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependencies = new ArrayList<>();
         ReOrdererForHybridExecution reOrderer = new ReOrdererForHybridExecution(instructions, hybridDependencies);
 
-        ArrayList<ArrayList<Integer>> result = reOrderer.reOrderInstructions();
+        ArrayList<ArrayList<InstructionNode>> result = reOrderer.reOrderInstructions();
 
         assertTrue(result.isEmpty());
     }
@@ -60,12 +60,12 @@ class TestReOrdererForHybridExecution {
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependenciesList = new ArrayList<>(Collections.singletonList(hybridDependencies));
         ReOrdererForHybridExecution reOrderer = new ReOrdererForHybridExecution(instructions, hybridDependenciesList);
 
-        ArrayList<ArrayList<Integer>> result = reOrderer.reOrderInstructions();
+        ArrayList<ArrayList<InstructionNode>> result = reOrderer.reOrderInstructions();
 
         assertEquals(1, result.size());
         assertEquals(2, result.get(0).size());
-        assertEquals(1, result.get(0).get(0));
-        assertEquals(2, result.get(0).get(1));
+        assertEquals(1, result.get(0).get(0).getLine());
+        assertEquals(2, result.get(0).get(1).getLine());
     }
 
     @Test
@@ -81,10 +81,11 @@ class TestReOrdererForHybridExecution {
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependenciesList = new ArrayList<>(Collections.singletonList(hybridDependencies));
         ReOrdererForHybridExecution reOrderer = new ReOrdererForHybridExecution(instructions, hybridDependenciesList);
 
-        ArrayList<ArrayList<Integer>> result = reOrderer.reOrderInstructions();
+        ArrayList<ArrayList<InstructionNode>> result = reOrderer.reOrderInstructions();
 
         assertEquals(1, result.size());
-        assertEquals(Collections.singletonList(1), result.get(0));
+        assertEquals(1, result.get(0).size());
+        assertEquals(1, result.get(0).get(0).getLine());
     }
 
     @Test
@@ -131,14 +132,14 @@ class TestReOrdererForHybridExecution {
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependenciesList = new ArrayList<>(Collections.singletonList(hybridDependencies));
         ReOrdererForHybridExecution reOrderer = new ReOrdererForHybridExecution(instructions, hybridDependenciesList);
 
-        ArrayList<ArrayList<Integer>> result = reOrderer.reOrderInstructions();
+        ArrayList<ArrayList<InstructionNode>> result = reOrderer.reOrderInstructions();
 
         assertEquals(1, result.size());
         assertEquals(5, result.get(0).size());
-        assertEquals(1, result.get(0).get(0));
-        assertEquals(2, result.get(0).get(1));
-        assertEquals(4, result.get(0).get(2));
-        assertEquals(3, result.get(0).get(3));
-        assertEquals(5, result.get(0).get(4));
+        assertEquals(1, result.get(0).get(0).getLine());
+        assertEquals(2, result.get(0).get(1).getLine());
+        assertEquals(4, result.get(0).get(2).getLine());
+        assertEquals(3, result.get(0).get(3).getLine());
+        assertEquals(5, result.get(0).get(4).getLine());
     }
 }

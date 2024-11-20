@@ -7,6 +7,7 @@ import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import de.hhu.lirem101.quil_optimizer.transformation.DeadCodeEliminator;
+import de.hhu.lirem101.quil_optimizer.transformation.ReOrdererForHybridExecution;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import javax.json.Json;
@@ -18,7 +19,7 @@ import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeContr
 
 public class OptimizingQuil {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
-    private final ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
+    private ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
     private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
     private final Set<String> readoutParams = new HashSet<>();
     private final String[] quilCode;
@@ -90,6 +91,13 @@ public class OptimizingQuil {
                 case "DeadCodeElimination":
                     DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
                     dce.addDeadVariablesToJson(jsonBuilder);
+                    break;
+                case "ReOrdering":
+                    ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
+                    currentOrder = rofhe.reOrderInstructions();
+                    JsonObjectBuilder reOrderBuilder = Json.createObjectBuilder();
+                    addInstructionsToJson(reOrderBuilder, currentOrder);
+                    jsonBuilder.add("ReOrdered", reOrderBuilder);
                     break;
             }
         }

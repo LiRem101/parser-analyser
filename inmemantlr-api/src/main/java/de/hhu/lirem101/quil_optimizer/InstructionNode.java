@@ -220,20 +220,28 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      */
     public Set<InstructionNode> getDependencies() {
         Set<InstructionNode> dependencies = new HashSet<>();
-        Set<QuantumVariable> quantumVariables = quantumParameters.keySet();
-        Set<ClassicalVariable> classicalVariables = classicalParameters.keySet();
 
-        Queue<InstructionNode> nextDependencies = new LinkedList<>();
-        InstructionNode currentNode = this;
-        for (QuantumVariable qv : quantumVariables) {
-            nextDependencies.addAll(currentNode.quantumParameters.get(qv).previous);
-            dependencies.addAll(nextDependencies);
-        }
-        for (ClassicalVariable cv : classicalVariables) {
-            nextDependencies.addAll(currentNode.classicalParameters.get(cv).previous);
-            dependencies.addAll(nextDependencies);
-        }
+        ArrayList<InstructionNode> dependencyList = new ArrayList<>(Collections.singletonList(this));
+        int index = 0;
+        while(index < dependencyList.size()) {
+            InstructionNode currentNode = dependencyList.get(index);
+            Set<InstructionNode> newDependencies = new HashSet<>();
+            Set<QuantumVariable> quantumVariables = currentNode.quantumParameters.keySet();
+            Set<ClassicalVariable> classicalVariables = currentNode.classicalParameters.keySet();
 
+            for (QuantumVariable qv : quantumVariables) {
+                newDependencies = new HashSet<>(currentNode.quantumParameters.get(qv).previous);
+            }
+            for (ClassicalVariable cv : classicalVariables) {
+                newDependencies.addAll(currentNode.classicalParameters.get(cv).previous);
+            }
+
+            newDependencies.removeAll(dependencies);
+            dependencyList.addAll(newDependencies);
+            index++;
+        }
+        dependencyList.remove(this);
+        dependencies.addAll(dependencyList);
         return dependencies;
     }
 

@@ -7,7 +7,6 @@ import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.hhu.lirem101.quil_optimizer.transformation.NodeSorter.sortNodes;
 import static de.hhu.lirem101.quil_optimizer.transformation.NodeSorter.sortNodesWithGivenExecutables;
 
 public class ReOrdererForHybridExecution {
@@ -25,19 +24,12 @@ public class ReOrdererForHybridExecution {
      * Re-order all instructions in the list of instructions. The order is determined by the hybrid dependencies.
      * @return The line numbers of the re-ordered list of instructions.
      */
-    public ArrayList<ArrayList<Integer>> reOrderInstructions() {
+    public ArrayList<ArrayList<InstructionNode>> reOrderInstructions() {
         if(!calculated) {
             reOrderAllInstructions();
             calculated = true;
         }
-        ArrayList<ArrayList<Integer>> determinedOrder = new ArrayList<>();
-        for(ArrayList<InstructionNode> instructionList : instructions) {
-            ArrayList<Integer> lineNumbers = instructionList.stream()
-                    .map(InstructionNode::getLine)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            determinedOrder.add(lineNumbers);
-        }
-        return determinedOrder;
+        return instructions;
     }
 
     private void reOrderAllInstructions() {
