@@ -20,6 +20,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
     private final int line;
     private final LineType type;
+    private String lineText;
     private ParseTreeNode ptNode;
     private boolean shownToBeDead = false;
     private final Map<QuantumVariable, ConnectedInstructions> quantumParameters = new HashMap<>();
@@ -56,12 +57,20 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
     @Override
     public String getName() {
-        return "Line " + line;
+        return line + ": " + this.lineText;
     }
 
     @Override
     public LineType getLineType() {
         return type;
+    }
+
+    public void setLineText(String text) {
+        this.lineText = text;
+    }
+
+    public String getLineText() {
+        return lineText;
     }
 
     public boolean getShownToBeDead() {

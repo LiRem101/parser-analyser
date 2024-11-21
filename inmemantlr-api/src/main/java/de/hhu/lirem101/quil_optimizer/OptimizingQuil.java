@@ -22,7 +22,6 @@ public class OptimizingQuil {
     private ArrayList<ArrayList<InstructionNode>> currentOrder = new ArrayList<>();
     private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
     private final Set<String> readoutParams = new HashSet<>();
-    private final String[] quilCode;
 
 
     /**
@@ -45,8 +44,8 @@ public class OptimizingQuil {
         ArrayList<ArrayList<Integer>> linesToJumpTo = ilc.getLinesToJumpTo();
         replaceLinesByIndex(indexToJumpTo, linesToJumpTo, instructionsWithControlStructures);
         this.readoutParams.addAll(readoutParams);
-        this.quilCode = quilCode.clone();
         this.instructions = removeControlStructures(instructionsWithControlStructures);
+        addQuilTextToInstructions(this.instructions, quilCode);
         createListsForOrderedInstructions(this.instructions);
     }
 
@@ -163,9 +162,20 @@ public class OptimizingQuil {
         for (ArrayList<InstructionNode> instruction : instructions) {
             JsonObjectBuilder instructionBuilder = Json.createObjectBuilder();
             for (InstructionNode node : instruction) {
-                instructionBuilder.add(Integer.toString(node.getLine()), quilCode[node.getLine()-1]);
+                instructionBuilder.add(Integer.toString(node.getLine()), node.getLineText());
             }
             json.add(instruction.get(0).getName(), instructionBuilder);
+        }
+    }
+
+    /**
+     * Adds the quil code to the instructions.
+     */
+    public void addQuilTextToInstructions(ArrayList<ArrayList<InstructionNode>> instructions, String[] quilCode) {
+        for (ArrayList<InstructionNode> instruction : instructions) {
+            for (InstructionNode node : instruction) {
+                node.setLineText(quilCode[node.getLine()-1]);
+            }
         }
     }
 }
