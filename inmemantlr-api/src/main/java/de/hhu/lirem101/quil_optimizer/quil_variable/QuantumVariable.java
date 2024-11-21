@@ -15,7 +15,11 @@ public class QuantumVariable implements Variable {
     }
 
     public QuantumCliffordState applyGate(QuantumCliffordGate gate) {
-        return gate.apply(cliffordStateBeforeGate);
+        if(cliffordStateAfterGate != null) {
+            return cliffordStateAfterGate;
+        }
+        cliffordStateAfterGate = gate.apply(cliffordStateBeforeGate);
+        return cliffordStateAfterGate;
     }
 
     @Override
