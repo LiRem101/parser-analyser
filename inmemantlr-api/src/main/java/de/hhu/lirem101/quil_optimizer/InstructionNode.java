@@ -19,7 +19,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     }
 
     private final int line;
-    private final LineType type;
+    private LineType type;
     private String lineText;
     private ParseTreeNode ptNode;
     private boolean shownToBeDead = false;
@@ -67,6 +67,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
 
     public void setLineText(String text) {
         this.lineText = text;
+    }
+
+    public void setLineType(LineType type) {
+        this.type = type;
     }
 
     public String getLineText() {
@@ -260,35 +264,45 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      */
     public void removeConnections(){
         for(QuantumVariable qv : quantumParameters.keySet()){
-            ConnectedInstructions ci = quantumParameters.get(qv);
-            ArrayList<InstructionNode> prevNodes = ci.previous;
-            ArrayList<InstructionNode> nextNodes = ci.next;
-            for(InstructionNode prevNode : prevNodes){
-                QuantumVariable var = prevNode.getQuantumVariable(qv.getName());
-                prevNode.quantumParameters.get(var).next.remove(this);
-                prevNode.quantumParameters.get(var).next.addAll(nextNodes);
-            }
-            for(InstructionNode nextNode : nextNodes){
-                QuantumVariable var = nextNode.getQuantumVariable(qv.getName());
-                nextNode.quantumParameters.get(var).previous.remove(this);
-                nextNode.quantumParameters.get(var).previous.addAll(prevNodes);
-            }
+            removeQuantumConnection(qv);
         }
         for(ClassicalVariable cv : classicalParameters.keySet()){
-            ConnectedInstructions ci = classicalParameters.get(cv);
-            ArrayList<InstructionNode> prevNodes = ci.previous;
-            ArrayList<InstructionNode> nextNodes = ci.next;
-            for(InstructionNode prevNode : prevNodes){
-                ClassicalVariable var = prevNode.getClassicalVariable(cv.getName());
-                prevNode.classicalParameters.get(var).next.remove(this);
-                prevNode.classicalParameters.get(var).next.addAll(nextNodes);
-            }
-            for(InstructionNode nextNode : nextNodes){
-                ClassicalVariable var = nextNode.getClassicalVariable(cv.getName());
-                nextNode.classicalParameters.get(var).previous.remove(this);
-                nextNode.classicalParameters.get(var).previous.addAll(prevNodes);
-            }
+            removeClassicalConnection(cv);
         }
+    }
+
+    public void removeQuantumConnection(QuantumVariable qv) {
+        ConnectedInstructions ci = quantumParameters.get(qv);
+        ArrayList<InstructionNode> prevNodes = ci.previous;
+        ArrayList<InstructionNode> nextNodes = ci.next;
+        for(InstructionNode prevNode : prevNodes){
+            QuantumVariable var = prevNode.getQuantumVariable(qv.getName());
+            prevNode.quantumParameters.get(var).next.remove(this);
+            prevNode.quantumParameters.get(var).next.addAll(nextNodes);
+        }
+        for(InstructionNode nextNode : nextNodes){
+            QuantumVariable var = nextNode.getQuantumVariable(qv.getName());
+            nextNode.quantumParameters.get(var).previous.remove(this);
+            nextNode.quantumParameters.get(var).previous.addAll(prevNodes);
+        }
+        quantumParameters.remove(qv);
+    }
+
+    public void removeClassicalConnection(ClassicalVariable cv) {
+        ConnectedInstructions ci = classicalParameters.get(cv);
+        ArrayList<InstructionNode> prevNodes = ci.previous;
+        ArrayList<InstructionNode> nextNodes = ci.next;
+        for(InstructionNode prevNode : prevNodes){
+            ClassicalVariable var = prevNode.getClassicalVariable(cv.getName());
+            prevNode.classicalParameters.get(var).next.remove(this);
+            prevNode.classicalParameters.get(var).next.addAll(nextNodes);
+        }
+        for(InstructionNode nextNode : nextNodes){
+            ClassicalVariable var = nextNode.getClassicalVariable(cv.getName());
+            nextNode.classicalParameters.get(var).previous.remove(this);
+            nextNode.classicalParameters.get(var).previous.addAll(prevNodes);
+        }
+        classicalParameters.remove(cv);
     }
 
 }
