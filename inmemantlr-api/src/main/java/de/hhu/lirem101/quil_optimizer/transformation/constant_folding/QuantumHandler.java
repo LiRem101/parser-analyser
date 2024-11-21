@@ -12,7 +12,7 @@ import org.snt.inmemantlr.tree.ParseTreeNode;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class QuantumHandler {
+public class QuantumHandler implements Handler {
     private final InstructionNode instruction;
     private boolean calculated = false;
 
@@ -26,20 +26,25 @@ public class QuantumHandler {
     /**
      * Propagate constant values through the quantum instruction if a single quantum gate is applied to a constant
      * value.
-     * @return The constant value after the gate is applied, null if nothing could be applied.
+     * @return True if a constant value is propagated, false if not.
      */
-    public QuantumCliffordState propagateConstant() {
+    @Override
+    public boolean propagateConstant() {
         QuantumVariable qv = instruction.getQuantumParameters().stream().findFirst().orElse(new QuantumVariable("", QuantumUsage.MULTI_GATE));
         if(calculated) {
-            return qv.getCliffordStateAfterGate();
+            return true;
         } else if(qv.getUsage() != QuantumUsage.SINGLE_GATE || qv.getCliffordStateBeforeGate() == null || qv.getCliffordStateAfterGate() != null) {
-            return null;
+            return false;
         }
         calculated = true;
 
         applyGate();
 
-        return qv.getCliffordStateAfterGate();
+        if(qv.getCliffordStateAfterGate() != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

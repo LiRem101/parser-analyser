@@ -29,10 +29,10 @@ class TestQuantumHandler {
 
         QuantumHandler handler = new QuantumHandler(instruction);
 
-        QuantumCliffordState result = handler.propagateConstant();
+        boolean result = handler.propagateConstant();
 
-        assertNotNull(result);
-        assertEquals(QuantumCliffordState.X_POSITIVE, result);
+        assertTrue(result);
+        assertEquals(QuantumCliffordState.X_POSITIVE, qv.getCliffordStateAfterGate());
     }
 
     @Test
@@ -43,9 +43,9 @@ class TestQuantumHandler {
         when(instruction.getQuantumParameters()).thenReturn(new ArrayList<>(Collections.singletonList(qv)));
         QuantumHandler handler = new QuantumHandler(instruction);
 
-        QuantumCliffordState result = handler.propagateConstant();
+        boolean result = handler.propagateConstant();
 
-        assertNull(result);
+        assertFalse(result);
     }
 
     @Test
@@ -56,9 +56,9 @@ class TestQuantumHandler {
         when(instruction.getQuantumParameters()).thenReturn(new ArrayList<>(Collections.singletonList(qv)));
         QuantumHandler handler = new QuantumHandler(instruction);
 
-        QuantumCliffordState result = handler.propagateConstant();
+        boolean result = handler.propagateConstant();
 
-        assertNull(result);
+        assertFalse(result);
     }
 
     @Test
@@ -87,8 +87,8 @@ class TestQuantumHandler {
 
         QuantumHandler handler = new QuantumHandler(instruction);
 
-        QuantumCliffordState result = handler.propagateConstant();
+        boolean result = handler.propagateConstant();
 
-        assertNull(result);
+        assertFalse(result);
     }
 }
