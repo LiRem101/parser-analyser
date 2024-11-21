@@ -263,10 +263,12 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      * The previous instruction becomes the previous instruction of thenext instruction and vice versa.
      */
     public void removeConnections(){
-        for(QuantumVariable qv : quantumParameters.keySet()){
+        List<QuantumVariable> qvs = new ArrayList<>(quantumParameters.keySet());
+        for(QuantumVariable qv : qvs){
             removeQuantumConnection(qv);
         }
-        for(ClassicalVariable cv : classicalParameters.keySet()){
+        List<ClassicalVariable> cvs = new ArrayList<>(classicalParameters.keySet());
+        for(ClassicalVariable cv : cvs){
             removeClassicalConnection(cv);
         }
     }
