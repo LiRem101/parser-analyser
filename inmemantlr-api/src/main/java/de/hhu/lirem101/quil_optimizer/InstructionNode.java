@@ -243,7 +243,7 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
             Set<ClassicalVariable> classicalVariables = currentNode.classicalParameters.keySet();
 
             for (QuantumVariable qv : quantumVariables) {
-                newDependencies = new HashSet<>(currentNode.quantumParameters.get(qv).previous);
+                newDependencies.addAll(currentNode.quantumParameters.get(qv).previous);
             }
             for (ClassicalVariable cv : classicalVariables) {
                 newDependencies.addAll(currentNode.classicalParameters.get(cv).previous);

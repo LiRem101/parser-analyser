@@ -4,10 +4,7 @@ import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.ExecutableInstructionsExtractor;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 
 public class JITQuantumExecuter {
 
@@ -38,7 +35,14 @@ public class JITQuantumExecuter {
     }
 
     private void reOrderAllInstructions() {
-        int firstHybridLine = hybridDependencies.keySet().stream().findFirst().orElse(-1);
+        Set<Integer> firstDependencies = hybridDependencies.values().stream().findFirst().orElse(null);
+        if (firstDependencies == null) {
+            return;
+        }
+        int firstHybridLine = hybridDependencies.keySet().stream()
+                .filter(x -> hybridDependencies.get(x).equals(firstDependencies))
+                .findFirst()
+                .orElse(-1);
         if (firstHybridLine == -1) {
             return;
         }
@@ -50,20 +54,7 @@ public class JITQuantumExecuter {
     }
 
     private void reOrder(ArrayList<InstructionNode> executableClassicalInstructions, int firstHybridLine) {
-        ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructions)));
-        ArrayList<InstructionNode> newExecutableInstructions = eie.getExecutableInstructionsOfOneBlock(0, executableClassicalInstructions)
-                .stream()
-                .filter(x -> !executableClassicalInstructions.contains(x))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        ArrayList<InstructionNode> quantumInstructions = newExecutableInstructions.stream()
-                .filter(x -> x.getLineType() == LineType.QUANTUM)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        ArrayList<InstructionNode> classicalInstructions = newExecutableInstructions.stream()
-                .filter(x -> x.getLineType() == LineType.CLASSICAL)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-
-        executableClassicalInstructions.addAll(classicalInstructions);
-        executableClassicalInstructions.addAll(quantumInstructions);
+        findExecutableClassicalAndQuantumInstructions(executableClassicalInstructions);
         executableClassicalInstructions.add(instructions.stream()
                 .filter(x -> x.getLine() == firstHybridLine)
                 .findFirst()
@@ -72,6 +63,35 @@ public class JITQuantumExecuter {
                 .filter(x -> !executableClassicalInstructions.contains(x))
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         executableClassicalInstructions.addAll(stillMissingInstructions);
+    }
+
+    private void findExecutableClassicalAndQuantumInstructions(ArrayList<InstructionNode> executableClassicalInstructions) {
+        boolean newFoundInstructions = true;
+        ArrayList<InstructionNode> newExecutableQuantumInstructions = new ArrayList<>();
+        ArrayList<InstructionNode> newExecutableClassicalInstructions = new ArrayList<>();
+        while(newFoundInstructions) {
+            ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructions)));
+            ArrayList<InstructionNode> executedInstructions = new ArrayList<>();
+            executedInstructions.addAll(executableClassicalInstructions);
+            executedInstructions.addAll(newExecutableClassicalInstructions);
+            executedInstructions.addAll(newExecutableQuantumInstructions);
+            ArrayList<InstructionNode>  newExecutableInstructions = eie.getExecutableInstructionsOfOneBlock(0, executedInstructions)
+                    .stream()
+                    .filter(x -> !executedInstructions.contains(x))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            ArrayList<InstructionNode> classicalInstructions = newExecutableInstructions.stream()
+                    .filter(x -> x.getLineType() == LineType.CLASSICAL)
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            ArrayList<InstructionNode> quantumInstructions = newExecutableInstructions.stream()
+                    .filter(x -> x.getLineType() == LineType.QUANTUM)
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            newFoundInstructions = !classicalInstructions.isEmpty() || !quantumInstructions.isEmpty();
+            newExecutableClassicalInstructions.addAll(classicalInstructions);
+            newExecutableQuantumInstructions.addAll(quantumInstructions);
+        }
+
+        executableClassicalInstructions.addAll(newExecutableClassicalInstructions);
+        executableClassicalInstructions.addAll(newExecutableQuantumInstructions);
     }
 
     private ArrayList<InstructionNode> executableClassicalInstrutionsWithoutQuantum() {

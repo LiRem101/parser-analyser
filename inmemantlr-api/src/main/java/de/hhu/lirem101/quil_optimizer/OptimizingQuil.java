@@ -8,6 +8,7 @@ import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import de.hhu.lirem101.quil_optimizer.transformation.ConstantFolder;
 import de.hhu.lirem101.quil_optimizer.transformation.DeadCodeEliminator;
+import de.hhu.lirem101.quil_optimizer.transformation.JITQuantumExecuter;
 import de.hhu.lirem101.quil_optimizer.transformation.ReOrdererForHybridExecution;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
@@ -105,6 +106,16 @@ public class OptimizingQuil {
                     JsonObjectBuilder constantFolderBuilder = Json.createObjectBuilder();
                     addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
                     jsonBuilder.add("ConstantFolding", constantFolderBuilder);
+                    break;
+                case "QuantumJIT":
+                    JITQuantumExecuter jqe = new JITQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
+                    ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
+                    JsonObjectBuilder reOrderJIT = Json.createObjectBuilder();
+                    addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
+                    jsonBuilder.add("QuantumJITOrdering", reOrderJIT);
+                    if(!reOrdered.isEmpty()) {
+                        currentOrder.set(0, reOrdered);
+                    }
                     break;
             }
         }
