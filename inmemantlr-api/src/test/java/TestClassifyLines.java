@@ -128,7 +128,7 @@ public class TestClassifyLines {
         ClassifyLines cl = new ClassifyLines(root);
         Map<Integer, LineType> result = cl.classifyLines();
         assertEquals(LineType.CLASSICAL_INFLUENCES_QUANTUM, result.get(1));
-        assertEquals(LineType.CLASSICAL_INFLUENCES_QUANTUM, result.get(2));
+        assertEquals(LineType.QUANTUM, result.get(2));
         assertEquals(LineType.QUANTUM, result.get(3));
     }
 

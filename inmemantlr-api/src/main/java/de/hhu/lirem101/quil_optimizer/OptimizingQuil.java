@@ -6,6 +6,7 @@ import de.hhu.lirem101.quil_optimizer.analysis.ConstantPropagator;
 import de.hhu.lirem101.quil_optimizer.analysis.DeadCodeAnalyser;
 import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
+import de.hhu.lirem101.quil_optimizer.transformation.ConstantFolder;
 import de.hhu.lirem101.quil_optimizer.transformation.DeadCodeEliminator;
 import de.hhu.lirem101.quil_optimizer.transformation.ReOrdererForHybridExecution;
 import org.snt.inmemantlr.tree.ParseTreeNode;
@@ -98,6 +99,13 @@ public class OptimizingQuil {
                     addInstructionsToJson(reOrderBuilder, currentOrder);
                     jsonBuilder.add("ReOrdered", reOrderBuilder);
                     break;
+                case "ConstantFolding":
+                    ConstantFolder cf = new ConstantFolder(currentOrder);
+                    ArrayList<ArrayList<Integer>> changedLines = cf.getAdaptedLines();
+                    JsonObjectBuilder constantFolderBuilder = Json.createObjectBuilder();
+                    addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
+                    jsonBuilder.add("ConstantFolding", constantFolderBuilder);
+                    break;
             }
         }
         JsonObject json = jsonBuilder.build();
@@ -160,11 +168,13 @@ public class OptimizingQuil {
      */
     private void addInstructionsToJson(JsonObjectBuilder json, ArrayList<ArrayList<InstructionNode>> instructions) {
         for (ArrayList<InstructionNode> instruction : instructions) {
-            JsonObjectBuilder instructionBuilder = Json.createObjectBuilder();
-            for (InstructionNode node : instruction) {
-                instructionBuilder.add(Integer.toString(node.getLine()), node.getLineText());
+            if(!instruction.isEmpty()) {
+                JsonObjectBuilder instructionBuilder = Json.createObjectBuilder();
+                for (InstructionNode node : instruction) {
+                    instructionBuilder.add(Integer.toString(node.getLine()), node.getLineText());
+                }
+                json.add(instruction.get(0).getName(), instructionBuilder);
             }
-            json.add(instruction.get(0).getName(), instructionBuilder);
         }
     }
 
@@ -177,5 +187,23 @@ public class OptimizingQuil {
                 node.setLineText(quilCode[node.getLine()-1]);
             }
         }
+    }
+
+    /**
+     * Adds lines of given line numbers to jsonBuilder in the form of "LineNumber: LineContent".
+     * @param json The jsonBuilder to add the lines to.
+     * @param instructions The list of list of line numbers.
+     * @param lines The line numbers to add.
+     */
+    private void addLinesToJson(JsonObjectBuilder json, ArrayList<ArrayList<InstructionNode>> instructions, ArrayList<ArrayList<Integer>> lines) {
+        ArrayList<ArrayList<InstructionNode>> theseInstructions = new ArrayList<>();
+        for(int i = 0; i < instructions.size(); i++) {
+            int finalI = i;
+            ArrayList<InstructionNode> ins = instructions.get(i).stream()
+                    .filter(x -> lines.get(finalI).contains(x.getLine()))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            theseInstructions.add(ins);
+        }
+        addInstructionsToJson(json, theseInstructions);
     }
 }

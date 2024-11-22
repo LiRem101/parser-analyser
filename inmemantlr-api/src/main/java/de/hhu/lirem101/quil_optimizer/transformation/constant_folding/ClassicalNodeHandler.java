@@ -16,6 +16,7 @@ import static de.hhu.lirem101.quil_optimizer.transformation.constant_folding.Par
 public class ClassicalNodeHandler implements Handler {
 
     private final InstructionNode instruction;
+    private boolean changed;
     private boolean calculated = false;
 
     public ClassicalNodeHandler(InstructionNode instruction) {
@@ -27,7 +28,11 @@ public class ClassicalNodeHandler implements Handler {
 
     @Override
     public boolean propagateConstant() {
-        boolean changed = replaceConstants();
+        if(calculated) {
+            return changed;
+        }
+        calculated = true;
+        changed = replaceConstants();
         changed |= rewriteToMove();
         return changed;
     }

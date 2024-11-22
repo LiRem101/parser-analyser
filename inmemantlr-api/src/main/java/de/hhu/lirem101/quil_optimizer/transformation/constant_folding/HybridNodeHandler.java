@@ -15,6 +15,7 @@ public class HybridNodeHandler implements Handler {
 
     private final InstructionNode instruction;
     private boolean calculated = false;
+    private boolean changed;
 
     public HybridNodeHandler(InstructionNode instruction) {
         LineType t = instruction.getLineType();
@@ -34,15 +35,13 @@ public class HybridNodeHandler implements Handler {
      */
     @Override
     public boolean propagateConstant() {
-        if(calculated) {
-            return true;
-        } else if(instruction.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM) {
-            calculated = true;
-            return propagateParametrizedGate();
-        } else {
-            calculated = true;
-            return propagateMeasurement();
+        if(!calculated && instruction.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM) {
+            changed = propagateParametrizedGate();
+        } else if(!calculated) {
+            changed = propagateMeasurement();
         }
+        calculated = true;
+        return changed;
     }
 
     /**

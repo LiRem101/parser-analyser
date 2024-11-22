@@ -3,6 +3,7 @@ package de.hhu.lirem101.quil_analyser;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.hhu.lirem101.quil_analyser.RulesOfParseTree.*;
 
@@ -107,17 +108,24 @@ public class ClassifyLines {
         if(param == null) {
             lineTypes.put(line, LineType.QUANTUM);
         } else {
-            ParseTreeNode expression = param.getChildren().stream().filter(n -> n.getRule().equals("expression")).findFirst().orElse(null);
-            if(expression == null || param.getChildren().size() != 1) {
+            ParseTreeNode addr = getAllChildNodes(param).stream().filter(n -> n.getRule().equals("addr")).findFirst().orElse(null);
+            if(addr != null) {
                 lineTypes.put(line, LineType.CLASSICAL_INFLUENCES_QUANTUM);
             } else {
-                ParseTreeNode number = expression.getChildren().stream().filter(n -> n.getRule().equals("number")).findFirst().orElse(null);
-                if(number == null || expression.getChildren().size() != 1) {
-                    lineTypes.put(line, LineType.CLASSICAL_INFLUENCES_QUANTUM);
-                } else {
-                    lineTypes.put(line, LineType.QUANTUM);
-                }
+                lineTypes.put(line, LineType.QUANTUM);
             }
         }
+    }
+
+    private ArrayList<ParseTreeNode> getAllChildNodes(ParseTreeNode node) {
+        ArrayList<ParseTreeNode> children = new ArrayList<>();
+        Queue<ParseTreeNode> nodeQueue = new LinkedList<>();
+        nodeQueue.add(node);
+        while (!nodeQueue.isEmpty()) {
+            ParseTreeNode currentNode = nodeQueue.poll();
+            children.add(currentNode);
+            nodeQueue.addAll(currentNode.getChildren());
+        }
+        return children;
     }
 }

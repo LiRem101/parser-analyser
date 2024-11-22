@@ -15,6 +15,7 @@ import java.util.Queue;
 public class QuantumHandler implements Handler {
     private final InstructionNode instruction;
     private boolean calculated = false;
+    private boolean changed = false;
 
     public QuantumHandler(InstructionNode instruction) {
         if(instruction.getLineType() != LineType.QUANTUM) {
@@ -32,7 +33,7 @@ public class QuantumHandler implements Handler {
     public boolean propagateConstant() {
         QuantumVariable qv = instruction.getQuantumParameters().stream().findFirst().orElse(new QuantumVariable("", QuantumUsage.MULTI_GATE));
         if(calculated) {
-            return true;
+            return changed;
         } else if(qv.getUsage() != QuantumUsage.SINGLE_GATE || qv.getCliffordStateBeforeGate() == null || qv.getCliffordStateAfterGate() != null) {
             return false;
         }
@@ -40,11 +41,8 @@ public class QuantumHandler implements Handler {
 
         applyGate();
 
-        if(qv.getCliffordStateAfterGate() != null) {
-            return true;
-        } else {
-            return false;
-        }
+        changed = qv.getCliffordStateAfterGate() != null;
+        return changed;
     }
 
     /**
