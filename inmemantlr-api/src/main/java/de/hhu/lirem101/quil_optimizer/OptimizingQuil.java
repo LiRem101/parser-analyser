@@ -72,7 +72,7 @@ public class OptimizingQuil {
                 String optimization = optimizationSteps.get(index);
                 appliedOptimizations.add(optimization);
             }
-            result.append("Applied optimizations:\n").append(appliedOptimizations).append("\n");
+            result.append("Applied optimizations, iteration " + i + ":\n").append(appliedOptimizations).append("\n");
             try {
                 String json = applyOptimizationSteps(appliedOptimizations);
                 ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
@@ -82,6 +82,7 @@ public class OptimizingQuil {
                 JsonObjectBuilder errorBuilder = Json.createObjectBuilder();
                 errorBuilder.add("Error", e.getMessage());
                 result.append(errorBuilder.build().toString()).append("\n\n");
+                System.err.println("Error in iteration " + i);
             }
             createListsForOrderedInstructions(this.instructions);
         }

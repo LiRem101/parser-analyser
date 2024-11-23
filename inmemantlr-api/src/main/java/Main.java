@@ -1,4 +1,5 @@
 import de.hhu.lirem101.quil_analyser.*;
+import de.hhu.lirem101.quil_optimizer.OptimizingQuil;
 import org.snt.inmemantlr.GenericParser;
 import org.snt.inmemantlr.exceptions.CompilationException;
 import org.snt.inmemantlr.exceptions.IllegalWorkflowException;
@@ -78,21 +79,39 @@ public class Main {
         cfd.drawControlFlowGraph(graphic, dotFile, quilFileName);
     }
 
+    private static void optimizeQuil(ParseTree pt, String quilFileName, String resultFileName, Set<String> readoutParams) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+        ClassifyLines cl = new ClassifyLines(pt.getRoot());
+        Map<Integer, LineType> classes = cl.classifyLines();
+        ControlFlowBlock blocks = getControlFlow(pt, classes);
+
+        String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
+        OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
+
+        String result = oQuil.fuzzOptimization(10, 20);
+
+        File resultFile = new File(resultFileName);
+        Files.write(resultFile.toPath(), result.getBytes());
+    }
+
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "repeat-until-success";
+        final String file = "iterative-phase-estimation";
+        Set<String> readoutParams = new HashSet<>();
+        readoutParams.add("result[0]");
+
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + "Quil/" + file + ".quil";
         String dotFileName = resourcePath + "Quil/" + file + ".dot";
         String graphImageFileName = resourcePath + "Quil/" + file + ".ps";
         String dotFileNameDDG = resourcePath + "Quil/" + file + "ddg.dot";
         String graphImageFileNameDDG = resourcePath + "Quil/" + file + "ddg.ps";
+        String resultFileName = resourcePath + "Quil/" + file + "_optimization_fuzzing.quil";
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
-        // drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
-        drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
-
+        //drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        // drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
+        optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
     }
 }
