@@ -184,13 +184,15 @@ public class OptimizingQuil {
                     jsonBuilder.add("ConstantFolding", constantFolderBuilder);
                     break;
                 case "QuantumJIT":
-                    JITQuantumExecuter jqe = new JITQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
-                    ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
-                    JsonObjectBuilder reOrderJIT = Json.createObjectBuilder();
-                    addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
-                    jsonBuilder.add("QuantumJITOrdering", reOrderJIT);
-                    if(!reOrdered.isEmpty()) {
-                        currentOrder.set(0, reOrdered);
+                    if (!hybridDependencies.isEmpty()) {
+                        JITQuantumExecuter jqe = new JITQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
+                        ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
+                        JsonObjectBuilder reOrderJIT = Json.createObjectBuilder();
+                        addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
+                        jsonBuilder.add("QuantumJITOrdering", reOrderJIT);
+                        if(!reOrdered.isEmpty()) {
+                            currentOrder.set(0, reOrdered);
+                        }
                     }
                     break;
             }

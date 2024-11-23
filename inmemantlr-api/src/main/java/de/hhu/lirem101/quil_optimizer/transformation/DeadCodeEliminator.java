@@ -22,7 +22,7 @@ public class DeadCodeEliminator {
     }
 
     public void eliminateDeadCode() {
-        if(calculated) {
+        if(calculated || deadLines.isEmpty()) {
             return;
         }
         removeDeadBlocks();
@@ -35,6 +35,10 @@ public class DeadCodeEliminator {
      * @param jsonBuilder The JsonObjectBuilder to add the information to.
      */
     public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+        if(deadLines.isEmpty()) {
+            jsonBuilder.add("DeadCodeElimination", Json.createObjectBuilder());
+            return;
+        }
         if (!calculated) {
             removeDeadBlocks();
             removeDeadLines();
