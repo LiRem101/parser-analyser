@@ -12,9 +12,11 @@ import de.hhu.lirem101.quil_optimizer.transformation.JITQuantumExecuter;
 import de.hhu.lirem101.quil_optimizer.transformation.ReOrdererForHybridExecution;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import javax.json.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
@@ -53,51 +55,86 @@ public class OptimizingQuil {
 
 
     /**
-     * Fuzz optimization steps and save the json results. If an error is thrown, save this as well.
+     * Fuzz optimization steps and save in a json file. If an error is thrown, save this as well.
+     * @param jsonFileName The name of the json file to save the results in.
      * @param iterations The number of iterations.
      * @param numberOfOptimizations The number of optimizations to apply in one iteration.
      * @return The result json string and the applied optimizations.
      */
-    public String fuzzOptimization(int iterations, int numberOfOptimizations) {
+    public void fuzzOptimization(String jsonFileName,int iterations, int numberOfOptimizations) {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
-                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
-                "QuantumJIT"));
+                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding")); //,
+               // "QuantumJIT"));
         Random random = new Random();
-        StringBuilder result = new StringBuilder();
-        result.append("Original number of instructions: ").append(numberOfInstructions(currentOrder)).append("\n\n");
+        JsonObjectBuilder result = Json.createObjectBuilder();
+        JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
+        ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
+        int minNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
+        int minimumIndex = -1;
+        numberOfInstructions.forEach(instructionNumberBuilder::add);
+        result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
         for(int i = 0; i < iterations; i++) {
+            JsonObjectBuilder iterationBuilder = Json.createObjectBuilder();
+            iterationBuilder.add("Iteration", i);
+            JsonArrayBuilder appliedOptBuilder = Json.createArrayBuilder();
             ArrayList<String> appliedOptimizations = new ArrayList<>();
             for(int j = 0; j < numberOfOptimizations; j++) {
                 int index = random.nextInt(optimizationSteps.size());
                 String optimization = optimizationSteps.get(index);
                 appliedOptimizations.add(optimization);
+                appliedOptBuilder.add(optimization);
             }
-            result.append("Applied optimizations, iteration " + i + ":\n").append(appliedOptimizations).append("\n");
+            iterationBuilder.add("AppliedOptimizations", appliedOptBuilder);
             try {
-                String json = applyOptimizationSteps(appliedOptimizations);
-                ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
-                result.append("Resulting number of instructions: ").append(numberOfInstructions).append("\n");
-                result.append(json).append("\n\n");
+                JsonObjectBuilder resultJson = applyOptimizationSteps(appliedOptimizations);
+                numberOfInstructions = numberOfInstructions(currentOrder);
+                JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
+                numberOfInstructions.forEach(numberOfInstructionsBuilder::add);
+                iterationBuilder.add("FinalNumberOfInstructions", numberOfInstructionsBuilder);
+                iterationBuilder.add("Optimizations", resultJson);
+                int totalNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
+                if(totalNumberOfInstructions < minNumberOfInstructions) {
+                    minNumberOfInstructions = totalNumberOfInstructions;
+                    minimumIndex = i;
+                }
             } catch (Exception e) {
                 JsonObjectBuilder errorBuilder = Json.createObjectBuilder();
+                JsonArrayBuilder stackTraceBuilder = Json.createArrayBuilder();
                 errorBuilder.add("Error", e.getMessage());
-                result.append(errorBuilder.build().toString()).append("\n\n");
+                // Add stack trace to stackTraceBuilder
+                for (StackTraceElement element : e.getStackTrace()) {
+                    stackTraceBuilder.add(element.toString());
+                }
+                errorBuilder.add("StackTrace", stackTraceBuilder);
+                iterationBuilder.add("Error", errorBuilder);
                 System.err.println("Error in iteration " + i);
             }
             createListsForOrderedInstructions(this.instructions);
+            result.add("Iteration" + i, iterationBuilder);
         }
-        return result.toString();
+        result.add("MinimumIndex", minimumIndex);
+        result.add("MinimumNumberOfInstructions", minNumberOfInstructions);
 
+        JsonObject json = result.build();
+
+        try (OutputStream os = new FileOutputStream(jsonFileName);
+             JsonWriter jsonWriter = Json.createWriter(os)) {
+            jsonWriter.writeObject(json);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-
     /**
-     * Apply optimization steps to the instructions. Save the optimized instructions in currentOrder. Create a json
-     * string with the optimized instructions.
+     * Apply optimization steps to the instructions. Save the optimized instructions in currentOrder. Create a
+     * JsonObjectBuilder with the original instructions, the optimized instructions and the applied optimizations.
      * @param optimizationSteps The optimization steps to apply as strings.
-     * @return The json string with the optimized instructions.
+     * @return The JsonObjectBuilder with the original instructions, the optimized instructions and the applied
+     * optimizations.
      */
-    public String applyOptimizationSteps(ArrayList<String> optimizationSteps){
+    public JsonObjectBuilder applyOptimizationSteps(ArrayList<String> optimizationSteps){
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
         JsonObjectBuilder startBuilder = Json.createObjectBuilder();
         addInstructionsToJson(startBuilder, instructions);
@@ -161,11 +198,7 @@ public class OptimizingQuil {
         JsonObjectBuilder finalResult = Json.createObjectBuilder();
         addInstructionsToJson(finalResult, currentOrder);
         jsonBuilder.add("FinalResult", finalResult);
-
-        JsonObject json = jsonBuilder.build();
-        String jsonString = json.toString();
-
-        return jsonString;
+        return jsonBuilder;
     }
 
 

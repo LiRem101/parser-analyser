@@ -87,10 +87,7 @@ public class Main {
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
         OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
 
-        String result = oQuil.fuzzOptimization(10, 20);
-
-        File resultFile = new File(resultFileName);
-        Files.write(resultFile.toPath(), result.getBytes());
+        oQuil.fuzzOptimization(resultFileName, 2, 20);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
@@ -106,7 +103,7 @@ public class Main {
         String graphImageFileName = resourcePath + "Quil/" + file + ".ps";
         String dotFileNameDDG = resourcePath + "Quil/" + file + "ddg.dot";
         String graphImageFileNameDDG = resourcePath + "Quil/" + file + "ddg.ps";
-        String resultFileName = resourcePath + "Quil/" + file + "_optimization_fuzzing.quil";
+        String resultFileName = resourcePath + "Quil/" + file + "_optimization_fuzzing.json";
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
