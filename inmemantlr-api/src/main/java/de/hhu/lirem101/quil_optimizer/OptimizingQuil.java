@@ -53,6 +53,44 @@ public class OptimizingQuil {
 
 
     /**
+     * Fuzz optimization steps and save the json results. If an error is thrown, save this as well.
+     * @param iterations The number of iterations.
+     * @param numberOfOptimizations The number of optimizations to apply in one iteration.
+     * @return The result json string and the applied optimizations.
+     */
+    public String fuzzOptimization(int iterations, int numberOfOptimizations) {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
+                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
+                "QuantumJIT"));
+        Random random = new Random();
+        StringBuilder result = new StringBuilder();
+        result.append("Original number of instructions: ").append(numberOfInstructions(currentOrder)).append("\n\n");
+        for(int i = 0; i < iterations; i++) {
+            ArrayList<String> appliedOptimizations = new ArrayList<>();
+            for(int j = 0; j < numberOfOptimizations; j++) {
+                int index = random.nextInt(optimizationSteps.size());
+                String optimization = optimizationSteps.get(index);
+                appliedOptimizations.add(optimization);
+            }
+            result.append("Applied optimizations:\n").append(appliedOptimizations).append("\n");
+            try {
+                String json = applyOptimizationSteps(appliedOptimizations);
+                ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
+                result.append("Resulting number of instructions: ").append(numberOfInstructions).append("\n");
+                result.append(json).append("\n\n");
+            } catch (Exception e) {
+                JsonObjectBuilder errorBuilder = Json.createObjectBuilder();
+                errorBuilder.add("Error", e.getMessage());
+                result.append(errorBuilder.build().toString()).append("\n\n");
+            }
+            createListsForOrderedInstructions(this.instructions);
+        }
+        return result.toString();
+
+    }
+
+
+    /**
      * Apply optimization steps to the instructions. Save the optimized instructions in currentOrder. Create a json
      * string with the optimized instructions.
      * @param optimizationSteps The optimization steps to apply as strings.
@@ -119,6 +157,10 @@ public class OptimizingQuil {
                     break;
             }
         }
+        JsonObjectBuilder finalResult = Json.createObjectBuilder();
+        addInstructionsToJson(finalResult, currentOrder);
+        jsonBuilder.add("FinalResult", finalResult);
+
         JsonObject json = jsonBuilder.build();
         String jsonString = json.toString();
 
@@ -140,6 +182,7 @@ public class OptimizingQuil {
     }
 
     private void createListsForOrderedInstructions(ArrayList<ArrayList<InstructionNode>> instructionLists) {
+        currentOrder = new ArrayList<>();
         for (ArrayList<InstructionNode> instructionList : instructionLists) {
             currentOrder.add(new ArrayList<>());
             currentOrder.get(currentOrder.size() - 1).addAll(instructionList);
@@ -216,5 +259,18 @@ public class OptimizingQuil {
             theseInstructions.add(ins);
         }
         addInstructionsToJson(json, theseInstructions);
+    }
+
+    /**
+     * Calculate number of instructions in the instructions list.
+     * @param instructionList The list of list of instructions.
+     * @return The number of instructions.
+     */
+    private ArrayList<Integer> numberOfInstructions(ArrayList<ArrayList<InstructionNode>> instructionList) {
+        ArrayList<Integer> numberOfInstructions = new ArrayList<>();
+        for (ArrayList<InstructionNode> instructions : instructionList) {
+            numberOfInstructions.add(instructions.size());
+        }
+        return numberOfInstructions;
     }
 }
