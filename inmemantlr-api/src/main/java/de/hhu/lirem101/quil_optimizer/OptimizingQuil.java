@@ -63,8 +63,8 @@ public class OptimizingQuil {
      */
     public void fuzzOptimization(String jsonFileName,int iterations, int numberOfOptimizations) {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
-                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding")); //,
-               // "QuantumJIT"));
+                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
+                "QuantumJIT"));
         Random random = new Random();
         JsonObjectBuilder result = Json.createObjectBuilder();
         JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
