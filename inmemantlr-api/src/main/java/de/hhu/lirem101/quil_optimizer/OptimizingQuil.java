@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
@@ -59,13 +60,40 @@ public class OptimizingQuil {
      * @param jsonFileName The name of the json file to save the results in.
      * @param iterations The number of iterations.
      * @param numberOfOptimizations The number of optimizations to apply in one iteration.
-     * @return The result json string and the applied optimizations.
      */
-    public void fuzzOptimization(String jsonFileName,int iterations, int numberOfOptimizations) {
+    public void fuzzOptimization(String jsonFileName, int iterations, int numberOfOptimizations) {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
                 "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
                 "QuantumJIT"));
         Random random = new Random();
+        ArrayList<ArrayList<String>> optimizations = new ArrayList<>();
+        for(int i = 0; i < iterations; i++) {
+            ArrayList<String> iterationOptimizations = new ArrayList<>();
+            for(int j = 0; j < numberOfOptimizations; j++) {
+                int randomIndex = random.nextInt(optimizationSteps.size());
+                iterationOptimizations.add(optimizationSteps.get(randomIndex));
+            }
+            optimizations.add(iterationOptimizations);
+        }
+        JsonObject result = fuzzOptimization(optimizations);
+
+        try (OutputStream os = new FileOutputStream(jsonFileName);
+             JsonWriter jsonWriter = Json.createWriter(os)) {
+            jsonWriter.writeObject(result);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * Fuzz optimization steps and save in a json file. If an error is thrown, save this as well.
+     * @param optimizations The list of lists of optimization steps to apply.
+     * @return The JsonObject with the results of the optimizations.
+     */
+    public JsonObject fuzzOptimization(ArrayList<ArrayList<String>> optimizations) {
         JsonObjectBuilder result = Json.createObjectBuilder();
         JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
         ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
@@ -73,20 +101,14 @@ public class OptimizingQuil {
         int minimumIndex = -1;
         numberOfInstructions.forEach(instructionNumberBuilder::add);
         result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
-        for(int i = 0; i < iterations; i++) {
+        for(int i = 0; i < optimizations.size(); i++) {
             JsonObjectBuilder iterationBuilder = Json.createObjectBuilder();
             iterationBuilder.add("Iteration", i);
             JsonArrayBuilder appliedOptBuilder = Json.createArrayBuilder();
-            ArrayList<String> appliedOptimizations = new ArrayList<>();
-            for(int j = 0; j < numberOfOptimizations; j++) {
-                int index = random.nextInt(optimizationSteps.size());
-                String optimization = optimizationSteps.get(index);
-                appliedOptimizations.add(optimization);
-                appliedOptBuilder.add(optimization);
-            }
+            optimizations.get(i).forEach(appliedOptBuilder::add);
             iterationBuilder.add("AppliedOptimizations", appliedOptBuilder);
             try {
-                JsonObjectBuilder resultJson = applyOptimizationSteps(appliedOptimizations);
+                JsonObjectBuilder resultJson = applyOptimizationSteps(optimizations.get(i));
                 numberOfInstructions = numberOfInstructions(currentOrder);
                 JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
                 numberOfInstructions.forEach(numberOfInstructionsBuilder::add);
@@ -117,14 +139,7 @@ public class OptimizingQuil {
 
         JsonObject json = result.build();
 
-        try (OutputStream os = new FileOutputStream(jsonFileName);
-             JsonWriter jsonWriter = Json.createWriter(os)) {
-            jsonWriter.writeObject(json);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return json;
     }
 
     /**

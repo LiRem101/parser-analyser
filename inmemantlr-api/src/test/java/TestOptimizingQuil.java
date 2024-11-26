@@ -61,6 +61,24 @@ public class TestOptimizingQuil {
         oQuil.applyOptimizationSteps(optimizationSteps);
     }
 
+    private void doMultipleOptimization(ArrayList<ArrayList<String>> optimizationSteps) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        final String file = "iterative-phase-estimation";
+        Set<String> readoutParams = new HashSet<>();
+        readoutParams.add("result[0]");
+
+        String grammarFileName = resourcePath + "Quil.g4";
+        String quilFileName = resourcePath + "Quil/" + file + ".quil";
+
+        ParseTree pt = getParseTree(grammarFileName, quilFileName);
+        ClassifyLines cl = new ClassifyLines(pt.getRoot());
+        Map<Integer, LineType> classes = cl.classifyLines();
+        ControlFlowBlock blocks = getControlFlow(pt, classes);
+
+        String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
+        OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
+        oQuil.fuzzOptimization(optimizationSteps);
+    }
+
     @Test
     public void optimize1() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("DeadCodeAnalysis", "DeadCodeElimination",
@@ -139,6 +157,42 @@ public class TestOptimizingQuil {
                 "ConstantPropagation", "LiveVariableAnalysis", "ConstantPropagation", "QuantumJIT", "DeadCodeAnalysis",
                 "DeadCodeElimination", "QuantumJIT"));
         doOptimization(optimizationSteps);
+    }
+
+    @Test
+    public void optimize9() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("ConstantPropagation", "QuantumJIT",
+                "ConstantFolding", "DeadCodeAnalysis", "ConstantPropagation", "LiveVariableAnalysis", "QuantumJIT",
+                "DeadCodeAnalysis", "DeadCodeElimination", "HybridDependencies", "HybridDependencies",
+                "ConstantFolding", "DeadCodeElimination", "DeadCodeElimination", "LiveVariableAnalysis", "ReOrdering",
+                "LiveVariableAnalysis", "DeadCodeAnalysis", "ConstantFolding", "DeadCodeAnalysis"));
+        doOptimization(optimizationSteps);
+    }
+
+    @Test
+    public void optimize10() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("HybridDependencies", "ReOrdering",
+                "DeadCodeElimination", "HybridDependencies", "QuantumJIT", "ReOrdering", "ConstantPropagation",
+                "DeadCodeElimination", "ReOrdering", "LiveVariableAnalysis", "ReOrdering", "ConstantPropagation",
+                "LiveVariableAnalysis", "QuantumJIT", "HybridDependencies", "DeadCodeAnalysis", "DeadCodeAnalysis",
+                "QuantumJIT", "DeadCodeAnalysis", "HybridDependencies"));
+        doOptimization(optimizationSteps);
+    }
+
+    @Test
+    public void optimizeMultiple1() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps0 = new ArrayList<>(Arrays.asList("QuantumJIT", "LiveVariableAnalysis",
+                "ConstantPropagation", "DeadCodeAnalysis", "ConstantFolding", "LiveVariableAnalysis",
+                "DeadCodeElimination", "ConstantPropagation", "LiveVariableAnalysis", "LiveVariableAnalysis",
+                "DeadCodeAnalysis", "DeadCodeAnalysis", "LiveVariableAnalysis", "ReOrdering", "ConstantFolding",
+                "LiveVariableAnalysis", "ConstantPropagation", "DeadCodeAnalysis", "QuantumJIT", "ConstantFolding"));
+        ArrayList<String> optimizationSteps1 = new ArrayList<>(Arrays.asList("ReOrdering", "DeadCodeAnalysis",
+                "QuantumJIT", "ReOrdering", "ConstantPropagation", "ConstantFolding", "QuantumJIT",
+                "LiveVariableAnalysis", "QuantumJIT", "LiveVariableAnalysis", "QuantumJIT", "DeadCodeElimination",
+                "QuantumJIT", "QuantumJIT", "ConstantPropagation", "QuantumJIT", "DeadCodeAnalysis", "DeadCodeAnalysis",
+                "ConstantFolding", "ConstantPropagation"));
+        ArrayList<ArrayList<String>> optimizations = new ArrayList<>(Arrays.asList(optimizationSteps0, optimizationSteps1));
+        doMultipleOptimization(optimizations);
     }
 
 }
