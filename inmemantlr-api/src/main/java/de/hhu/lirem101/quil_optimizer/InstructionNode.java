@@ -16,12 +16,20 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
     private static class ConnectedInstructions {
         private final ArrayList<InstructionNode> previous = new ArrayList<>();
         private final ArrayList<InstructionNode> next = new ArrayList<>();
+
+        public ConnectedInstructions copyConnections() {
+            ConnectedInstructions copy = new ConnectedInstructions();
+            copy.previous.addAll(previous);
+            copy.next.addAll(next);
+            return copy;
+        }
     }
 
     private final int line;
     private LineType type;
     private String lineText;
     private ParseTreeNode ptNode;
+    private ParseTreeNode originalPtNode;
     private boolean shownToBeDead = false;
     private final Map<QuantumVariable, ConnectedInstructions> quantumParameters = new HashMap<>();
     private final Map<ClassicalVariable, ConnectedInstructions> classicalParameters = new HashMap<>();
@@ -135,11 +143,17 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
      * @param ptNode The node to add to the instruction.
      */
     public void setParseTreeNode(ParseTreeNode ptNode) {
+        if (this.originalPtNode == null) {
+            originalPtNode = ptNode;
+        }
         this.ptNode = ptNode;
         calculateLineParameters(ptNode);
     }
 
     private void calculateLineParameters(ParseTreeNode node) {
+        if (this.originalPtNode == null) {
+            originalPtNode = node;
+        }
         VariableCalculator vc = new VariableCalculator(node);
         Set<QuantumVariable> quantumVariables = vc.getQuantumVariables();
         Set<ClassicalVariable> classicalVariables = vc.getClassicalVariables();
@@ -305,6 +319,24 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
             nextNode.classicalParameters.get(var).previous.addAll(prevNodes);
         }
         classicalParameters.remove(cv);
+    }
+
+    /**
+     * Copy the instruction node.
+     * @return The copied instruction node.
+     */
+    public InstructionNode copyInstruction() {
+        InstructionNode copy = new InstructionNode(line, type);
+        copy.lineText = lineText;
+        copy.ptNode = originalPtNode;
+        copy.shownToBeDead = shownToBeDead;
+        for (QuantumVariable qv : quantumParameters.keySet()) {
+            copy.quantumParameters.put(qv, quantumParameters.get(qv).copyConnections());
+        }
+        for (ClassicalVariable cv : classicalParameters.keySet()) {
+            copy.classicalParameters.put(cv, classicalParameters.get(cv).copyConnections());
+        }
+        return copy;
     }
 
 }

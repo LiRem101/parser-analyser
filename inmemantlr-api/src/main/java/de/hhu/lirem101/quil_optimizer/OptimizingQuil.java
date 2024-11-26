@@ -239,8 +239,11 @@ public class OptimizingQuil {
     private void createListsForOrderedInstructions(ArrayList<ArrayList<InstructionNode>> instructionLists) {
         currentOrder = new ArrayList<>();
         for (ArrayList<InstructionNode> instructionList : instructionLists) {
-            currentOrder.add(new ArrayList<>());
-            currentOrder.get(currentOrder.size() - 1).addAll(instructionList);
+            ArrayList<InstructionNode> instructionListCopy = new ArrayList<>();
+            for(InstructionNode node : instructionList) {
+                instructionListCopy.add(node.copyInstruction());
+            }
+            currentOrder.add(instructionListCopy);
         }
     }
 
