@@ -166,15 +166,19 @@ public class OptimizingQuil {
                     fhd.addDeadVariablesToJson(jsonBuilder);
                     break;
                 case "DeadCodeElimination":
-                    DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
-                    dce.addDeadVariablesToJson(jsonBuilder);
+                    if(!deadLines.isEmpty()) {
+                        DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
+                        dce.addDeadVariablesToJson(jsonBuilder);
+                    }
                     break;
                 case "ReOrdering":
-                    ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
-                    currentOrder = rofhe.reOrderInstructions();
-                    JsonObjectBuilder reOrderBuilder = Json.createObjectBuilder();
-                    addInstructionsToJson(reOrderBuilder, currentOrder);
-                    jsonBuilder.add("ReOrdered", reOrderBuilder);
+                    if(!hybridDependencies.isEmpty()) {
+                        ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
+                        currentOrder = rofhe.reOrderInstructions();
+                        JsonObjectBuilder reOrderBuilder = Json.createObjectBuilder();
+                        addInstructionsToJson(reOrderBuilder, currentOrder);
+                        jsonBuilder.add("ReOrdered", reOrderBuilder);
+                    }
                     break;
                 case "ConstantFolding":
                     ConstantFolder cf = new ConstantFolder(currentOrder);
