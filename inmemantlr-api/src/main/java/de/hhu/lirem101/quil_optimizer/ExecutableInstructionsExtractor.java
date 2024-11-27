@@ -1,6 +1,8 @@
 package de.hhu.lirem101.quil_optimizer;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class ExecutableInstructionsExtractor {
     private final ArrayList<ArrayList<InstructionNode>> instructions;
@@ -35,9 +37,12 @@ public class ExecutableInstructionsExtractor {
     public ArrayList<InstructionNode> getExecutableInstructionsOfOneBlock(int index, ArrayList<InstructionNode> executionQueue) {
         ArrayList<InstructionNode> instructionList = instructions.get(index);
         ArrayList<InstructionNode> executableInstructions = new ArrayList<>();
+        ArrayList<Integer> executedLines = executionQueue.stream().map(InstructionNode::getLine).collect(Collectors.toCollection(ArrayList::new));
         for(InstructionNode node : instructionList) {
-            if(!executionQueue.contains(node) && executionQueue.containsAll(node.getBranches())) {
+            ArrayList<Integer> necessaryLines = node.getBranches().stream().map(InstructionNode::getLine).collect(Collectors.toCollection(ArrayList::new));
+            if(!executionQueue.contains(node) && executedLines.containsAll(necessaryLines)) {
                 executableInstructions.add(node);
+                executedLines.add(node.getLine());
             }
         }
         return executableInstructions;
