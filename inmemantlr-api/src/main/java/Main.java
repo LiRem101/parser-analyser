@@ -1,5 +1,4 @@
 import de.hhu.lirem101.quil_analyser.*;
-import de.hhu.lirem101.quil_optimizer.OptimizingQuil;
 import org.snt.inmemantlr.GenericParser;
 import org.snt.inmemantlr.exceptions.CompilationException;
 import org.snt.inmemantlr.exceptions.IllegalWorkflowException;
@@ -11,8 +10,9 @@ import org.snt.inmemantlr.utils.FileUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
+
+import static de.hhu.lirem101.quil_optimizer.OptimizingQuil.fuzzOptimization;
 
 public class Main {
     public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
@@ -85,9 +85,7 @@ public class Main {
         ControlFlowBlock blocks = getControlFlow(pt, classes);
 
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
-        OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
-
-        oQuil.fuzzOptimization(resultFileName, 25, 30);
+        fuzzOptimization(resultFileName, 50, 50, blocks, classes, pt.getRoot(), readoutParams, quilCode);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {

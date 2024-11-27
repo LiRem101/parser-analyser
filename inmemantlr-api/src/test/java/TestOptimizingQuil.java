@@ -10,13 +10,13 @@ import org.snt.inmemantlr.tree.ParseTree;
 import org.snt.inmemantlr.utils.FileUtils;
 
 import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
+import static de.hhu.lirem101.quil_optimizer.OptimizingQuil.fuzzOptimization;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestOptimizingQuil {
@@ -81,8 +81,7 @@ public class TestOptimizingQuil {
         ControlFlowBlock blocks = getControlFlow(pt, classes);
 
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
-        OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
-        oQuil.fuzzOptimization(optimizationSteps);
+        fuzzOptimization(optimizationSteps, blocks, classes, pt.getRoot(), readoutParams, quilCode);
     }
 
     @Test
@@ -199,6 +198,14 @@ public class TestOptimizingQuil {
         assertEquals("17: MOVE theta[0] 0", finalInstructions.getString(1));
         assertEquals("21: CONTROLLED targetGate_even 0 1 2", finalInstructions.getString(3));
         assertEquals(55, finalInstructions.size());
+    }
+
+    @Test
+    public void optimize12() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList(
+                "ConstantPropagation", "ReOrdering", "ConstantFolding"
+        ));
+        doOptimization(optimizationSteps);
     }
 
     @Test

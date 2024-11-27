@@ -59,8 +59,16 @@ public class OptimizingQuil {
      * @param jsonFileName The name of the json file to save the results in.
      * @param iterations The number of iterations.
      * @param numberOfOptimizations The number of optimizations to apply in one iteration.
+     * @param block The control flow block to create the instructions from.
+     * @param classes A map with the line number as key and the line type as value.
+     * @param root The root node of the parse tree.
+     * @param readoutParams The classical params whose values are read out at the end of the program, i.e. that will not
+     *                      be dead.
+     * @param quilCode The Quil code as an array of strings.
      */
-    public void fuzzOptimization(String jsonFileName, int iterations, int numberOfOptimizations) {
+    public static void fuzzOptimization(String jsonFileName, int iterations, int numberOfOptimizations,
+                                        ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root,
+                                        Set<String> readoutParams, String[] quilCode) {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
                 "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
                 "QuantumJIT"));
@@ -74,7 +82,7 @@ public class OptimizingQuil {
             }
             optimizations.add(iterationOptimizations);
         }
-        JsonObject result = fuzzOptimization(optimizations);
+        JsonObject result = fuzzOptimization(optimizations, block, classes, root, readoutParams, quilCode);
 
         try (OutputStream os = new FileOutputStream(jsonFileName);
              JsonWriter jsonWriter = Json.createWriter(os)) {
@@ -90,25 +98,38 @@ public class OptimizingQuil {
     /**
      * Fuzz optimization steps and save in a json file. If an error is thrown, save this as well.
      * @param optimizations The list of lists of optimization steps to apply.
+     * @param block The control flow block to create the instructions from.
+     * @param classes A map with the line number as key and the line type as value.
+     * @param root The root node of the parse tree.
+     * @param readoutParams The classical params whose values are read out at the end of the program, i.e. that will not
+     *                      be dead.
+     * @param quilCode The Quil code as an array of strings.
      * @return The JsonObject with the results of the optimizations.
      */
-    public JsonObject fuzzOptimization(ArrayList<ArrayList<String>> optimizations) {
+    public static JsonObject fuzzOptimization(ArrayList<ArrayList<String>> optimizations, ControlFlowBlock block,
+                                              Map<Integer, LineType> classes, ParseTreeNode root,
+                                              Set<String> readoutParams, String[] quilCode) {
         JsonObjectBuilder result = Json.createObjectBuilder();
         JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
-        ArrayList<Integer> numberOfInstructions = numberOfInstructions(currentOrder);
+        OptimizingQuil oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
+        ArrayList<Integer> numberOfInstructions = numberOfInstructions(oQuil.currentOrder);
         int minNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
         int minimumIndex = -1;
         numberOfInstructions.forEach(instructionNumberBuilder::add);
         result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
         for(int i = 0; i < optimizations.size(); i++) {
+            if(i != 0) {
+                oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
+            }
+
             JsonObjectBuilder iterationBuilder = Json.createObjectBuilder();
             iterationBuilder.add("Iteration", i);
             JsonArrayBuilder appliedOptBuilder = Json.createArrayBuilder();
             optimizations.get(i).forEach(appliedOptBuilder::add);
             iterationBuilder.add("AppliedOptimizations", appliedOptBuilder);
             try {
-                JsonObjectBuilder resultJson = applyOptimizationSteps(optimizations.get(i));
-                numberOfInstructions = numberOfInstructions(currentOrder);
+                JsonObjectBuilder resultJson = oQuil.applyOptimizationSteps(optimizations.get(i));
+                numberOfInstructions = numberOfInstructions(oQuil.currentOrder);
                 JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
                 numberOfInstructions.forEach(numberOfInstructionsBuilder::add);
                 iterationBuilder.add("FinalNumberOfInstructions", numberOfInstructionsBuilder);
@@ -130,7 +151,6 @@ public class OptimizingQuil {
                 iterationBuilder.add("Error", errorBuilder);
                 System.err.println("Error in iteration " + i);
             }
-            createListsForOrderedInstructions(this.instructions);
             result.add("Iteration" + i, iterationBuilder);
         }
         result.add("MinimumIndex", minimumIndex);
@@ -329,7 +349,7 @@ public class OptimizingQuil {
      * @param instructionList The list of list of instructions.
      * @return The number of instructions.
      */
-    private ArrayList<Integer> numberOfInstructions(ArrayList<ArrayList<InstructionNode>> instructionList) {
+    private static ArrayList<Integer> numberOfInstructions(ArrayList<ArrayList<InstructionNode>> instructionList) {
         ArrayList<Integer> numberOfInstructions = new ArrayList<>();
         for (ArrayList<InstructionNode> instructions : instructionList) {
             numberOfInstructions.add(instructions.size());
