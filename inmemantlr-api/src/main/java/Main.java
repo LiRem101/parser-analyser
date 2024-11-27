@@ -87,7 +87,7 @@ public class Main {
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
         OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
 
-        oQuil.fuzzOptimization(resultFileName, 10, 20);
+        oQuil.fuzzOptimization(resultFileName, 25, 30);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {

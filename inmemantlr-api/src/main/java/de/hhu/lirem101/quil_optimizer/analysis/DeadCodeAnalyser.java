@@ -3,6 +3,7 @@ package de.hhu.lirem101.quil_optimizer.analysis;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,10 +54,10 @@ public class DeadCodeAnalyser {
     }
 
     /**
-     * Add information about dead instructions into JsonObjectBuilder.
-     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     * Add information about dead instructions into a JsonObjectBuilder.
+     * @return The JsonArrayBuilder with the information.
      */
-    public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+    public JsonObjectBuilder addDeadVariablesToJson() {
         if (!calculated) {
             checkWhichInstructionsAreDead();
             checkWhichIndizesAreNoLongerJumpedTo();
@@ -74,7 +75,7 @@ public class DeadCodeAnalyser {
         }
         deadCodeAnalysis.add("DeadInstructionBlocks", deadInstructionBlocks);
 
-        jsonBuilder.add("DeadCodeAnalysis", deadCodeAnalysis);
+        return deadCodeAnalysis;
     }
 
     /**

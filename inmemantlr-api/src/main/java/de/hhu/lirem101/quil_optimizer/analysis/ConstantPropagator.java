@@ -9,6 +9,7 @@ import org.apache.commons.numbers.complex.Complex;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,14 +39,14 @@ public class ConstantPropagator {
     }
 
     /**
-     * Add information about constant variables into JsonObjectBuilder.
-     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     * Add information about constant variables into a returned JsonArrayBuilder.
+     * @return The JsonArrayBuilder with the information to.
      */
-    public void addConstantVariablesToJson(JsonObjectBuilder jsonBuilder) {
+    public JsonArrayBuilder addConstantVariablesToJson() {
         if (!calculated) {
             propagateConstants();
         }
-        JsonObjectBuilder allConstantVariables = Json.createObjectBuilder();
+        JsonArrayBuilder allConstantVariables = Json.createArrayBuilder();
         for(int i = 0; i < newConstantValues.size(); i++) {
             JsonObjectBuilder theseConstantVariables = Json.createObjectBuilder();
             ArrayList<BoxedVariableProperties> constantValuesList = newConstantValues.get(i);
@@ -69,9 +70,9 @@ public class ConstantPropagator {
                 }
                 theseConstantVariables.add(String.valueOf(line), lineBuilder);
             }
-            allConstantVariables.add("Block " + i, theseConstantVariables);
+            allConstantVariables.add(theseConstantVariables);
         }
-        jsonBuilder.add("ConstantPropagation", allConstantVariables);
+        return allConstantVariables;
     }
 
     /**

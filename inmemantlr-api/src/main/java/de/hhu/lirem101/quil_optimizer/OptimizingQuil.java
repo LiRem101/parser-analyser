@@ -159,31 +159,35 @@ public class OptimizingQuil {
         ArrayList<Set<Integer>> deadLines = new ArrayList<>();
         ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependencies = new ArrayList<>();
 
+        JsonArrayBuilder optimizationStepsBuilder = Json.createArrayBuilder();
+
         for(String optimizationStep : optimizationSteps) {
+            JsonObjectBuilder appliedSteps = Json.createObjectBuilder();
+            appliedSteps.add("Optimization", optimizationStep);
             switch (optimizationStep) {
                 case "LiveVariableAnalysis":
                     LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams);
-                    lva.addDeadVariablesToJson(jsonBuilder);
+                    appliedSteps.add("Result", lva.addDeadVariablesToJson());
                     break;
                 case "DeadCodeAnalysis":
                     DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
                     indizesOfDeadLineBlocks = dca.getIndizesOfDeadLines();
                     deadLines = dca.getDeadLines();
-                    dca.addDeadVariablesToJson(jsonBuilder);
+                    appliedSteps.add("Result", dca.addDeadVariablesToJson());
                     break;
                 case "ConstantPropagation":
                     ConstantPropagator cp = new ConstantPropagator(currentOrder);
-                    cp.addConstantVariablesToJson(jsonBuilder);
+                    appliedSteps.add("Result", cp.addConstantVariablesToJson());
                     break;
                 case "HybridDependencies":
                     FindHybridDependencies fhd = new FindHybridDependencies(currentOrder);
                     hybridDependencies = fhd.getHybridDependencies();
-                    fhd.addDeadVariablesToJson(jsonBuilder);
+                    appliedSteps.add("Result", fhd.addDeadVariablesToJson());
                     break;
                 case "DeadCodeElimination":
                     if(!deadLines.isEmpty()) {
                         DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
-                        dce.addDeadVariablesToJson(jsonBuilder);
+                        appliedSteps.add("Result", dce.addDeadVariablesToJson());
                     }
                     break;
                 case "ReOrdering":
@@ -192,7 +196,7 @@ public class OptimizingQuil {
                         currentOrder = rofhe.reOrderInstructions();
                         JsonObjectBuilder reOrderBuilder = Json.createObjectBuilder();
                         addInstructionsToJson(reOrderBuilder, currentOrder);
-                        jsonBuilder.add("ReOrdered", reOrderBuilder);
+                        appliedSteps.add("Result", reOrderBuilder);
                     }
                     break;
                 case "ConstantFolding":
@@ -200,7 +204,7 @@ public class OptimizingQuil {
                     ArrayList<ArrayList<Integer>> changedLines = cf.getAdaptedLines();
                     JsonObjectBuilder constantFolderBuilder = Json.createObjectBuilder();
                     addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
-                    jsonBuilder.add("ConstantFolding", constantFolderBuilder);
+                    appliedSteps.add("Result", constantFolderBuilder);
                     break;
                 case "QuantumJIT":
                     if (!hybridDependencies.isEmpty()) {
@@ -208,14 +212,16 @@ public class OptimizingQuil {
                         ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
                         JsonObjectBuilder reOrderJIT = Json.createObjectBuilder();
                         addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
-                        jsonBuilder.add("QuantumJITOrdering", reOrderJIT);
+                        appliedSteps.add("Result", reOrderJIT);
                         if(!reOrdered.isEmpty()) {
                             currentOrder.set(0, reOrdered);
                         }
                     }
                     break;
             }
+            optimizationStepsBuilder.add(appliedSteps);
         }
+        jsonBuilder.add("Optimizations", optimizationStepsBuilder);
         JsonObjectBuilder finalResult = Json.createObjectBuilder();
         addInstructionsToJson(finalResult, currentOrder);
         jsonBuilder.add("FinalResult", finalResult);

@@ -55,4 +55,12 @@ public class ClassicalVariable implements Variable {
             throw new RuntimeException("Value not set for variable " + name);
         }
     }
+
+    public ClassicalVariable copyCV() {
+        ClassicalVariable cv = new ClassicalVariable(name, usage);
+        cv.shownToBeDead = shownToBeDead;
+        cv.isConstant = isConstant;
+        cv.value = value;
+        return cv;
+    }
 }

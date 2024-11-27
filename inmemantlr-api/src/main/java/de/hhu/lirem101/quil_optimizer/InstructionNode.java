@@ -331,10 +331,10 @@ public class InstructionNode implements DirectedGraphNode<InstructionNode> {
         copy.ptNode = originalPtNode;
         copy.shownToBeDead = shownToBeDead;
         for (QuantumVariable qv : quantumParameters.keySet()) {
-            copy.quantumParameters.put(qv, quantumParameters.get(qv).copyConnections());
+            copy.quantumParameters.put(qv.copyQV(), quantumParameters.get(qv).copyConnections());
         }
         for (ClassicalVariable cv : classicalParameters.keySet()) {
-            copy.classicalParameters.put(cv, classicalParameters.get(cv).copyConnections());
+            copy.classicalParameters.put(cv.copyCV(), classicalParameters.get(cv).copyConnections());
         }
         return copy;
     }

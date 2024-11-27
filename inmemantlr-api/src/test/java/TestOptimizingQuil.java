@@ -180,6 +180,32 @@ public class TestOptimizingQuil {
     }
 
     @Test
+    public void optimize11() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("HybridDependencies",
+                "LiveVariableAnalysis",
+                "DeadCodeAnalysis",
+                "ReOrdering",
+                "LiveVariableAnalysis",  // <-- Does not add to json but has effect
+                "DeadCodeAnalysis",
+                "HybridDependencies",
+                "LiveVariableAnalysis",
+                "DeadCodeElimination",
+                "ConstantFolding",
+                "ReOrdering",
+                "LiveVariableAnalysis",
+                "DeadCodeAnalysis",
+                "ReOrdering",
+                "HybridDependencies",
+                "QuantumJIT",
+                "ReOrdering",
+                "QuantumJIT",
+                "ConstantFolding",
+                "QuantumJIT",
+                "DeadCodeElimination"));
+        doOptimization(optimizationSteps);
+    }
+
+    @Test
     public void optimizeMultiple1() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         ArrayList<String> optimizationSteps0 = new ArrayList<>(Arrays.asList("QuantumJIT", "LiveVariableAnalysis",
                 "ConstantPropagation", "DeadCodeAnalysis", "ConstantFolding", "LiveVariableAnalysis",

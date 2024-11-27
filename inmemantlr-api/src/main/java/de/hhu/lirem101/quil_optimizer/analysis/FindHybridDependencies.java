@@ -52,10 +52,10 @@ public class FindHybridDependencies {
     }
 
     /**
-     * Add information about hybrid dependencies into JsonObjectBuilder.
-     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     * Add information about hybrid dependencies into JsonArrayBuilder and return it.
+     * @return The JsonArrayBuilder with the applied information.
      */
-    public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+    public JsonArrayBuilder addDeadVariablesToJson() {
         if (!calculated) {
             findHybridNodes();
             calculated = true;
@@ -72,6 +72,6 @@ public class FindHybridDependencies {
             }
             hybridDependencies.add(hybridDependencyJson);
         }
-        jsonBuilder.add("HybridDependencies", hybridDependencies);
+        return hybridDependencies;
     }
 }

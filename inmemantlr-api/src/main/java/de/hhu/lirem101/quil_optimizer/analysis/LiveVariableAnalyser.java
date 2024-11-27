@@ -4,6 +4,7 @@ import de.hhu.lirem101.quil_optimizer.InstructionNode;
 import de.hhu.lirem101.quil_optimizer.quil_variable.*;
 
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,13 +40,14 @@ public class LiveVariableAnalyser {
     }
 
     /**
-     * Add information about dead variables into JsonObjectBuilder.
-     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     * Add information about dead variables into a JsonObjectBuilder.
+     * @return The JsonArrayBuilder with the result information.
      */
-    public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+    public JsonArrayBuilder addDeadVariablesToJson() {
         if (!calculated) {
             findDeadVariables();
         }
+        JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
         for(ArrayList<BoxedVariableProperties> variables : variablesSetToDead) {
             JsonObjectBuilder deadVariables = Json.createObjectBuilder();
             for(BoxedVariableProperties variable : variables) {
@@ -54,8 +56,9 @@ public class LiveVariableAnalyser {
                 variableBuilder.add("isQuantum", variable.isQuantum);
                 deadVariables.add(variable.name, variableBuilder);
             }
-            jsonBuilder.add("DeadVariableAnalysis", deadVariables);
+            jsonBuilder.add(deadVariables);
         }
+        return jsonBuilder;
     }
 
     /**

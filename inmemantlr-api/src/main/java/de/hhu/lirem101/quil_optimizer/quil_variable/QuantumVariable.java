@@ -57,4 +57,11 @@ public class QuantumVariable implements Variable {
     public QuantumCliffordState getCliffordStateAfterGate() {
         return cliffordStateAfterGate;
     }
+
+    public QuantumVariable copyQV() {
+        QuantumVariable qv = new QuantumVariable(name, usage);
+        qv.cliffordStateBeforeGate = cliffordStateBeforeGate;
+        qv.cliffordStateAfterGate = cliffordStateAfterGate;
+        return qv;
+    }
 }

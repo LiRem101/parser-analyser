@@ -31,13 +31,12 @@ public class DeadCodeEliminator {
     }
 
     /**
-     * Add information about dead instructions into JsonObjectBuilder.
-     * @param jsonBuilder The JsonObjectBuilder to add the information to.
+     * Add information about dead instructions into a returned JsonObjectBuilder.
+     * @return The JsonObjectBuilder with the information.
      */
-    public void addDeadVariablesToJson(JsonObjectBuilder jsonBuilder) {
+    public JsonObjectBuilder addDeadVariablesToJson() {
         if(deadLines.isEmpty()) {
-            jsonBuilder.add("DeadCodeElimination", Json.createObjectBuilder());
-            return;
+            return Json.createObjectBuilder();
         }
         if (!calculated) {
             removeDeadBlocks();
@@ -60,7 +59,7 @@ public class DeadCodeEliminator {
         }
         deadCodeAnalysis.add("DeadInstructionBlocks", deadInstructionBlocks);
 
-        jsonBuilder.add("DeadCodeElimination", deadCodeAnalysis);
+        return deadCodeAnalysis;
     }
 
     /**
