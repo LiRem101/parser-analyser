@@ -9,9 +9,15 @@ import org.snt.inmemantlr.listener.DefaultTreeListener;
 import org.snt.inmemantlr.tree.ParseTree;
 import org.snt.inmemantlr.utils.FileUtils;
 
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestOptimizingQuil {
     // Check that no errors are thrown for combinations that have thrown errors in the past
@@ -43,7 +49,7 @@ public class TestOptimizingQuil {
         return blocks;
     }
 
-    private void doOptimization(ArrayList<String> optimizationSteps) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+    private JsonObjectBuilder doOptimization(ArrayList<String> optimizationSteps) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         final String file = "iterative-phase-estimation";
         Set<String> readoutParams = new HashSet<>();
         readoutParams.add("result[0]");
@@ -58,7 +64,7 @@ public class TestOptimizingQuil {
 
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
         OptimizingQuil oQuil = new OptimizingQuil(blocks, classes, pt.getRoot(), readoutParams, quilCode);
-        oQuil.applyOptimizationSteps(optimizationSteps);
+        return oQuil.applyOptimizationSteps(optimizationSteps);
     }
 
     private void doMultipleOptimization(ArrayList<ArrayList<String>> optimizationSteps) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
@@ -184,25 +190,15 @@ public class TestOptimizingQuil {
         ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("HybridDependencies",
                 "LiveVariableAnalysis",
                 "DeadCodeAnalysis",
-                "ReOrdering",
-                "LiveVariableAnalysis",  // <-- Does not add to json but has effect
-                "DeadCodeAnalysis",
-                "HybridDependencies",
-                "LiveVariableAnalysis",
-                "DeadCodeElimination",
-                "ConstantFolding",
-                "ReOrdering",
-                "LiveVariableAnalysis",
-                "DeadCodeAnalysis",
-                "ReOrdering",
-                "HybridDependencies",
-                "QuantumJIT",
-                "ReOrdering",
-                "QuantumJIT",
-                "ConstantFolding",
-                "QuantumJIT",
-                "DeadCodeElimination"));
-        doOptimization(optimizationSteps);
+                "ReOrdering"));
+        JsonObjectBuilder result = doOptimization(optimizationSteps);
+        JsonObject json = result.build();
+        JsonArray finalInstructions = json.getJsonArray("FinalResult").getJsonArray(0);
+
+        assertEquals("1: DECLARE theta REAL[1]", finalInstructions.getString(0));
+        assertEquals("17: MOVE theta[0] 0", finalInstructions.getString(1));
+        assertEquals("21: CONTROLLED targetGate_even 0 1 2", finalInstructions.getString(3));
+        assertEquals(55, finalInstructions.size());
     }
 
     @Test

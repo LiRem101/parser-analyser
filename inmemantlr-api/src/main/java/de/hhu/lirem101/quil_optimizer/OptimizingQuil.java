@@ -17,7 +17,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static de.hhu.lirem101.quil_optimizer.ControlStructureRemover.removeControlStructures;
@@ -151,7 +150,7 @@ public class OptimizingQuil {
      */
     public JsonObjectBuilder applyOptimizationSteps(ArrayList<String> optimizationSteps){
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-        JsonObjectBuilder startBuilder = Json.createObjectBuilder();
+        JsonArrayBuilder startBuilder = Json.createArrayBuilder();
         addInstructionsToJson(startBuilder, instructions);
         jsonBuilder.add("Start", startBuilder);
 
@@ -194,7 +193,7 @@ public class OptimizingQuil {
                     if(!hybridDependencies.isEmpty()) {
                         ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
                         currentOrder = rofhe.reOrderInstructions();
-                        JsonObjectBuilder reOrderBuilder = Json.createObjectBuilder();
+                        JsonArrayBuilder reOrderBuilder = Json.createArrayBuilder();
                         addInstructionsToJson(reOrderBuilder, currentOrder);
                         appliedSteps.add("Result", reOrderBuilder);
                     }
@@ -202,7 +201,7 @@ public class OptimizingQuil {
                 case "ConstantFolding":
                     ConstantFolder cf = new ConstantFolder(currentOrder);
                     ArrayList<ArrayList<Integer>> changedLines = cf.getAdaptedLines();
-                    JsonObjectBuilder constantFolderBuilder = Json.createObjectBuilder();
+                    JsonArrayBuilder constantFolderBuilder = Json.createArrayBuilder();
                     addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
                     appliedSteps.add("Result", constantFolderBuilder);
                     break;
@@ -210,7 +209,7 @@ public class OptimizingQuil {
                     if (!hybridDependencies.isEmpty()) {
                         JITQuantumExecuter jqe = new JITQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
                         ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
-                        JsonObjectBuilder reOrderJIT = Json.createObjectBuilder();
+                        JsonArrayBuilder reOrderJIT = Json.createArrayBuilder();
                         addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
                         appliedSteps.add("Result", reOrderJIT);
                         if(!reOrdered.isEmpty()) {
@@ -222,7 +221,7 @@ public class OptimizingQuil {
             optimizationStepsBuilder.add(appliedSteps);
         }
         jsonBuilder.add("Optimizations", optimizationStepsBuilder);
-        JsonObjectBuilder finalResult = Json.createObjectBuilder();
+        JsonArrayBuilder finalResult = Json.createArrayBuilder();
         addInstructionsToJson(finalResult, currentOrder);
         jsonBuilder.add("FinalResult", finalResult);
         return jsonBuilder;
@@ -284,14 +283,14 @@ public class OptimizingQuil {
      * The list of list of instructions is used for that.
      * @param instructions The list of list of instructions.
      */
-    private void addInstructionsToJson(JsonObjectBuilder json, ArrayList<ArrayList<InstructionNode>> instructions) {
+    private void addInstructionsToJson(JsonArrayBuilder json, ArrayList<ArrayList<InstructionNode>> instructions) {
         for (ArrayList<InstructionNode> instruction : instructions) {
             if(!instruction.isEmpty()) {
-                JsonObjectBuilder instructionBuilder = Json.createObjectBuilder();
+                JsonArrayBuilder instructionBuilder = Json.createArrayBuilder();
                 for (InstructionNode node : instruction) {
-                    instructionBuilder.add(Integer.toString(node.getLine()), node.getLineText());
+                    instructionBuilder.add(node.getLine() + ": " + node.getLineText());
                 }
-                json.add(instruction.get(0).getName(), instructionBuilder);
+                json.add(instructionBuilder);
             }
         }
     }
@@ -309,11 +308,11 @@ public class OptimizingQuil {
 
     /**
      * Adds lines of given line numbers to jsonBuilder in the form of "LineNumber: LineContent".
-     * @param json The jsonBuilder to add the lines to.
+     * @param json The jsonArrayBuilder to add the lines to.
      * @param instructions The list of list of line numbers.
      * @param lines The line numbers to add.
      */
-    private void addLinesToJson(JsonObjectBuilder json, ArrayList<ArrayList<InstructionNode>> instructions, ArrayList<ArrayList<Integer>> lines) {
+    private void addLinesToJson(JsonArrayBuilder json, ArrayList<ArrayList<InstructionNode>> instructions, ArrayList<ArrayList<Integer>> lines) {
         ArrayList<ArrayList<InstructionNode>> theseInstructions = new ArrayList<>();
         for(int i = 0; i < instructions.size(); i++) {
             int finalI = i;
