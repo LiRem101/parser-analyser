@@ -113,10 +113,19 @@ public class OptimizingQuil {
         JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
         OptimizingQuil oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
         ArrayList<Integer> numberOfInstructions = numberOfInstructions(oQuil.currentOrder);
+        ArrayList<Integer> numberOfQuantumInstructions = numberOfQuantumInstructions(oQuil.currentOrder);
+
         int minNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
-        int minimumIndex = -1;
+        int minimumInstructionsIndex = -1;
+        int minQuantumInstructions = numberOfQuantumInstructions.stream().mapToInt(x -> x).sum();
+        int minimumQuantumInstructionsIndex = -1;
+        int minDifference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
+        int minimumDifferenceIndex = -1;
+
         numberOfInstructions.forEach(instructionNumberBuilder::add);
         result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
+        result.add("OriginalNumberOfQuantumInstructions", minQuantumInstructions);
+        result.add("OriginalDifferenceBetweenFirstAndLastQuantumInstruction", minDifference);
         for(int i = 0; i < optimizations.size(); i++) {
             if(i != 0) {
                 oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
@@ -133,12 +142,27 @@ public class OptimizingQuil {
                 JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
                 numberOfInstructions.forEach(numberOfInstructionsBuilder::add);
                 iterationBuilder.add("FinalNumberOfInstructions", numberOfInstructionsBuilder);
-                iterationBuilder.add("Optimizations", resultJson);
+
                 int totalNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
                 if(totalNumberOfInstructions < minNumberOfInstructions) {
                     minNumberOfInstructions = totalNumberOfInstructions;
-                    minimumIndex = i;
+                    minimumInstructionsIndex = i;
                 }
+                int totalQuantumInstructions = numberOfQuantumInstructions(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
+                if(totalQuantumInstructions < minQuantumInstructions) {
+                    minQuantumInstructions = totalQuantumInstructions;
+                    minimumQuantumInstructionsIndex = i;
+                }
+                int difference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
+                if(difference < minDifference) {
+                    minDifference = difference;
+                    minimumDifferenceIndex = i;
+                }
+
+                iterationBuilder.add("NumberOfQuantumInstructions", totalQuantumInstructions);
+                iterationBuilder.add("DifferenceBetweenFirstAndLastQuantumInstruction", difference);
+                iterationBuilder.add("Optimizations", resultJson);
+
             } catch (Exception e) {
                 JsonObjectBuilder errorBuilder = Json.createObjectBuilder();
                 JsonArrayBuilder stackTraceBuilder = Json.createArrayBuilder();
@@ -153,8 +177,14 @@ public class OptimizingQuil {
             }
             result.add("Iteration" + i, iterationBuilder);
         }
-        result.add("MinimumIndex", minimumIndex);
+        result.add("MinimumInstructionsIndex", minimumInstructionsIndex);
         result.add("MinimumNumberOfInstructions", minNumberOfInstructions);
+
+        result.add("MinimumQuantumInstructionsIndex", minimumQuantumInstructionsIndex);
+        result.add("MinimumNumberOfQuantumInstructions", minQuantumInstructions);
+
+        result.add("MinimumDifferenceIndex", minimumDifferenceIndex);
+        result.add("MinimumDifference", minDifference);
 
         JsonObject json = result.build();
 
@@ -345,6 +375,44 @@ public class OptimizingQuil {
     }
 
     /**
+     * Get the amount of instructions between the first and the last quantum instruction (including). Take the index of
+     * the last quantum instruction in the halt instruction block and the index of the first quantum instruction in the
+     * first instruction block. Return the difference. If the first block has no quantum instruction, return the last
+     * index. If the last block has no quantum instruction, return 0. The complete optimization should not
+     * have a purely classical block anyway.
+     * @return The amount of instructions between the first and the last quantum instruction.
+     */
+    private int getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction() {
+        ArrayList<InstructionNode> firstInstructionBlock = currentOrder.get(0);
+        ArrayList<InstructionNode> lastInstructionBlock = currentOrder.get(getHaltIndex());
+        InstructionNode firstQuantumInstruction = firstInstructionBlock.stream()
+                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .findFirst()
+                .orElse(null);
+        int firstQuantumIndex = firstQuantumInstruction != null ? firstInstructionBlock.indexOf(firstQuantumInstruction) : firstInstructionBlock.size();
+
+        ArrayList<InstructionNode> lastQuantumInstruction = lastInstructionBlock.stream()
+                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        int lastQuantumIndex = lastQuantumInstruction.isEmpty() ? 0 : lastInstructionBlock.indexOf(lastQuantumInstruction.get(lastQuantumInstruction.size()-1));
+
+        return lastQuantumIndex - firstQuantumIndex;
+    }
+
+    /**
+     * Return the index of the halt instruction block, i.e. the one that does not branch to any other.
+     * @return The index of the halt instruction block.
+     */
+    private int getHaltIndex() {
+        for (int i = 0; i < indexToJumpTo.size(); i++) {
+            if (indexToJumpTo.get(i).isEmpty()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Calculate number of instructions in the instructions list.
      * @param instructionList The list of list of instructions.
      * @return The number of instructions.
@@ -353,6 +421,24 @@ public class OptimizingQuil {
         ArrayList<Integer> numberOfInstructions = new ArrayList<>();
         for (ArrayList<InstructionNode> instructions : instructionList) {
             numberOfInstructions.add(instructions.size());
+        }
+        return numberOfInstructions;
+    }
+
+    /**
+     * Calculate number of quantum instructions in the instructions list.
+     * @param instructionList The list of list of instructions.
+     * @return The number of quantum instructions.
+     */
+    private static ArrayList<Integer> numberOfQuantumInstructions(ArrayList<ArrayList<InstructionNode>> instructionList) {
+        ArrayList<Integer> numberOfInstructions = new ArrayList<>();
+        for (ArrayList<InstructionNode> instructions : instructionList) {
+            ArrayList<InstructionNode> quantumInstructions = instructions.stream()
+                    .filter(x -> x.getLineType() == LineType.QUANTUM
+                            || x.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM
+                            || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL)
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            numberOfInstructions.add(quantumInstructions.size());
         }
         return numberOfInstructions;
     }
