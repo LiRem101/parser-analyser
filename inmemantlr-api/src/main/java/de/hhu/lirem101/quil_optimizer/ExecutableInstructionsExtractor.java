@@ -1,6 +1,7 @@
 package de.hhu.lirem101.quil_optimizer;
 
-import java.lang.reflect.Array;
+import de.hhu.lirem101.quil_analyser.LineType;
+
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,29 @@ public class ExecutableInstructionsExtractor {
             if(!executionQueue.contains(node) && executedLines.containsAll(necessaryLines)) {
                 executableInstructions.add(node);
                 executedLines.add(node.getLine());
+            }
+        }
+        return executableInstructions;
+    }
+
+    /**
+     * Get the executable instructions for a given index if only a specific type of instruction can be executed.
+     * @param index The index of the instructions to look at.
+     * @param type The type of the instructions to consider.
+     * @param executionQueue The list of instrcutions that are already in the execution queue.
+     * @return A list of instructions whose previous instructions are already in the execution queue.
+     */
+    public ArrayList<InstructionNode> getExecutableInstructionsOfOneType(int index, LineType type, ArrayList<InstructionNode> executionQueue) {
+        ArrayList<InstructionNode> instructionList = instructions.get(index);
+        ArrayList<InstructionNode> executableInstructions = new ArrayList<>();
+        ArrayList<Integer> executedLines = executionQueue.stream().map(InstructionNode::getLine).collect(Collectors.toCollection(ArrayList::new));
+        for(InstructionNode node : instructionList) {
+            if(node.getLineType() == type) {
+                ArrayList<Integer> necessaryLines = node.getBranches().stream().map(InstructionNode::getLine).collect(Collectors.toCollection(ArrayList::new));
+                if (!executionQueue.contains(node) && executedLines.containsAll(necessaryLines)) {
+                    executableInstructions.add(node);
+                    executedLines.add(node.getLine());
+                }
             }
         }
         return executableInstructions;

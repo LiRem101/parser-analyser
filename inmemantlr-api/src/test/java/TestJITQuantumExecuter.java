@@ -11,10 +11,20 @@ class TestJITQuantumExecuter {
 
     @Test
     void reordersInstructionsCorrectlyWhenHybridDependenciesExist() {
-        InstructionNode node1 = new InstructionNode(1, LineType.CLASSICAL);
-        InstructionNode node2 = new InstructionNode(2, LineType.QUANTUM);
-        InstructionNode node3 = new InstructionNode(3, LineType.CLASSICAL);
-        InstructionNode node4 = new InstructionNode(4, LineType.CLASSICAL_INFLUENCES_QUANTUM);
+        InstructionNode node1 = mock(InstructionNode.class);
+        when(node1.getLine()).thenReturn(1);
+        when(node1.getLineType()).thenReturn(LineType.CLASSICAL);
+        InstructionNode node2 = mock(InstructionNode.class);
+        when(node2.getLine()).thenReturn(2);
+        when(node2.getLineType()).thenReturn(LineType.QUANTUM);
+        InstructionNode node3 = mock(InstructionNode.class);
+        when(node3.getLine()).thenReturn(3);
+        when(node3.getLineType()).thenReturn(LineType.CLASSICAL);
+        InstructionNode node4 = mock(InstructionNode.class);
+        when(node4.getLine()).thenReturn(4);
+        when(node4.getLineType()).thenReturn(LineType.CLASSICAL_INFLUENCES_QUANTUM);
+        when(node4.getDependencies()).thenReturn(new HashSet<>(Collections.singletonList(node2)));
+
         LinkedHashMap<Integer, Set<Integer>> hybridDependencies = new LinkedHashMap<>();
         hybridDependencies.put(4, new HashSet<>(Collections.singletonList(2)));
         ArrayList<InstructionNode> instructions = new ArrayList<>();
@@ -50,10 +60,19 @@ class TestJITQuantumExecuter {
 
     @Test
     void doesNotReorderWhenAlreadyCalculated() {
-        InstructionNode node1 = new InstructionNode(1, LineType.CLASSICAL);
-        InstructionNode node2 = new InstructionNode(2, LineType.CLASSICAL);
-        InstructionNode node3 = new InstructionNode(3, LineType.QUANTUM);
-        InstructionNode node4 = new InstructionNode(4, LineType.CLASSICAL_INFLUENCES_QUANTUM);
+        InstructionNode node1 = mock(InstructionNode.class);
+        when(node1.getLine()).thenReturn(1);
+        when(node1.getLineType()).thenReturn(LineType.CLASSICAL);
+        InstructionNode node2 = mock(InstructionNode.class);
+        when(node2.getLine()).thenReturn(2);
+        when(node2.getLineType()).thenReturn(LineType.CLASSICAL);
+        InstructionNode node3 = mock(InstructionNode.class);
+        when(node3.getLine()).thenReturn(3);
+        when(node3.getLineType()).thenReturn(LineType.QUANTUM);
+        InstructionNode node4 = mock(InstructionNode.class);
+        when(node4.getLine()).thenReturn(4);
+        when(node4.getLineType()).thenReturn(LineType.CLASSICAL_INFLUENCES_QUANTUM);
+        when(node4.getDependencies()).thenReturn(new HashSet<>(Collections.singletonList(node3)));
         LinkedHashMap<Integer, Set<Integer>> hybridDependencies = new LinkedHashMap<>();
         hybridDependencies.put(4, new HashSet<>(Collections.singletonList(3)));
         ArrayList<InstructionNode> instructions = new ArrayList<>();

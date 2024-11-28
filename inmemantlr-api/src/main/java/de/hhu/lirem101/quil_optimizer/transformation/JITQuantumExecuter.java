@@ -4,6 +4,7 @@ import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.ExecutableInstructionsExtractor;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 
+import javax.sound.sampled.Line;
 import java.util.*;
 
 public class JITQuantumExecuter {
@@ -47,6 +48,7 @@ public class JITQuantumExecuter {
             return;
         }
         ArrayList<InstructionNode> executableClassicalInstructions = executableClassicalInstrutionsWithoutQuantum();
+
         reOrder(executableClassicalInstructions, firstHybridLine);
 
         orderRemainedEqual = executableClassicalInstructions.equals(instructions);
@@ -54,62 +56,34 @@ public class JITQuantumExecuter {
     }
 
     private void reOrder(ArrayList<InstructionNode> executableClassicalInstructions, int firstHybridLine) {
-        findExecutableClassicalAndQuantumInstructions(executableClassicalInstructions);
-        executableClassicalInstructions.add(instructions.stream()
+        InstructionNode hybridInstruction = instructions.stream()
                 .filter(x -> x.getLine() == firstHybridLine)
                 .findFirst()
-                .orElse(null));
-        ArrayList<InstructionNode> stillMissingInstructions = instructions.stream()
-                .filter(x -> !executableClassicalInstructions.contains(x))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        executableClassicalInstructions.addAll(stillMissingInstructions);
-    }
-
-    private void findExecutableClassicalAndQuantumInstructions(ArrayList<InstructionNode> executableClassicalInstructions) {
-        boolean newFoundInstructions = true;
-        ArrayList<InstructionNode> newExecutableQuantumInstructions = new ArrayList<>();
-        ArrayList<InstructionNode> newExecutableClassicalInstructions = new ArrayList<>();
-        while(newFoundInstructions) {
-            ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructions)));
-            ArrayList<InstructionNode> executedInstructions = new ArrayList<>();
-            executedInstructions.addAll(executableClassicalInstructions);
-            executedInstructions.addAll(newExecutableClassicalInstructions);
-            executedInstructions.addAll(newExecutableQuantumInstructions);
-            ArrayList<InstructionNode>  newExecutableInstructions = eie.getExecutableInstructionsOfOneBlock(0, executedInstructions)
-                    .stream()
-                    .filter(x -> !executedInstructions.contains(x))
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-            ArrayList<InstructionNode> classicalInstructions = newExecutableInstructions.stream()
-                    .filter(x -> x.getLineType() == LineType.CLASSICAL)
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-            ArrayList<InstructionNode> quantumInstructions = newExecutableInstructions.stream()
-                    .filter(x -> x.getLineType() == LineType.QUANTUM)
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-            newFoundInstructions = !classicalInstructions.isEmpty() || !quantumInstructions.isEmpty();
-            newExecutableClassicalInstructions.addAll(classicalInstructions);
-            newExecutableQuantumInstructions.addAll(quantumInstructions);
+                .orElse(null);
+        if(hybridInstruction == null) {
+            return;
         }
+        Set<InstructionNode> necessaryNodes = hybridInstruction.getDependencies();
+        ArrayList<InstructionNode> necessaryNodesList = instructions.stream()
+                .filter(necessaryNodes::contains)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        executableClassicalInstructions.addAll(necessaryNodesList.stream()
+                .filter(x -> x.getLineType() == LineType.CLASSICAL)
+                .filter(x -> !executableClassicalInstructions.contains(x))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+        executableClassicalInstructions.addAll(necessaryNodesList.stream()
+                .filter(x -> x.getLineType() != LineType.CLASSICAL)
+                .filter(x -> !executableClassicalInstructions.contains(x))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+        executableClassicalInstructions.add(hybridInstruction);
 
-        executableClassicalInstructions.addAll(newExecutableClassicalInstructions);
-        executableClassicalInstructions.addAll(newExecutableQuantumInstructions);
+        executableClassicalInstructions.addAll(instructions.stream()
+                .filter(x -> !executableClassicalInstructions.contains(x))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
     }
 
     private ArrayList<InstructionNode> executableClassicalInstrutionsWithoutQuantum() {
         ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructions)));
-        ArrayList<InstructionNode> executableClassicalInstructions = eie.getExecutableInstructionsOfOneBlock(0, new ArrayList<>())
-                .stream()
-                .filter(x -> x.getLineType() == LineType.CLASSICAL)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        boolean newInstructions = !executableClassicalInstructions.isEmpty();
-        while(newInstructions) {
-            ExecutableInstructionsExtractor nextEie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(executableClassicalInstructions)));
-            ArrayList<InstructionNode> nextExecutableClassicalInstructions = nextEie.getExecutableInstructionsOfOneBlock(0, new ArrayList<>())
-                    .stream()
-                    .filter(x -> x.getLineType() == LineType.CLASSICAL && !executableClassicalInstructions.contains(x))
-                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-            newInstructions = !nextExecutableClassicalInstructions.isEmpty();
-            executableClassicalInstructions.addAll(nextExecutableClassicalInstructions);
-        }
-        return executableClassicalInstructions;
+        return eie.getExecutableInstructionsOfOneType(0, LineType.CLASSICAL, new ArrayList<>());
     }
 }
