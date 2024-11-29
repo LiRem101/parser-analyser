@@ -209,6 +209,24 @@ public class TestOptimizingQuil {
     }
 
     @Test
+    public void optimize13() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList(
+                "LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination",
+                "HybridDependencies", "ReOrdering"
+                //, "LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination", "HybridDependencies", "ReOrdering"
+                //, "LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination", "HybridDependencies", "QuantumJIT", "LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination", "ConstantPropagation", "ConstantFolding", "HybridDependencies", "ReOrdering", "ConstantPropagation", "ConstantFolding", "LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination"
+        ));
+        JsonObjectBuilder result = doOptimization(optimizationSteps);
+        JsonObject json = result.build();
+        JsonArray finalInstructions = json.getJsonArray("FinalResult").getJsonArray(0);
+
+        assertEquals("1: DECLARE theta REAL[1]", finalInstructions.getString(0));
+        assertEquals("31: RZ(theta[0]) 0", finalInstructions.getString(16));
+        assertEquals("32: H 0", finalInstructions.getString(17));
+        assertEquals(53, finalInstructions.size());
+    }
+
+    @Test
     public void optimizeMultiple1() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         ArrayList<String> optimizationSteps0 = new ArrayList<>(Arrays.asList("QuantumJIT", "LiveVariableAnalysis",
                 "ConstantPropagation", "DeadCodeAnalysis", "ConstantFolding", "LiveVariableAnalysis",

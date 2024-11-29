@@ -139,9 +139,11 @@ public class ReOrdererForHybridExecution {
             ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(possibleNewInstructions)));
             LineType typeToAdd = numberOfQuantumNodes < numberOfClassicalNodes ? LineType.QUANTUM : LineType.CLASSICAL;
             long typeDifference = Math.abs(numberOfQuantumNodes - numberOfClassicalNodes);
-            Set<InstructionNode> executableInstructions = new HashSet<>(eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructions))).get(0));
-            Set<InstructionNode> instructionsToAdd = executableInstructions.stream()
+            ArrayList<InstructionNode> instructionsOfRightType = instructions.stream()
                     .filter(x -> x.getLineType() == typeToAdd)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            Set<InstructionNode> executableInstructions = new HashSet<>(eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructionsOfRightType))).get(0));
+            Set<InstructionNode> instructionsToAdd = executableInstructions.stream()
                     .filter(x -> !instructions.contains(x))
                     .collect(Collectors.toSet());
             foundNewDependencies = !instructionsToAdd.isEmpty();
