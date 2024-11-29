@@ -69,16 +69,19 @@ public class OptimizingQuil {
     public static void fuzzOptimization(String jsonFileName, int iterations, int numberOfOptimizations,
                                         ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root,
                                         Set<String> readoutParams, String[] quilCode) {
-        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis",
-                "ConstantPropagation", "HybridDependencies", "DeadCodeElimination", "ReOrdering", "ConstantFolding",
-                "QuantumJIT"));
+        List<List<String>> optimizationSteps = new ArrayList<>();
+        optimizationSteps.add(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination"));
+        optimizationSteps.add(Arrays.asList("ConstantPropagation", "ConstantFolding"));
+        optimizationSteps.add(Arrays.asList("HybridDependencies", "ReOrdering"));
+        optimizationSteps.add(Arrays.asList("HybridDependencies", "QuantumJIT"));
         Random random = new Random();
         ArrayList<ArrayList<String>> optimizations = new ArrayList<>();
         for(int i = 0; i < iterations; i++) {
             ArrayList<String> iterationOptimizations = new ArrayList<>();
             for(int j = 0; j < numberOfOptimizations; j++) {
                 int randomIndex = random.nextInt(optimizationSteps.size());
-                iterationOptimizations.add(optimizationSteps.get(randomIndex));
+                iterationOptimizations.addAll(optimizationSteps.get(randomIndex));
+                j += optimizationSteps.get(randomIndex).size() - 1;
             }
             optimizations.add(iterationOptimizations);
         }
