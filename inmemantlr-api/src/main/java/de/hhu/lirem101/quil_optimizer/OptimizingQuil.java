@@ -189,6 +189,10 @@ public class OptimizingQuil {
         result.add("MinimumDifferenceIndex", minimumDifferenceIndex);
         result.add("MinimumDifference", minDifference);
 
+        System.out.println("Minimum number of instructions: " + minNumberOfInstructions + " in iteration " + minimumInstructionsIndex);
+        System.out.println("Minimum number of quantum instructions: " + minQuantumInstructions + " in iteration " + minimumQuantumInstructionsIndex);
+        System.out.println("Minimum difference between first and last quantum instruction: " + minDifference + " in iteration " + minimumDifferenceIndex);
+
         JsonObject json = result.build();
 
         return json;
@@ -239,16 +243,16 @@ public class OptimizingQuil {
                 case "DeadCodeElimination":
                     if(!deadLines.isEmpty()) {
                         DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
-                        appliedSteps.add("Result", dce.addDeadVariablesToJson());
+                        appliedSteps.add("RemovedLines", dce.addDeadVariablesToJson());
                     }
                     break;
                 case "ReOrdering":
                     if(!hybridDependencies.isEmpty()) {
                         ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
                         currentOrder = rofhe.reOrderInstructions();
-                        JsonArrayBuilder reOrderBuilder = Json.createArrayBuilder();
-                        addInstructionsToJson(reOrderBuilder, currentOrder);
-                        appliedSteps.add("Result", reOrderBuilder);
+//                        JsonArrayBuilder reOrderBuilder = Json.createArrayBuilder();
+//                        addInstructionsToJson(reOrderBuilder, currentOrder);
+//                        appliedSteps.add("Result", reOrderBuilder);
                     }
                     break;
                 case "ConstantFolding":
@@ -256,7 +260,7 @@ public class OptimizingQuil {
                     ArrayList<ArrayList<Integer>> changedLines = cf.getAdaptedLines();
                     JsonArrayBuilder constantFolderBuilder = Json.createArrayBuilder();
                     addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
-                    appliedSteps.add("Result", constantFolderBuilder);
+                    appliedSteps.add("ChangedLines", constantFolderBuilder);
                     break;
                 case "QuantumJIT":
                     if (!hybridDependencies.isEmpty()) {
@@ -270,6 +274,12 @@ public class OptimizingQuil {
                         }
                     }
                     break;
+            }
+            Set<String> transformations = new HashSet<>(Arrays.asList("DeadCodeElimination", "ReOrdering", "ConstantFolding"));
+            if(transformations.contains(optimizationStep)) {
+                JsonArrayBuilder currentOrd = Json.createArrayBuilder();
+                addInstructionsToJson(currentOrd, currentOrder);
+                appliedSteps.add("Result", currentOrd);
             }
             optimizationStepsBuilder.add(appliedSteps);
         }

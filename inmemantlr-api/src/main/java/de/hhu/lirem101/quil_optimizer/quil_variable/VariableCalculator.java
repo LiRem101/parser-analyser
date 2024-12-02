@@ -71,10 +71,10 @@ public class VariableCalculator {
             }
 
             // Check if the node holds a variable
-            String classicalVariable = checkForClassicalVariable(currentNode);
+            ArrayList<String> classicalVariable = checkForClassicalVariable(currentNode);
             String quantumVariable = checkForQuantumVariable(currentNode);
             if (!classicalVariable.isEmpty()) {
-                classicalVariableNames.add(classicalVariable);
+                classicalVariableNames.addAll(classicalVariable);
             } else if (!quantumVariable.isEmpty()) {
                 quantumVariableNames.add(quantumVariable);
             }
@@ -92,15 +92,17 @@ public class VariableCalculator {
     }
 
     /**
-     * Checks the label and rule of the node. If the node holds a classical variable, it is returned. Otherwise, an
-     * empty string is returned.
+     * Checks the label and rule of the node. If the node holds classical variables, they are returned. Otherwise, an
+     * empty list is returned.
      * @param node The node to check.
-     * @return The classical variable name or an empty string.
+     * @return The list of classical variable names.
      */
-    private String checkForClassicalVariable(ParseTreeNode node) {
+    private ArrayList<String> checkForClassicalVariable(ParseTreeNode node) {
+        ArrayList<String> classicalVariables = new ArrayList<>();
         switch (node.getRule()) {
             case "addr":
-                return node.getLabel();
+                classicalVariables.add(node.getLabel());
+                break;
             case "memoryDescriptor":
                 String param = node.getLabel();
                 // Remove 'DECLARE' in the front
@@ -109,10 +111,14 @@ public class VariableCalculator {
                 param = param.replaceAll("[BIT|FLOAT|INTEGER|OCTET|REAL]", "");
                 // Replace "[1]" with "[0]"
                 // TODO: Make this work for all numbers
-                param = param.replaceAll("\\[1\\]", "[0]");
-                return param;
+                String param_prefix = param.split("\\[")[0];
+                int param_number = Integer.parseInt(param.split("\\[")[1].split("\\]")[0]);
+                for (int i = 1; i <= param_number; i++) {
+                    String finalParam = param_prefix + "[" + (i - 1) + "]";
+                    classicalVariables.add(finalParam);
+                }
         }
-        return "";
+        return classicalVariables;
     }
 
     /**
@@ -143,12 +149,16 @@ public class VariableCalculator {
             // Calculate the usage type of the classical variables
             List<ClassicalUsage> usages = RelevantNodeRules.classicalUsage().get(classicalNode);
             for(int i = 0; i < classicalVariableNames.size(); i++) {
-                ClassicalUsage usage = usages.get(i);
-                if(usage == ClassicalUsage.USAGE_ASSIGNMENT) {
-                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.USAGE));
-                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.ASSIGNMENT));
+                if(usages.get(0) == ClassicalUsage.DECLARE) {
+                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.DECLARE));
                 } else {
-                    classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), usage));
+                    ClassicalUsage usage = usages.get(i);
+                    if(usage == ClassicalUsage.USAGE_ASSIGNMENT) {
+                        classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.USAGE));
+                        classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), ClassicalUsage.ASSIGNMENT));
+                    } else {
+                        classicalVariables.add(new ClassicalVariable(classicalVariableNames.get(i), usage));
+                    }
                 }
             }
             // quantumVariables have to be empty
