@@ -28,7 +28,7 @@ public class ControlFlowDrawer {
     private static final String QUANTUM_COLOR = "#fe4eda";
     private static final String CLASSICAL_COLOR = "#464df7";
     private static final String QUANTUM_INFLUENCES_CLASSICAL_COLOR = "#008000";
-    private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#ff4500";
+    private static final String CLASSICAL_INFLUENCES_QUANTUM_COLOR = "#008000";
 
     public ControlFlowDrawer(DirectedGraphNode block, Map<Integer, LineType> classes) {
         this.blocks = setOfAllBlocks(block);
@@ -59,7 +59,7 @@ public class ControlFlowDrawer {
     }
 
     private String[] getBlockText(DirectedGraphNode block, List<String> quilFileLines) {
-        String[] blockText = new String[block.getCodelines().size()];
+        String[] blockText = new String[block.getCodelines().size() + 1];
         String name = block.getName();
         if (name.equals("start")) {
             return new String[]{"START"};
@@ -73,14 +73,21 @@ public class ControlFlowDrawer {
         for (int linenumber : codelines) {
             String line = quilFileLines.get(linenumber - 1);
             String color = "#000000";
+            String type = "Heterogeneous:";
             if (classes.get(linenumber) == LineType.QUANTUM) {
                 color = QUANTUM_COLOR;
+                type = "QPU:";
             } else if (classes.get(linenumber) == LineType.CLASSICAL) {
                 color = CLASSICAL_COLOR;
+                type = "CPU:";
             } else if (classes.get(linenumber) == LineType.QUANTUM_INFLUENCES_CLASSICAL) {
                 color = QUANTUM_INFLUENCES_CLASSICAL_COLOR;
             } else if (classes.get(linenumber) == LineType.CLASSICAL_INFLUENCES_QUANTUM) {
                 color = CLASSICAL_INFLUENCES_QUANTUM_COLOR;
+            }
+            if(i == 0) {
+                blockText[i] = type;
+                i++;
             }
             blockText[i] = "<font color=\"" + color + "\">" + linenumber + ": " + line + "</font>";
             i++;
@@ -103,6 +110,8 @@ public class ControlFlowDrawer {
                 color = Color.rgb(QUANTUM_COLOR);
             } else if(block.getLineType() == LineType.CLASSICAL) {
                 color = Color.rgb(CLASSICAL_COLOR);
+            } else if (block.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL || block.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM) {
+                color = Color.rgb(CLASSICAL_INFLUENCES_QUANTUM_COLOR);
             }
             Node node = node(block.getName() + i).with(Shape.RECTANGLE, color, Label.htmlLines(LEFT, blockText));
             nodes.put(block, node);
