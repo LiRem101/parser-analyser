@@ -124,9 +124,12 @@ public class OptimizingQuil {
         int minimumQuantumInstructionsIndex = -1;
         int minDifference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
         int minimumDifferenceIndex = -1;
+        int minWallTime = numberOfWalltimes(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
+        int minimumWallTimeIndex = -1;
 
         numberOfInstructions.forEach(instructionNumberBuilder::add);
         result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
+        result.add("OriginalWallTime", minWallTime);
         result.add("OriginalNumberOfQuantumInstructions", minQuantumInstructions);
         result.add("OriginalDifferenceBetweenFirstAndLastQuantumInstruction", minDifference);
         for(int i = 0; i < optimizations.size(); i++) {
@@ -161,8 +164,14 @@ public class OptimizingQuil {
                     minDifference = difference;
                     minimumDifferenceIndex = i;
                 }
+                int wallTime = numberOfWalltimes(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
+                if(wallTime < minWallTime) {
+                    minWallTime = wallTime;
+                    minimumWallTimeIndex = i;
+                }
 
                 iterationBuilder.add("NumberOfQuantumInstructions", totalQuantumInstructions);
+                iterationBuilder.add("Walltime", wallTime);
                 iterationBuilder.add("DifferenceBetweenFirstAndLastQuantumInstruction", difference);
                 iterationBuilder.add("Optimizations", resultJson);
 
@@ -189,9 +198,13 @@ public class OptimizingQuil {
         result.add("MinimumDifferenceIndex", minimumDifferenceIndex);
         result.add("MinimumDifference", minDifference);
 
+        result.add("MinimumWallTimeIndex", minimumWallTimeIndex);
+        result.add("MinimumWallTime", minWallTime);
+
         System.out.println("Minimum number of instructions: " + minNumberOfInstructions + " in iteration " + minimumInstructionsIndex);
         System.out.println("Minimum number of quantum instructions: " + minQuantumInstructions + " in iteration " + minimumQuantumInstructionsIndex);
         System.out.println("Minimum difference between first and last quantum instruction: " + minDifference + " in iteration " + minimumDifferenceIndex);
+        System.out.println("Minimum wall time: " + minWallTime + " in iteration " + minimumWallTimeIndex);
 
         JsonObject json = result.build();
 
@@ -436,6 +449,36 @@ public class OptimizingQuil {
             numberOfInstructions.add(instructions.size());
         }
         return numberOfInstructions;
+    }
+
+    /**
+     * Calculate execution time of instructions in the instructions list.
+     * The number of classical and quantum instructions until the next hybrid instruction are counted. The bigger number
+     * is considered and summed up. All hybrid instructions are counted as 1.
+     * @param instructionList The list of list of instructions.
+     * @return The wall time for the instructions.
+     */
+    private static ArrayList<Integer> numberOfWalltimes(ArrayList<ArrayList<InstructionNode>> instructionList) {
+        ArrayList<Integer> wallTimeOfInstructions = new ArrayList<>();
+        for (ArrayList<InstructionNode> instructions : instructionList) {
+            Integer walltime = 0;
+            int quantumInstructions = 0;
+            int classicalInstructions = 0;
+            for(InstructionNode instruction : instructions) {
+                if (instruction.getLineType() == LineType.QUANTUM) {
+                    quantumInstructions++;
+                } else if (instruction.getLineType() == LineType.CLASSICAL) {
+                    classicalInstructions++;
+                } else if (instruction.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM || instruction.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL) {
+                    walltime += Math.max(quantumInstructions, classicalInstructions);
+                    quantumInstructions = 0;
+                    classicalInstructions = 0;
+                    walltime++;
+                }
+            }
+            wallTimeOfInstructions.add(walltime);
+        }
+        return wallTimeOfInstructions;
     }
 
     /**

@@ -91,7 +91,7 @@ public class Main {
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "teleport";
+        final String file = "iterative-phase-estimation-analysis";
         Set<String> readoutParams = new HashSet<>();
         readoutParams.add("result[0]");
         String directory = "MAOptimize/";
@@ -106,8 +106,8 @@ public class Main {
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
-        drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
-        drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
-        // optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
+        // drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        // drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
+        optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
     }
 }
