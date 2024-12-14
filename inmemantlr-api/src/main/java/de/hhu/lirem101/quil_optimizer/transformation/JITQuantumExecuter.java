@@ -64,8 +64,11 @@ public class JITQuantumExecuter {
             return;
         }
         Set<InstructionNode> necessaryNodes = hybridInstruction.getDependencies();
+        Set<Integer> necessaryLines = necessaryNodes.stream()
+                .map(InstructionNode::getLine)
+                .collect(HashSet::new, HashSet::add, HashSet::addAll);
         ArrayList<InstructionNode> necessaryNodesList = instructions.stream()
-                .filter(necessaryNodes::contains)
+                .filter(x -> necessaryLines.contains(x.getLine()))
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         executableClassicalInstructions.addAll(necessaryNodesList.stream()
                 .filter(x -> x.getLineType() == LineType.CLASSICAL)
