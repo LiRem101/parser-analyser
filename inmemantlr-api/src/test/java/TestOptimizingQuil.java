@@ -51,11 +51,15 @@ public class TestOptimizingQuil {
 
     private JsonObjectBuilder doOptimization(ArrayList<String> optimizationSteps) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         final String file = "iterative-phase-estimation";
+        return doOptimizationOnFile(optimizationSteps, file);
+    }
+
+    private JsonObjectBuilder doOptimizationOnFile(ArrayList<String> optimizationSteps, String filename) throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
         Set<String> readoutParams = new HashSet<>();
         readoutParams.add("result[0]");
 
         String grammarFileName = resourcePath + "Quil.g4";
-        String quilFileName = resourcePath + "Quil/" + file + ".quil";
+        String quilFileName = resourcePath + "Quil/" + filename + ".quil";
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
         ClassifyLines cl = new ClassifyLines(pt.getRoot());
@@ -240,6 +244,20 @@ public class TestOptimizingQuil {
 
         assertEquals("24: MEASURE 0 lastMeasurement[0]", finalInstructions.getString(11));
         assertEquals(51, finalInstructions.size());
+    }
+
+    @Test
+    public void optimize15() throws CompilationException, ParsingException, FileNotFoundException, IllegalWorkflowException {
+        ArrayList<String> optimizationSteps = new ArrayList<>(Arrays.asList(
+                "HybridDependencies", "ReOrdering"
+        ));
+        String filename = "magic-state-distillation";
+        JsonObjectBuilder result = doOptimizationOnFile(optimizationSteps, filename);
+        JsonObject json = result.build();
+        JsonArray finalInstructions = json.getJsonArray("FinalResult").getJsonArray(0);
+
+        assertEquals("28: MEASURE 0 ro[0]", finalInstructions.getString(24));
+        assertEquals(66, finalInstructions.size());
     }
 
     @Test

@@ -69,32 +69,65 @@ public class ReOrdererForHybridExecution {
                     .collect(Collectors.toCollection(ArrayList::new));
             long newNumberOfQuantumNodes = toAdd.stream()
                     .filter(x -> x.getLineType() == LineType.QUANTUM)
-                    .count()
-                    - previousQuantumNodes;
+                    .count();
             long newNumberOfClassicalNodes = toAdd.stream()
                     .filter(x -> x.getLineType() == LineType.CLASSICAL)
-                    .count()
-                    - previousClassicalNodes;
+                    .count();
             sortNodesWithGivenExecutables(toAdd, newOrder);
             boolean quantumAndClassicalEqual = newNumberOfQuantumNodes == newNumberOfClassicalNodes;
             int j = i + 1;
-            while(!quantumAndClassicalEqual && j < hybridInstructionIndices.size()) {
+            while(!quantumAndClassicalEqual && j <= hybridInstructionIndices.size()) {
                 // If there are not equally many quantum and classical instructions, try to add quantum/classical instructions
-                int finalJ = j;
-                ArrayList<InstructionNode> dependenciesToAdd = instructionList.stream()
-                        .filter(x -> hybDep.get(hybridInstructionIndices.get(finalJ)).contains(x.getLine()))
-                        .collect(Collectors.toCollection(ArrayList::new));
+
+                ArrayList<InstructionNode> dependenciesToAdd = new ArrayList<>();
+                if (j < hybridInstructionIndices.size()) {
+                    int finalJ = j;
+                    dependenciesToAdd = instructionList.stream()
+                            .filter(x -> hybDep.get(hybridInstructionIndices.get(finalJ)).contains(x.getLine()))
+                            .collect(Collectors.toCollection(ArrayList::new));
+                } else {
+                    int biggestHybridLine = 0;
+                    if (!hybDep.isEmpty()) {
+                        biggestHybridLine = hybridInstructionIndices.get(hybridInstructionIndices.size() - 1);
+                    }
+                    int finalBiggestHybridLine = biggestHybridLine;
+                    dependenciesToAdd = instructionList.stream()
+                            .filter(x -> x.getLine() > finalBiggestHybridLine ||
+                                    x.getLine() < finalBiggestHybridLine && !newOrder.contains(x))
+                            .filter(x -> x.getLineType() == LineType.QUANTUM || x.getLineType() == LineType.CLASSICAL)
+                            .collect(Collectors.toCollection(ArrayList::new));
+                }
+
+                long originalNumberOfQuantumNodes = newOrder.stream()
+                        .filter(x -> x.getLineType() == LineType.QUANTUM)
+                        .count();
+                long originalNumberOfClassicalNodes = newOrder.stream()
+                        .filter(x -> x.getLineType() == LineType.CLASSICAL)
+                        .count();
+
                 addNewDependencies(newOrder, dependenciesToAdd, newNumberOfQuantumNodes, newNumberOfClassicalNodes);
 
-                newNumberOfQuantumNodes = toAdd.stream()
+                long nextNumberOfQuantumNodes = newOrder.stream()
                         .filter(x -> x.getLineType() == LineType.QUANTUM)
                         .count()
-                        - previousQuantumNodes;
-                newNumberOfClassicalNodes = toAdd.stream()
+                        - originalNumberOfQuantumNodes;
+                long nextNumberOfClassicalNodes = newOrder.stream()
                         .filter(x -> x.getLineType() == LineType.CLASSICAL)
                         .count()
-                        - previousClassicalNodes;
-                quantumAndClassicalEqual = newNumberOfQuantumNodes == newNumberOfClassicalNodes;
+                        - originalNumberOfClassicalNodes;
+                if(newNumberOfQuantumNodes > newNumberOfClassicalNodes) {
+                    newNumberOfClassicalNodes += nextNumberOfClassicalNodes;
+                    if(newNumberOfClassicalNodes >= newNumberOfQuantumNodes) {
+                        quantumAndClassicalEqual = true;
+                        newNumberOfClassicalNodes = newNumberOfQuantumNodes;
+                    }
+                } else {
+                    newNumberOfQuantumNodes += nextNumberOfQuantumNodes;
+                    if(newNumberOfQuantumNodes >= newNumberOfClassicalNodes) {
+                        quantumAndClassicalEqual = true;
+                        newNumberOfQuantumNodes = newNumberOfClassicalNodes;
+                    }
+                }
 
                 j++;
             }
@@ -136,13 +169,13 @@ public class ReOrdererForHybridExecution {
         boolean foundNewDependencies = true;
 
         while(!quantumAndClassicalEqual && foundNewDependencies) {
-            ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(possibleNewInstructions)));
             LineType typeToAdd = numberOfQuantumNodes < numberOfClassicalNodes ? LineType.QUANTUM : LineType.CLASSICAL;
             long typeDifference = Math.abs(numberOfQuantumNodes - numberOfClassicalNodes);
-            ArrayList<InstructionNode> instructionsOfRightType = instructions.stream()
+            ArrayList<InstructionNode> instructionsOfRightType = possibleNewInstructions.stream()
                     .filter(x -> x.getLineType() == typeToAdd)
                     .collect(Collectors.toCollection(ArrayList::new));
-            Set<InstructionNode> executableInstructions = new HashSet<>(eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructionsOfRightType))).get(0));
+            ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructionsOfRightType)));
+            Set<InstructionNode> executableInstructions = new HashSet<>(eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructions))).get(0));
             Set<InstructionNode> instructionsToAdd = executableInstructions.stream()
                     .filter(x -> !instructions.contains(x))
                     .collect(Collectors.toSet());

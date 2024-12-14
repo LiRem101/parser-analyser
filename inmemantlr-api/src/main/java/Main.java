@@ -91,7 +91,7 @@ public class Main {
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "iterative-phase-estimation-analysis";
+        final String file = "magic-state-distillation";
         Set<String> readoutParams = new HashSet<>();
         readoutParams.add("result[0]");
         String directory = "MAOptimize/";
