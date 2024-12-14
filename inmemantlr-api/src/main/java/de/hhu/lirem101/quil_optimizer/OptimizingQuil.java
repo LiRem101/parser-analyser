@@ -113,24 +113,31 @@ public class OptimizingQuil {
                                               Map<Integer, LineType> classes, ParseTreeNode root,
                                               Set<String> readoutParams, String[] quilCode) {
         JsonObjectBuilder result = Json.createObjectBuilder();
-        JsonArrayBuilder instructionNumberBuilder = Json.createArrayBuilder();
         OptimizingQuil oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
-        ArrayList<Integer> numberOfInstructions = numberOfInstructions(oQuil.currentOrder);
-        ArrayList<Integer> numberOfQuantumInstructions = numberOfQuantumInstructions(oQuil.currentOrder);
 
-        int minNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
+        JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder numberOfQuantumInstructionsBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder wallTimeBuilder = Json.createArrayBuilder();
+
+        ArrayList<Integer> numberOfInstr = numberOfInstructions(oQuil.currentOrder);
+        ArrayList<Integer> numberOfQuantumInstr = numberOfQuantumInstructions(oQuil.currentOrder);
+        ArrayList<Integer> wallTime = numberOfWalltimes(oQuil.currentOrder);
+        numberOfInstr.forEach(numberOfInstructionsBuilder::add);
+        numberOfQuantumInstr.forEach(numberOfQuantumInstructionsBuilder::add);
+        wallTime.forEach(wallTimeBuilder::add);
+
+        int minNumberOfInstructions = numberOfInstr.stream().mapToInt(x -> x).sum();
         int minimumInstructionsIndex = -1;
-        int minQuantumInstructions = numberOfQuantumInstructions.stream().mapToInt(x -> x).sum();
+        int minQuantumInstructions = numberOfQuantumInstr.stream().mapToInt(x -> x).sum();
         int minimumQuantumInstructionsIndex = -1;
         int minDifference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
         int minimumDifferenceIndex = -1;
-        int minWallTime = numberOfWalltimes(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
+        int minWallTime = wallTime.stream().mapToInt(x -> x).sum();
         int minimumWallTimeIndex = -1;
 
-        numberOfInstructions.forEach(instructionNumberBuilder::add);
-        result.add("OriginalNumberOfInstructions", instructionNumberBuilder);
-        result.add("OriginalWallTime", minWallTime);
-        result.add("OriginalNumberOfQuantumInstructions", minQuantumInstructions);
+        result.add("OriginalNumberOfInstructions", numberOfInstructionsBuilder);
+        result.add("OriginalWallTime", wallTimeBuilder);
+        result.add("OriginalNumberOfQuantumInstructions", numberOfQuantumInstructionsBuilder);
         result.add("OriginalDifferenceBetweenFirstAndLastQuantumInstruction", minDifference);
         for(int i = 0; i < optimizations.size(); i++) {
             if(i != 0) {
@@ -144,34 +151,42 @@ public class OptimizingQuil {
             iterationBuilder.add("AppliedOptimizations", appliedOptBuilder);
             try {
                 JsonObjectBuilder resultJson = oQuil.applyOptimizationSteps(optimizations.get(i));
-                numberOfInstructions = numberOfInstructions(oQuil.currentOrder);
-                JsonArrayBuilder numberOfInstructionsBuilder = Json.createArrayBuilder();
-                numberOfInstructions.forEach(numberOfInstructionsBuilder::add);
-                iterationBuilder.add("FinalNumberOfInstructions", numberOfInstructionsBuilder);
-
-                int totalNumberOfInstructions = numberOfInstructions.stream().mapToInt(x -> x).sum();
+                numberOfInstr = numberOfInstructions(oQuil.currentOrder);
+                JsonArrayBuilder noOfInstructionsBuilder = Json.createArrayBuilder();
+                numberOfInstr.forEach(noOfInstructionsBuilder::add);
+                iterationBuilder.add("FinalNumberOfInstructions", noOfInstructionsBuilder);
+                int totalNumberOfInstructions = numberOfInstr.stream().mapToInt(x -> x).sum();
                 if(totalNumberOfInstructions < minNumberOfInstructions) {
                     minNumberOfInstructions = totalNumberOfInstructions;
                     minimumInstructionsIndex = i;
                 }
-                int totalQuantumInstructions = numberOfQuantumInstructions(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
+
+                numberOfQuantumInstr = numberOfQuantumInstructions(oQuil.currentOrder);
+                JsonArrayBuilder noOfQuantumInstructionsBuilder = Json.createArrayBuilder();
+                numberOfQuantumInstr.forEach(noOfQuantumInstructionsBuilder::add);
+                iterationBuilder.add("FinalNumberOfQuantumInstructions", noOfQuantumInstructionsBuilder);
+                int totalQuantumInstructions = numberOfQuantumInstr.stream().mapToInt(x -> x).sum();
                 if(totalQuantumInstructions < minQuantumInstructions) {
                     minQuantumInstructions = totalQuantumInstructions;
                     minimumQuantumInstructionsIndex = i;
                 }
+
                 int difference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
                 if(difference < minDifference) {
                     minDifference = difference;
                     minimumDifferenceIndex = i;
                 }
-                int wallTime = numberOfWalltimes(oQuil.currentOrder).stream().mapToInt(x -> x).sum();
-                if(wallTime < minWallTime) {
-                    minWallTime = wallTime;
+
+                wallTime = numberOfWalltimes(oQuil.currentOrder);
+                JsonArrayBuilder wallTimeBuilderIteration = Json.createArrayBuilder();
+                wallTime.forEach(wallTimeBuilderIteration::add);
+                iterationBuilder.add("FinalWallTime", wallTimeBuilderIteration);
+                int wallT = wallTime.stream().mapToInt(x -> x).sum();
+                if(wallT < minWallTime) {
+                    minWallTime = wallT;
                     minimumWallTimeIndex = i;
                 }
 
-                iterationBuilder.add("NumberOfQuantumInstructions", totalQuantumInstructions);
-                iterationBuilder.add("Walltime", wallTime);
                 iterationBuilder.add("DifferenceBetweenFirstAndLastQuantumInstruction", difference);
                 iterationBuilder.add("Optimizations", resultJson);
 
