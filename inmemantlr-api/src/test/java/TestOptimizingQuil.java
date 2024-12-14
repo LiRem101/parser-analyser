@@ -256,8 +256,8 @@ public class TestOptimizingQuil {
         JsonObject json = result.build();
         JsonArray finalInstructions = json.getJsonArray("FinalResult").getJsonArray(0);
 
-        assertEquals("28: MEASURE 0 ro[0]", finalInstructions.getString(24));
-        assertEquals(66, finalInstructions.size());
+        assertEquals("29: MEASURE 0 ro[0]", finalInstructions.getString(24));
+        assertEquals(67, finalInstructions.size());
     }
 
     @Test

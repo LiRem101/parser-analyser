@@ -175,10 +175,10 @@ public class ReOrdererForHybridExecution {
                     .filter(x -> x.getLineType() == typeToAdd)
                     .collect(Collectors.toCollection(ArrayList::new));
             ExecutableInstructionsExtractor eie = new ExecutableInstructionsExtractor(new ArrayList<>(Collections.singletonList(instructionsOfRightType)));
-            Set<InstructionNode> executableInstructions = new HashSet<>(eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructions))).get(0));
-            Set<InstructionNode> instructionsToAdd = executableInstructions.stream()
+            ArrayList<InstructionNode> executableInstructions = eie.getExecutableInstructions(new ArrayList<>(Collections.singletonList(instructions))).get(0);
+            List<InstructionNode> instructionsToAdd = executableInstructions.stream()
                     .filter(x -> !instructions.contains(x))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
             foundNewDependencies = !instructionsToAdd.isEmpty();
             int numberToAdd = instructionsToAdd.size();
 
