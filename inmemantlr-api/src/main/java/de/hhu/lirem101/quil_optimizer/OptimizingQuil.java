@@ -476,6 +476,7 @@ public class OptimizingQuil {
                     walltime++;
                 }
             }
+            walltime += Math.max(quantumInstructions, classicalInstructions);
             wallTimeOfInstructions.add(walltime);
         }
         return wallTimeOfInstructions;
