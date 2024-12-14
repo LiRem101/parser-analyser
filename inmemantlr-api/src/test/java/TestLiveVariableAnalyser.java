@@ -18,7 +18,7 @@ class TestLiveVariableAnalyser {
     void returnsEmptyVariablesSetToDeadWhenNoInstructions() {
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
         Set<String> readoutVariables = new HashSet<>();
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 
@@ -32,7 +32,7 @@ class TestLiveVariableAnalyser {
         when(instruction.getClassicalParameters()).thenReturn(new ArrayList<>(Collections.singletonList(classicalVariable)));
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Collections.singletonList(instruction))));
         Set<String> readoutVariables = new HashSet<>();
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 
@@ -48,7 +48,7 @@ class TestLiveVariableAnalyser {
         when(instruction.getClassicalParameters()).thenReturn(new ArrayList<>(Collections.singletonList(classicalVariable)));
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Collections.singletonList(instruction))));
         Set<String> readoutVariables = new HashSet<>(Collections.singletonList("c1"));
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 
@@ -62,7 +62,7 @@ class TestLiveVariableAnalyser {
         when(instruction.getQuantumParameters()).thenReturn(new ArrayList<>(Collections.singletonList(quantumVariable)));
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Collections.singletonList(instruction))));
         Set<String> readoutVariables = new HashSet<>();
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 
@@ -82,7 +82,7 @@ class TestLiveVariableAnalyser {
         when(instruction.getQuantumParameters()).thenReturn(quantumVariables);
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Collections.singletonList(instruction))));
         Set<String> readoutVariables = new HashSet<>();
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 
@@ -111,7 +111,7 @@ class TestLiveVariableAnalyser {
 
         ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>(Collections.singletonList(new ArrayList<>(Arrays.asList(multiGateInstruction, measureInstruction))));
         Set<String> readoutVariables = new HashSet<>(Collections.singletonList("c1"));
-        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables);
+        LiveVariableAnalyser analyser = new LiveVariableAnalyser(instructions, readoutVariables, 0);
 
         ArrayList<ArrayList<BoxedVariableProperties>> result = analyser.getVariablesSetToDead();
 

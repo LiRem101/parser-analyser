@@ -235,7 +235,7 @@ public class OptimizingQuil {
             appliedSteps.add("Optimization", optimizationStep);
             switch (optimizationStep) {
                 case "LiveVariableAnalysis":
-                    LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams);
+                    LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams, getHaltIndex());
                     appliedSteps.add("Result", lva.addDeadVariablesToJson());
                     break;
                 case "DeadCodeAnalysis":

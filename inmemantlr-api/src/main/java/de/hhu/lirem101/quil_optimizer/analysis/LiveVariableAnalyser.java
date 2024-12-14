@@ -17,15 +17,17 @@ public class LiveVariableAnalyser {
     private final Set<String> readoutVariables = new HashSet<>();
     private final ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
     private final ArrayList<ArrayList<BoxedVariableProperties>> variablesSetToDead = new ArrayList<>();
+    private final int haltIndex;
     boolean calculated = false;
 
 
-    public LiveVariableAnalyser(ArrayList<ArrayList<InstructionNode>> instructions, Set<String> readoutVariables) {
+    public LiveVariableAnalyser(ArrayList<ArrayList<InstructionNode>> instructions, Set<String> readoutVariables, int HaltIndex) {
         this.instructions.addAll(instructions);
         this.readoutVariables.addAll(readoutVariables);
         for(ArrayList<InstructionNode> i : instructions) {
             variablesSetToDead.add(new ArrayList<>());
         }
+        haltIndex = HaltIndex;
     }
 
     /**
@@ -73,30 +75,28 @@ public class LiveVariableAnalyser {
      *      contains at least one variable.
      */
     public void findDeadVariables() {
-        if(calculated) {
+        if(calculated || instructions.isEmpty()) {
             return;
         }
         calculated = true;
-        for(int j = 0; j < instructions.size(); j++) {
-             HashMap<String, Variables> variables = new HashMap<>();
-             for(String readoutVariable : readoutVariables) {
-                 variables.put(readoutVariable, Variables.READOUT);
-             }
-             for(int i = instructions.get(j).size() - 1; i >= 0; i--) {
-                 InstructionNode instruction = instructions.get(j).get(i);
-                 ArrayList<ClassicalVariable> classicalVariables = instruction.getClassicalParameters();
-                 // If the quantum variable is measured, it gets the measured type in the variables map
-                 // If there is a single qubit gate and the quantum variable will not be measured or in a multi-gate, it
-                 // is dead.
-                 // All quantum variables are alive if at least one of the variables in a multi-qubit gate is alive.
-                 checkQuantumVariables(variables, instruction, variablesSetToDead.get(j));
-                 // If the classical value is used or readout, it is not dead
-                 // If it was not already used or readout and is only assigned and not used, it is considered dead
-                 // Declarations are not considered dead here, because it would have to make sure that the value is not
-                 // used in any parts of the program anymore.
-                 checkClassicalVariables(variables, instruction, variablesSetToDead.get(j));
-             }
-         }
+        HashMap<String, Variables> variables = new HashMap<>();
+        for(String readoutVariable : readoutVariables) {
+            variables.put(readoutVariable, Variables.READOUT);
+        }
+        for(int i = instructions.get(haltIndex).size() - 1; i >= 0; i--) {
+            InstructionNode instruction = instructions.get(haltIndex).get(i);
+            ArrayList<ClassicalVariable> classicalVariables = instruction.getClassicalParameters();
+            // If the quantum variable is measured, it gets the measured type in the variables map
+            // If there is a single qubit gate and the quantum variable will not be measured or in a multi-gate, it
+            // is dead.
+            // All quantum variables are alive if at least one of the variables in a multi-qubit gate is alive.
+            checkQuantumVariables(variables, instruction, variablesSetToDead.get(haltIndex));
+            // If the classical value is used or readout, it is not dead
+            // If it was not already used or readout and is only assigned and not used, it is considered dead
+            // Declarations are not considered dead here, because it would have to make sure that the value is not
+            // used in any parts of the program anymore.
+            checkClassicalVariables(variables, instruction, variablesSetToDead.get(haltIndex));
+        }
     }
 
     /**
