@@ -427,13 +427,17 @@ public class OptimizingQuil {
         ArrayList<InstructionNode> firstInstructionBlock = currentOrder.get(0);
         ArrayList<InstructionNode> lastInstructionBlock = currentOrder.get(getHaltIndex());
         InstructionNode firstQuantumInstruction = firstInstructionBlock.stream()
-                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .filter(x -> x.getLineType() == LineType.QUANTUM
+                        || x.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM
+                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL)
                 .findFirst()
                 .orElse(null);
         int firstQuantumIndex = firstQuantumInstruction != null ? firstInstructionBlock.indexOf(firstQuantumInstruction) : firstInstructionBlock.size();
 
         ArrayList<InstructionNode> lastQuantumInstruction = lastInstructionBlock.stream()
-                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .filter(x -> x.getLineType() == LineType.QUANTUM
+                        || x.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM
+                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL)
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         int lastQuantumIndex = lastQuantumInstruction.isEmpty() ? 0 : lastInstructionBlock.indexOf(lastQuantumInstruction.get(lastQuantumInstruction.size()-1));
 
