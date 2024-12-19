@@ -76,12 +76,13 @@ public class OptimizingQuil {
         optimizationSteps.add(Arrays.asList("HybridDependencies", "QuantumJIT"));
         Random random = new Random();
         ArrayList<ArrayList<String>> optimizations = new ArrayList<>();
+
+        int optimizationBlocks = numberOfOptimizations/2;
         for(int i = 0; i < iterations; i++) {
             ArrayList<String> iterationOptimizations = new ArrayList<>();
-            for(int j = 0; j < numberOfOptimizations; j++) {
+            for(int j = 0; j < optimizationBlocks; j++) {
                 int randomIndex = random.nextInt(optimizationSteps.size());
                 iterationOptimizations.addAll(optimizationSteps.get(randomIndex));
-                j += optimizationSteps.get(randomIndex).size() - 1;
             }
             optimizations.add(iterationOptimizations);
         }
