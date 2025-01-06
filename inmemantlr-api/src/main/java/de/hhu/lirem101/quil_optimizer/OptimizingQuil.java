@@ -425,24 +425,58 @@ public class OptimizingQuil {
      * @return The amount of instructions between the first and the last quantum instruction.
      */
     private int getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction() {
+        ArrayList<Integer> wallTime = numberOfWalltimes(currentOrder);
+        int totalWallTime = wallTime.stream().mapToInt(x -> x).sum();
+
         ArrayList<InstructionNode> firstInstructionBlock = currentOrder.get(0);
         ArrayList<InstructionNode> lastInstructionBlock = currentOrder.get(getHaltIndex());
-        InstructionNode firstQuantumInstruction = firstInstructionBlock.stream()
-                .filter(x -> x.getLineType() == LineType.QUANTUM
+
+        InstructionNode firstHybridInstruction = firstInstructionBlock.stream()
+                .filter(x -> x.getLineType() == LineType.CONTROL_STRUCTURE
                         || x.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM
-                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL)
+                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL
+                        || x.getLineType() == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL)
                 .findFirst()
                 .orElse(null);
-        int firstQuantumIndex = firstQuantumInstruction != null ? firstInstructionBlock.indexOf(firstQuantumInstruction) : firstInstructionBlock.size();
+        int firstHybridIndex = firstHybridInstruction != null ? firstInstructionBlock.indexOf(firstHybridInstruction) : firstInstructionBlock.size();
+        int quantumNumberBeforeHybrid = firstInstructionBlock.stream()
+                .limit(firstHybridIndex)
+                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .mapToInt(x -> 1)
+                .sum();
+        int classicalNumberBeforeHybrid = firstInstructionBlock.stream()
+                .limit(firstHybridIndex)
+                .filter(x -> x.getLineType() == LineType.CLASSICAL)
+                .mapToInt(x -> 1)
+                .sum();
 
-        ArrayList<InstructionNode> lastQuantumInstruction = lastInstructionBlock.stream()
-                .filter(x -> x.getLineType() == LineType.QUANTUM
+        ArrayList<InstructionNode> lastHybridInstruction = lastInstructionBlock.stream()
+                .filter(x -> x.getLineType() == LineType.CONTROL_STRUCTURE
                         || x.getLineType() == LineType.CLASSICAL_INFLUENCES_QUANTUM
-                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL)
+                        || x.getLineType() == LineType.QUANTUM_INFLUENCES_CLASSICAL
+                        || x.getLineType() == LineType.CONTROL_STRUCTURE_INFLUENCED_CLASSICAL)
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        int lastQuantumIndex = lastQuantumInstruction.isEmpty() ? 0 : lastInstructionBlock.indexOf(lastQuantumInstruction.get(lastQuantumInstruction.size()-1));
+        int lastHybridIndex = lastHybridInstruction.isEmpty() ? 0 : lastInstructionBlock.indexOf(lastHybridInstruction.get(lastHybridInstruction.size()-1));
+        int quantumNumberAfterHybrid = lastInstructionBlock.stream()
+                .skip(lastHybridIndex)
+                .filter(x -> x.getLineType() == LineType.QUANTUM)
+                .mapToInt(x -> 1)
+                .sum();
+        int classicalNumberAfterHybrid = lastInstructionBlock.stream()
+                .skip(lastHybridIndex)
+                .filter(x -> x.getLineType() == LineType.CLASSICAL)
+                .mapToInt(x -> 1)
+                .sum();
 
-        return lastQuantumIndex - firstQuantumIndex;
+        int subtract = 0;
+        if(quantumNumberBeforeHybrid < classicalNumberBeforeHybrid) {
+            subtract = classicalNumberBeforeHybrid - quantumNumberBeforeHybrid;
+        }
+        if(quantumNumberAfterHybrid < classicalNumberAfterHybrid) {
+            subtract += classicalNumberAfterHybrid - quantumNumberAfterHybrid;
+        }
+
+        return totalWallTime - subtract;
     }
 
     /**
