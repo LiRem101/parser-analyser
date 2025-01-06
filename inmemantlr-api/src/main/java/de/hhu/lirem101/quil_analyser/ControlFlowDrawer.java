@@ -73,7 +73,7 @@ public class ControlFlowDrawer {
         for (int linenumber : codelines) {
             String line = quilFileLines.get(linenumber - 1);
             String color = "#000000";
-            String type = "Heterogeneous:";
+            String type = "Hybrid:";
             if (classes.get(linenumber) == LineType.QUANTUM) {
                 color = QUANTUM_COLOR;
                 type = "QPU:";
