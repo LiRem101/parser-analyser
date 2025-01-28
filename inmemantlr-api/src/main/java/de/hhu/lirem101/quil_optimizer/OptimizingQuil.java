@@ -70,7 +70,7 @@ public class OptimizingQuil {
                                         ControlFlowBlock block, Map<Integer, LineType> classes, ParseTreeNode root,
                                         Set<String> readoutParams, String[] quilCode) {
         List<List<String>> optimizationSteps = new ArrayList<>();
-        optimizationSteps.add(Arrays.asList("LiveVariableAnalysis", "DeadCodeAnalysis", "DeadCodeElimination"));
+        optimizationSteps.add(Arrays.asList("LiveVariableAnalysis", "DeadCodeElimination"));
         optimizationSteps.add(Arrays.asList("ConstantPropagation", "ConstantFolding"));
         optimizationSteps.add(Arrays.asList("HybridDependencies", "ReOrdering"));
         optimizationSteps.add(Arrays.asList("HybridDependencies", "QuantumJIT"));
