@@ -254,12 +254,6 @@ public class OptimizingQuil {
                     LiveVariableAnalyser lva = new LiveVariableAnalyser(currentOrder, readoutParams, getHaltIndex());
                     appliedSteps.add("Result", lva.addDeadVariablesToJson());
                     break;
-                case "DeadCodeAnalysis":
-                    DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
-                    indizesOfDeadLineBlocks = dca.getIndizesOfDeadLines();
-                    deadLines = dca.getDeadLines();
-                    appliedSteps.add("Result", dca.addDeadVariablesToJson());
-                    break;
                 case "ConstantPropagation":
                     ConstantPropagator cp = new ConstantPropagator(currentOrder);
                     appliedSteps.add("Result", cp.addConstantVariablesToJson());
@@ -270,18 +264,21 @@ public class OptimizingQuil {
                     appliedSteps.add("Result", fhd.addDeadVariablesToJson());
                     break;
                 case "DeadCodeElimination":
+                    DeadCodeAnalyser dca = new DeadCodeAnalyser(currentOrder, indexToJumpTo);
+                    indizesOfDeadLineBlocks = dca.getIndizesOfDeadLines();
+                    deadLines = dca.getDeadLines();
+                    JsonArrayBuilder resultDeadCodeElimination = Json.createArrayBuilder();
+                    resultDeadCodeElimination.add(dca.addDeadVariablesToJson());
                     if(!deadLines.isEmpty()) {
                         DeadCodeEliminator dce = new DeadCodeEliminator(currentOrder, deadLines, indizesOfDeadLineBlocks);
-                        appliedSteps.add("RemovedLines", dce.addDeadVariablesToJson());
+                        resultDeadCodeElimination.add(dce.addDeadVariablesToJson());
                     }
+                    appliedSteps.add("Result", resultDeadCodeElimination);
                     break;
                 case "ReOrdering":
                     if(!hybridDependencies.isEmpty()) {
                         ReOrdererForHybridExecution rofhe = new ReOrdererForHybridExecution(currentOrder, hybridDependencies);
                         currentOrder = rofhe.reOrderInstructions();
-//                        JsonArrayBuilder reOrderBuilder = Json.createArrayBuilder();
-//                        addInstructionsToJson(reOrderBuilder, currentOrder);
-//                        appliedSteps.add("Result", reOrderBuilder);
                     }
                     break;
                 case "ConstantFolding":
