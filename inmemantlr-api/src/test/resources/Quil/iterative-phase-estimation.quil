@@ -1,0 +1,67 @@
+DECLARE theta REAL[1]
+DECLARE result REAL[1]
+DECLARE param_wo_pi REAL[1]
+DECLARE lastMeasurement BIT[1]
+DEFGATE targetGate_odd:
+    0.7071067811865475, 0, 0.7071067811865475i, 0
+    0, 0.7071067811865475, 0, -0.7071067811865475i
+    -0.7071067811865475i, 0, -0.7071067811865475, 0
+    0, 0.7071067811865475i, 0, -0.7071067811865475
+
+DEFGATE targetGate_even:
+    1, 0, 0, 0
+    0, 1, 0, 0
+    0, 0, 1, 0
+    0, 0, 0, 1
+
+MOVE theta[0] 0
+MOVE param_wo_pi[0] 0
+MOVE lastMeasurement[0] 0
+H 0
+CONTROLLED targetGate_even 0 1 2
+RZ(theta[0]) 0
+H 0
+MEASURE 0 lastMeasurement[0]
+MOVE theta[0] -3.141592653589793
+ADD param_wo_pi[0] lastMeasurement[0]
+DIV param_wo_pi[0] 2
+MUL theta[0] param_wo_pi[0]
+H 0
+CONTROLLED targetGate_even 0 1 2
+RZ(theta[0]) 0
+H 0
+MEASURE 0 lastMeasurement[0]
+MOVE theta[0] -3.141592653589793
+ADD param_wo_pi[0] lastMeasurement[0]
+DIV param_wo_pi[0] 2
+MUL theta[0] param_wo_pi[0]
+H 0
+CONTROLLED targetGate_even 0 1 2
+RZ(theta[0]) 0
+H 0
+MEASURE 0 lastMeasurement[0]
+MOVE theta[0] -3.141592653589793
+ADD param_wo_pi[0] lastMeasurement[0]
+DIV param_wo_pi[0] 2
+MUL theta[0] param_wo_pi[0]
+H 0
+CONTROLLED targetGate_even 0 1 2
+RZ(theta[0]) 0
+H 0
+MEASURE 0 lastMeasurement[0]
+MOVE theta[0] -3.141592653589793
+ADD param_wo_pi[0] lastMeasurement[0]
+DIV param_wo_pi[0] 2
+MUL theta[0] param_wo_pi[0]
+H 0
+CONTROLLED targetGate_odd 0 1 2
+RZ(theta[0]) 0
+H 0
+MEASURE 0 lastMeasurement[0]
+MOVE theta[0] -3.141592653589793
+ADD param_wo_pi[0] lastMeasurement[0]
+DIV param_wo_pi[0] 2
+MUL theta[0] param_wo_pi[0]
+MOVE result[0] 3.141592653589793
+MUL result[0] -2
+MUL result[0] param_wo_pi[0]
