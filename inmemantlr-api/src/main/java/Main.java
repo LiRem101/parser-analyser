@@ -15,7 +15,7 @@ import java.util.*;
 import static de.hhu.lirem101.quil_optimizer.OptimizingQuil.fuzzOptimization;
 
 public class Main {
-    public static final String resourcePath = System.getProperty("user.dir") + "/src/main/resources/";
+    public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
 
     private static ParseTree getParseTree(String grammarFileName, String quilFileName) throws FileNotFoundException, CompilationException, IllegalWorkflowException, ParsingException {
         File grammarFile = new File(grammarFileName);
@@ -90,10 +90,10 @@ public class Main {
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         System.out.println(System.getProperty("user.dir"));
 
-        final String file = "magic-state-distillation";
+        final String file = "ipe";
         Set<String> readoutParams = new HashSet<>();
         readoutParams.add("result[0]");
-        String directory = "MAOptimize/";
+        String directory = "QuilExampleFiles/";
 
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + directory + file + ".quil";

@@ -1,4 +1,20 @@
+## Compile + Run jar file
+
+```bash
+inmemantlr-api $ mvn package -Dmaven.test.skip
+parser-analyser $ java -cp inmemantlr-api/target/inmemantlr-api-1.9.2.jar Main blabla
+```
+
+
+## Grammar fix
+
+todo: wait -> wait1
 Forked to add functionalities needed for my master's thesis.
+Exception in thread "main" org.snt.inmemantlr.exceptions.CompilationErrorException: /QuilParser.java:324: error: wait() in InstrContext cannot override wait() in Object
+
+
+
+--
 
 # inmemantlr
 
