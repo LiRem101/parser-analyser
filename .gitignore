@@ -7,3 +7,4 @@ dependency-reduced-pom.xml
 /inmemantlr-api/src/main/resources/Quil/
 /inmemantlr-api/src/main/resources/MAOptimize
 /inmemantlr-api/src/main/resources/MAOptimizeNewDiff
+/inmemantlr-api/src/test/resources/grammars-v4/
