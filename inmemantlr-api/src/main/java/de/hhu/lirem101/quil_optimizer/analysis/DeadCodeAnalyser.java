@@ -11,6 +11,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * A class to analyse the dead code in a list of instructions.
+ */
 public class DeadCodeAnalyser {
     private final ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
     private final ArrayList<Set<Integer>> indexToJumpTo = new ArrayList<>();
@@ -18,7 +21,11 @@ public class DeadCodeAnalyser {
     private final Set<Integer> indizesOfDeadLines = new HashSet<>();
     private boolean calculated = false;
 
-
+    /**
+     * Constructor for the DeadCodeAnalyser.
+     * @param instructions The instructions to analyse as list of lists.
+     * @param indexToJumpTo The indizes the instruction lists jump to as list of sets.
+     */
     public DeadCodeAnalyser(ArrayList<ArrayList<InstructionNode>> instructions, ArrayList<Set<Integer>> indexToJumpTo) {
         this.instructions.addAll(instructions);
         this.indexToJumpTo.addAll(indexToJumpTo);

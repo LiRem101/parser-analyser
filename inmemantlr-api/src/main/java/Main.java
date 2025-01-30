@@ -15,12 +15,11 @@ import java.util.*;
 import static de.hhu.lirem101.quil_optimizer.OptimizingQuil.fuzzOptimization;
 
 public class Main {
-    public static final String resourcePath = System.getProperty("user.dir") + "/inmemantlr-api/src/main/resources/";
+    public static final String resourcePath = System.getProperty("user.dir") + "/src/main/resources/";
 
     private static ParseTree getParseTree(String grammarFileName, String quilFileName) throws FileNotFoundException, CompilationException, IllegalWorkflowException, ParsingException {
         File grammarFile = new File(grammarFileName);
         GenericParser gp = new GenericParser(grammarFile);
-        // 2. load file content into string
         String s = FileUtils.loadFileContent(quilFileName);
         // 3. set listener for checking parse tree elements. Here you could use any ParseTreeListener implementation. The default listener is used per default
         // this listener will create a parse tree from the java file
@@ -85,7 +84,7 @@ public class Main {
         ControlFlowBlock blocks = getControlFlow(pt, classes);
 
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
-        fuzzOptimization(resultFileName, 50, 50, blocks, classes, pt.getRoot(), readoutParams, quilCode);
+        fuzzOptimization(resultFileName, 500, 50, blocks, classes, pt.getRoot(), readoutParams, quilCode);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
@@ -98,16 +97,16 @@ public class Main {
 
         String grammarFileName = resourcePath + "Quil.g4";
         String quilFileName = resourcePath + directory + file + ".quil";
-        String dotFileName = resourcePath + directory + file + ".dot";
-        String graphImageFileName = resourcePath + directory + file + ".ps";
+        String dotFileName = resourcePath + directory + file + "cfg.dot";
+        String graphImageFileName = resourcePath + directory + file + "cfg.ps";
         String dotFileNameDDG = resourcePath + directory + file + "ddg.dot";
         String graphImageFileNameDDG = resourcePath + directory + file + "ddg.ps";
         String resultFileName = resourcePath + directory + file + "_optimization_fuzzing.json";
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
-        // drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
         // drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
-        optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
+        // optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
     }
 }

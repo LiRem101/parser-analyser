@@ -8,12 +8,19 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
 
+/**
+ * This class is used to find hybrid dependencies in a list of lists of instructions.
+ */
 public class FindHybridDependencies {
 
     private final ArrayList<ArrayList<InstructionNode>> instructions;
     private final ArrayList<LinkedHashMap<Integer, Set<Integer>>> hybridDependencyList = new ArrayList<>();
     private boolean calculated = false;
 
+    /**
+     * Constructor for FindHybridDependencies.
+     * @param instructions The list of list of instructions to be analyzed.
+     */
     public FindHybridDependencies(ArrayList<ArrayList<InstructionNode>> instructions) {
         this.instructions = instructions;
     }
@@ -43,6 +50,10 @@ public class FindHybridDependencies {
         }
     }
 
+    /**
+     * Returns the hybrid dependencies as list.
+     * @return The hybrid dependencies.
+     */
     public ArrayList<LinkedHashMap<Integer, Set<Integer>>> getHybridDependencies() {
         if (!calculated) {
             findHybridNodes();

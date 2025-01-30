@@ -30,13 +30,13 @@ public class ExecutableInstructionsExtractor {
     }
 
     /**
-     * Get the executable instructions for a given index.
-     * @index The index of the instructions to look at.
+     * Get the executable instructions for a given blockIndex.
+     * @param blockIndex The blockIndex of the instructions to look at.
      * @param executionQueue The list of instrcutions that are already in the execution queue.
      * @return A list of instructions whose previous instructions are already in the execution queue.
      */
-    public ArrayList<InstructionNode> getExecutableInstructionsOfOneBlock(int index, ArrayList<InstructionNode> executionQueue) {
-        ArrayList<InstructionNode> instructionList = instructions.get(index);
+    public ArrayList<InstructionNode> getExecutableInstructionsOfOneBlock(int blockIndex, ArrayList<InstructionNode> executionQueue) {
+        ArrayList<InstructionNode> instructionList = instructions.get(blockIndex);
         ArrayList<InstructionNode> executableInstructions = new ArrayList<>();
         ArrayList<Integer> executedLines = executionQueue.stream().map(InstructionNode::getLine).collect(Collectors.toCollection(ArrayList::new));
         for(InstructionNode node : instructionList) {

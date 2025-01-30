@@ -9,7 +9,16 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The LiveVariableAnalyser class is used to find dead variables in a program.
+ * It uses a live variable analysis to find variables that are not used anymore in the program.
+ * The analysis is done for both classical and quantum variables.
+ */
 public class LiveVariableAnalyser {
+
+    /**
+     * The types a variable can have in the live variable analysis.
+     */
     private enum Variables {
         READOUT, USED, MEASURED, USED_MULTI_QUBIT
     }
@@ -20,7 +29,12 @@ public class LiveVariableAnalyser {
     private final int haltIndex;
     boolean calculated = false;
 
-
+    /**
+     * Constructor for the LiveVariableAnalyser.
+     * @param instructions The list of lists of instructions of the program.
+     * @param readoutVariables The list of readout variables of the program.
+     * @param HaltIndex The index in the list of lists of the halt list of instructions.
+     */
     public LiveVariableAnalyser(ArrayList<ArrayList<InstructionNode>> instructions, Set<String> readoutVariables, int HaltIndex) {
         this.instructions.addAll(instructions);
         this.readoutVariables.addAll(readoutVariables);

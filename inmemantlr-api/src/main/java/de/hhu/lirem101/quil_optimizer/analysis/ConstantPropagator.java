@@ -14,12 +14,19 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A class to propagate constant values through the instructions.
+ */
 public class ConstantPropagator {
 
     private final ArrayList<ArrayList<InstructionNode>> instructions = new ArrayList<>();
     private final ArrayList<ArrayList<BoxedVariableProperties>> newConstantValues = new ArrayList<>();
     boolean calculated = false;
 
+    /**
+     * A class to propagate constant values through the instructions.
+     * @param instructions The instructions to propagate the constant values through as list of lists.
+     */
     public ConstantPropagator(ArrayList<ArrayList<InstructionNode>> instructions) {
         this.instructions.addAll(instructions);
         for(ArrayList<InstructionNode> i : instructions) {
