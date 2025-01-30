@@ -115,6 +115,7 @@
                     <detectJavaApiLink>true</detectJavaApiLink>
                     <detectLinks>true</detectLinks>
                     <detectOfflineLinks>false</detectOfflineLinks>
+                    <doclint>all,-missing</doclint>
                     <quiet>true</quiet>
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                 </configuration>
