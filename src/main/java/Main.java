@@ -1,4 +1,6 @@
 import de.hhu.lirem101.quil_analyser.*;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.snt.inmemantlr.GenericParser;
 import org.snt.inmemantlr.exceptions.CompilationException;
 import org.snt.inmemantlr.exceptions.IllegalWorkflowException;
@@ -78,35 +80,82 @@ public class Main {
         cfd.drawControlFlowGraph(graphic, dotFile, quilFileName);
     }
 
-    private static void optimizeQuil(ParseTree pt, String quilFileName, String resultFileName, Set<String> readoutParams) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
+    private static void optimizeQuil(ParseTree pt, String quilFileName, String resultFileName, Set<String> readoutParams, int iterations, int numberOfOptimizations) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
         ClassifyLines cl = new ClassifyLines(pt.getRoot());
         Map<Integer, LineType> classes = cl.classifyLines();
         ControlFlowBlock blocks = getControlFlow(pt, classes);
 
         String[] quilCode = FileUtils.loadFileContent(quilFileName).split("\n");
-        fuzzOptimization(resultFileName, 500, 50, blocks, classes, pt.getRoot(), readoutParams, quilCode);
+        fuzzOptimization(resultFileName, iterations, numberOfOptimizations, blocks, classes, pt.getRoot(), readoutParams, quilCode);
     }
 
     public static void main(String[] args) throws IOException, CompilationException, ParsingException, IllegalWorkflowException {
-        System.out.println(System.getProperty("user.dir"));
+        if(args.length == 0 || !args[0].endsWith(".quil")){
+            System.err.println("Quil filename to process needed. Stop.");
+            return;
+        }
 
-        final String file = "ipe";
-        Set<String> readoutParams = new HashSet<>();
-        readoutParams.add("result[0]");
-        String directory = "QuilExampleFiles/";
+        int iterations = 500;
+        int numbersOfOptimizations = 50;
+
+        boolean cfg = Arrays.asList(args).contains("-cfg");
+        boolean ddg = Arrays.asList(args).contains("-ddg");
+        boolean optimize = Arrays.asList(args).contains("-optimize");
+        boolean manIterations = Arrays.asList(args).contains("-iterations");
+        boolean manNumbersOfOptimizations = Arrays.asList(args).contains("-nOptimizations");
+        if(manIterations){
+            int indexManIts = ArrayUtils.indexOf(args, "-iterations");
+            try {
+                iterations = Integer.parseInt(args[indexManIts+1]);
+            } catch(Exception e) {
+                System.err.println("No valid iteration number given.");
+                return;
+            }
+        }
+
+        if(manNumbersOfOptimizations){
+            int indexNOpts = ArrayUtils.indexOf(args, "-nOptimizations");
+            try {
+                numbersOfOptimizations = Integer.parseInt(args[indexNOpts+1]);
+            } catch(Exception e) {
+                System.err.println("No valid optimization number given.");
+                return;
+            }
+        }
+
+        String file = args[0];
+        file = StringUtils.removeEnd(file, ".quil");
 
         String grammarFileName = resourcePath + "Quil.g4";
-        String quilFileName = resourcePath + directory + file + ".quil";
-        String dotFileName = resourcePath + directory + file + "cfg.dot";
-        String graphImageFileName = resourcePath + directory + file + "cfg.ps";
-        String dotFileNameDDG = resourcePath + directory + file + "ddg.dot";
-        String graphImageFileNameDDG = resourcePath + directory + file + "ddg.ps";
-        String resultFileName = resourcePath + directory + file + "_optimization_fuzzing.json";
+        String quilFileName = file + ".quil";
+        String dotFileName = file + "cfg.dot";
+        String graphImageFileName = file + "cfg.ps";
+        String dotFileNameDDG = file + "ddg.dot";
+        String graphImageFileNameDDG = file + "ddg.ps";
+        String resultFileName = file + "_optimization_fuzzing.json";
 
         ParseTree pt = getParseTree(grammarFileName, quilFileName);
 
-        drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
-        // drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
-        // optimizeQuil(pt, quilFileName, resultFileName, readoutParams);
+        if(cfg) {
+            System.out.println("Starting CFG creation...");
+            drawQuilCfg(pt, quilFileName, dotFileName, graphImageFileName);
+        }
+        if(ddg){
+            System.out.println("Starting DDG creation...");
+            drawDataDependencyGraph(pt, quilFileName, dotFileNameDDG, graphImageFileNameDDG);
+        }
+        if(optimize){
+            System.out.println("Starting optimization...");
+            int indexOptimize = ArrayUtils.indexOf(args, "-optimize");
+            Set<String> readoutParams = new HashSet<>();
+            for(int i = indexOptimize + 1; i < args.length; i++) {
+                String current = args[i];
+                if(current.equals("-iterations") || current.equals("-nOptimizations")) {
+                    break;
+                }
+                readoutParams.add(current);
+            }
+            optimizeQuil(pt, quilFileName, resultFileName, readoutParams, iterations, numbersOfOptimizations);
+        }
     }
 }
