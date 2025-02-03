@@ -1,424 +1,320 @@
-## Compile + Run jar file
+[![Java Version](https://img.shields.io/badge/Java-8-green.svg)](https://shields.io/)
 
+# Quil Parser & Analyser
+
+This project parses, analyses and optimizes Quil code. 
+It is part of my master's thesis “Optimization Strategies for Quantum Computers in Distributed Systems”.
+
+The main focus of the project is to examine real-time quantum calculations, i.e. quantum calculations with classical feedback within the coherence time of the qubits.
+The project analyzes Quil files and creates Control Flow Graphs (CFGs) and Data Dependency Graphs (DDGs) of the Quil code.
+It can apply optimization procedures to the Quil code.
+
+## Table of Contents
+- [The Quil Language](#the-quil-language)
+- [Analyzation of Quil Programs](#analyzation-of-quil-programs)
+  * [Control Flow Graphs (CFGs)](#control-flow-graphs--cfgs-)
+  * [Data Dependency Graphs (DDGs)](#data-dependency-graphs--ddgs-)
+- [Optimization of Quil Programs](#optimization-of-quil-programs)
+- 
+
+## The Quil Language
+
+Quil is a quantum instruction language developed by Rigetti Computing (https://github.com/quil-lang/quil). 
+It is an instruction set architecture (ISA) for quantum computers.
+
+In Quil, integer indices are used to refer to qubits.
+Qubits do not need to be declared upfront.
+
+Quil supports four classical variable types: `BIT`, `OCTET`, `INTEGER`, and `REAL`.
+Classical variables need to be declared before usage, e.g. `DECLARE a BIT` to declare a bit value of the name `a`.
+Afterward, the value can receive a value (`MOVE a 0`) and be used in classical instructions.
+
+Classical variables can be declared as an array, e.g. `DECLARE a BIT[2]`.
+The values can then be accessed by `[n]`, e.g. `MOVE a[1] 0`.
+
+Quil offers different categories of instructions, namely
+- **quantum gates**: Instructions that name a gate and at least one qubit that is applied to the gate, e.g. `H 0`, or `CNOT 0 1`.
+- **classical instructions**: Calculations applied on classical variables. The classical instruction set is turing-complete.
+- **parameterized quantum gates**: Quantum gate instructions with gates that receive a classical parameter, e.g. `RZ(angle) 0`, with the classical parameter `angle`. Quantum gates that receive a fixed value (e.g. `RZ(1.57)`) do not count as parameterized.
+- **measurements**: Instructions that measure the value of a qubit. The value can be saved in a classical parameter. E.g.: `MEASURE 0 ro[0]`.
+- **control structures**: One can define labels (`LABEL @label_name`) and jumps in Quil. Jumps can be conditional (e.g. `JUMP-WHEN @label_name cond`) or unconditional (e.g. `JUMP @label_name`).
+
+Quantum gates that are not parameterized can be exclusively executed by a QPU and are therefore *quantum instructions*.
+Classical instructions can be exclusively executed by a CPU and are therefore *classical instructions*.
+All other instructions need to be executed by QPU and CPU at the same time, and are therefore *hybrid instructions*.
+
+## Analyzation of Quil Programs
+
+The project creates Control Flow Graphs (CFGs) and Data Dependency Graphs (DDGs) of Quil programs.
+
+### Control Flow Graphs (CFGs)
+
+A CFG represents all possible execution paths of a program.
+The directed edges of the graphs represent jumps.
+The nodes describe a basic block, which are “sequences of statements that are always executed one-after-the-other, with no branching” [Aho et al., Compilers: Principles, Techniques and Tools, Chapter 2.8.1].
+This means that a jump on the current instruction as well as a label (jump target) at the next instruction ends a basis block.
+
+Each node/basic block of the \CFG consists of either only quantum instructions, classical instructions, or hybrid/control structures.
+Quantum and classical instructions that are executed without a hybrid/control instruction in between are written into two parallel basic blocks.
+
+For example, the Quil code
+```
+DECLARE m BIT
+H 0
+MEASURE 0 m
+JUMP-WHEN @label_name m
+Y 0
+LABEL @label_name
+Z 0
+MEASURE 0 m	
+```
+results into the CFG:
+![An image of the CFG corresponding to the given Quil code.](src/main/resources/QuilExampleFiles/readme-examplecfg.png "CFG")
+
+### Data Dependency Graphs (DDGs)
+
+A DDG is a directed graph.
+Nodes represent basic blocks (or, in our case, single instructions) of a program.
+An instruction $A$ is a successor of instruction $B$ in the graph, if $A$ has to be executed after $B$ in order for the program to be correct, e.g. if $A$ and $B$ access the same variable.
+Edges only appear between instructions/nodes if no other instruction $C$ has to be executed between $A$ and $B$.
+
+Every node of the DDG holds a single Quil instruction.
+The edges indicate which instructions have to be executed before their instruction can be executed.
+This is done by checking variable dependency.
+Unconditional jumps are resolved before creating the DDG and not listed as nodes.
+
+Conditional jumps in the program pose a problem to the DDG.
+If a conditional jump targets an already executed line, it introduces circular dependencies.
+This could only be resolved exactly if we knew the number of iterations, which would be analogous to solving the Halting problem, and therefore not generally possible.
+
+We resolve this issue by creating a DDG only up to the next conditional jump.
+By that, we can receive multiple DDGs for a single program, all depicting a part of the program.
+One of the DDGs is the start DDG, which is the DDG describing the entry of the program.
+Additionally, we have one or multiple halt DDGs, which include the program instructions last executed before the program terminates.
+
+As an example, 
+```
+DECLARE m BIT
+H 0
+MEASURE 0 m
+JUMP-WHEN @label_name m
+Y 0
+LABEL @label_name
+Z 0
+MEASURE 0 m	
+```
+results into the DDGs:
+![An image of the DDGs corresponding to the given Quil code.](src/main/resources/QuilExampleFiles/readme-exampleddg.png "DDGs")
+
+## Optimization of Quil Programs
+
+The project offers different optimization strategies for Quil programs.
+
+### Constant Propagation
+
+For the classical part of the code, the algorithm works as follows:
+A classical value is recognized as constant by a `MOVE` instruction if the instruction moves a constant value onto it.
+`MOVE a 10` results into `a` having the constant value $10$.
+
+A variable remains constant until it is being written to again.
+`ADD b a` writes and reads `b`, but only reads `a`, thus `a` remains constant.
+This means the algorithms recognizes `b` to be constant at the reading part of the instruction, but `b` looses its constant state afterward.
+This would even hold if `a` was replaced by a constant value.
+Constant folding will replace the instruction by a `MOVE` instruction if `a` and `b` were constant.
+
+For the quantum part of the code, we restrict ourselves to the Pauli-basis and single qubit gates.
+A qubit is constant at the start of the program and after a `RESET` with the value `Pauli X Zero`.
+The constant propagation checks at which instructions a constant qubit “arrives” with a specific value, either because it has been initially used or reset before, or because constant folding has shown that it remained in a constant Pauli basis after a gate application.
+
+### Live-Variable Analysis
+
+A classical variable counts as dead if it is written to and the value of the variable is not read until the variable's value is overwritten.
+For the application of the algorithm, we need to know which classical variables hold *readout values*, i.e. which values need to be reported back to the main CPU at the end of the quantum program.
+These variables are by default alive at the end of the program, which is handled as if there was an additional read of the variable after the halt of the program.
+
+A quantum variable counts as dead if its information content does not influence any classical information from the current instruction until the end of the program.
+
+The quantum variable can safely be called dead at a program point `p` if it is
+- not used by any multi-qubit gate, **and**
+- not measured
+
+until
+- the end of the program, **or**
+- the next reset.
+
+These conditions even hold if the instruction at `p` is a measurement, as long as this measurement is not saved in a classical variable.
+
+### Constant Folding
+
+In classical instructions, all constant values that are read are replaced by their constant values. 
+This means, e.g., `ADD a b` is replaced by `ADD a 10` if `b` has a constant value of $10$.
+The same holds for parameterized quantum gates. 
+If the classical parameter is constant, it is replaced by the constant value.
+
+If a value that is written to is constant and additionally, all read values in the instructions are constant, the instruction is replaced by a `MOVE` instruction.
+As example: If `a` is $5$, `b` is $7$ and the instruction is `ADD a b`, it is replaced by `MOVE 12` as `a` would be $12$ after the addition.
+
+For the quantum part of the program, constant folding calculates the result of the application of a gate on a qubit.
+This is only calculated if the qubit is constant beforehand (i.e. in a Pauli basis, as defined by constant propagation) and a single-qubit Clifford gate acts on it.
+We calculate the next Pauli state and still assume the qubit as constant (in the respective Pauli state).
+
+Constant folding for quantum variables can be done efficiently for Clifford gates (due to the Gottesman-Knill theorem).
+To avoid dealing with entangled states during constant propagation, we generally assume qubits to be non-constant after a multi-qubit gate.
+
+Due to this, we only trace the constant value of a qubit until the first non single-qubit or non-Clifford gate acts on it.
+This means we are tracing the six Pauli basis state as values of the qubits.
+
+Measurements are in general considered to be random and write non-constant values in the classical values.
+The only exception is if we know that a qubit is either in the $0$ or $1$ state.
+In that case, the classical value receives the constant value $0$ or $1$.
+
+### Dead Code Elimination
+
+We use the results of the live-variable analysis of which variables are dead.
+Classical code is dead if all variables written to in the instruction are dead.
+Quantum code is dead if all quantum variables an instruction acts on are dead
+All dead instructions are deleted.
+
+### Finding Hybrid Dependencies
+
+Finding hybrid dependencies checks which instructions have to be executed before a hybrid node becomes executable.
+This analysis first finds all hybrid instructions, and afterwards determines which instructions have to be executed before the respective hybrid instruction by using the DDG.
+A hybrid instruction can have other hybrid instructions as dependencies.
+A hybrid instruction blocks the instruction dependencies for all other hybrid instructions.
+
+For example
+```
+DECLARE m INTEGER[1]
+H 0
+MEASURE 0 m
+RZ(m) 0
+```
+contains the hybrid instructions `MEASURE` and `RZ(m)`.
+All other lines have to be executed before `RZ(m)`.
+But the only direct dependency we save for it is `MEASURE`, as `MEASURE` is a hybrid instruction and depends on `H` and the `DECLARE` instruction as well.
+For `MEASURE`, the dependencies `H` and `DECLARE` are saved.
+
+### Instruction Reordering
+
+This can be done as long as instructions dependent on each other are still in the same order.
+The DDG provides us information about the dependent instructions.
+
+The goal is to reorder the instructions to maximize the number of parallel executions of the CPU and QPU.
+In other words, the time in which only one device is calculating and the other one is idling should be minimized.
+
+The two devices only influence each other through hybrid nodes.
+To prevent long waiting times of one device for the other, we use the knowledge we gained from the DDG and the finding hybrid-dependency analysis.
+
+If the CPU or the QPU have to wait for the other device before a hybrid instruction, the algorithm aims to avoid that the waiting device does not execute instructions.
+It is checked whether there are instructions for the waiting device that can already be executed, i.e. for which all dependencies have been executed.
+If this is the case, the waiting device can to execute the instructions while waiting instead of doing nothing.
+
+### Latest Possible Quantum Execution
+
+To keep the total execution time of the quantum device small.
+The goal of this algorithm is to execute as many classical instructions as possible before the QPU starts to work.
+For this, the execution of instructions is reordered in the following way:
+- All classical instructions that are not dependent on quantum device are executed at the start.
+- The first quantum instruction is executed such that QPU and CPU reach the first hybrid node simultaneously. This is again done with the assumption that each instruction has an execution time of $1$.
+
+### Applying the Optimization Strategies
+
+Determining the best order to apply optimization operations on a given code (phase-ordering) is an open question in classical compiler architecture.
+Finding a sensible order is out of scope for this work, and we will simply draw operations to apply to the codes at random.
+We do this $m$ times for a given Quil code and apply $n$ optimization operations every time.
+While the operation drawing was random, certain analysis-transformation routines had to follow directly after each other, as certain analysis operations lay the groundwork for succeeding transformation operations.
+The optimization routine consists of a permutation of the following operations succeeding each other:
+- Constant propagation $\rightarrow$ constant folding.
+- Live-variable analysis $\rightarrow$ dead code elimination.
+- Finding hybrid-dependencies $\rightarrow$ instruction reordering.
+- Finding hybrid-dependencies $\rightarrow$ Latest possible quantum reordering.
+
+Which means we did $n/2$ random draws per optimization routine, rounded up.
+
+The result of the optimization routine is a `.json` file containing the optimization steps and the optimized Quil code.
+
+## Metrics to Evaluate Quil Programs against
+
+The Quil programs are evaluated against different metrics.
+
+### Wall time
+
+Considering that all instructions have the execution time $1$, it is assessed how long the program would take to execute.
+Whenever possible, the CPU and QPU execute instructions in parallel.
+Two parallel executed instructions receive execution time $1$ together.
+At a hybrid or control instruction, one device waits for the other.
+
+For example,
+![The Wall time calculation of a Quil code. The CPU calculates classical instructions, the QPU quantum instructions and both devices together calculate hybrid instructions.](images/NaiveExample.png "Example for a Wall Time Calculation")
+has a wall time of $7$.
+
+The wall time is calculated for all DDGs of a program and summed up for comparison of syntactically different representations of the same program.
+
+### Quantum instruction number (QIN):
+
+Count the number of quantum instructions per DDG and sum the result up for comparison to other codes.
+Hybrid instructions are included in the counting, as the QPU and the quantum state are considered during hybrid calculations.
+Minimizing the QIN is sensible, as quantum instructions are more likely to introduce errors than classical instructions.
+
+### Quantum calculation time (QCT)
+
+As quantum states in a QPU have a limited coherence time, it makes sense to minimize the time the QPU has to keep the qubits coherent.
+This value is the QCT.
+As we assume that each instruction needs a time value of $1$, the time is given in units of the instruction number.
+
+For the calculation of QCT, we assume the best case:
+The QPU starts with the first quantum instruction on the latest possible time such that the CPU does not have to wait for the QPU at the first hybrid instruction.
+Additionally, the QPU calculates the quantum instructions after the last hybrid instruction directly after the hybrid instruction.
+Between the first and the last hybrid instruction, the wall time is equal to the time the qubits have to stay coherent.
+
+It should be noted that a reasonable program has no quantum instructions after the last hybrid instruction.
+This would only create quantum information which is destroyed again, as it would have to be measured for further usage.
+Measurement, again, would be a hybrid instruction.
+
+This results in a QCT $\tau_Q$ of $\tau_Q = \delta t_{between} + n_{q\_before} + n_{q\_after}$
+with the wall time between first and last hybrid instruction (including these hybrid instructions) $\delta t_{between}$, the number of quantum instructions before the first hybrid instruction $n_{q\_before}$, and the number of hybrid instruction after the last hybrid instruction $n_{q\_after}$.
+
+An example for calculating the summands is
+![The calculation of the QCT of a Quil code.](images/QCT.png "Example for a QCT Calculation")
+
+## Compile and Run
+
+First, the program needs to be compiled:
 ```bash
-inmemantlr-api $ mvn package -Dmaven.test.skip
-parser-analyser $ java -cp inmemantlr-api/target/inmemantlr-api-1.9.2.jar Main blabla
+mvn package
 ```
-
-
-## Grammar fix
-
-todo: wait -> wait1
-Forked to add functionalities needed for my master's thesis.
-Exception in thread "main" org.snt.inmemantlr.exceptions.CompilationErrorException: /QuilParser.java:324: error: wait() in InstrContext cannot override wait() in Object
-
-
-
---
-
-# inmemantlr
-
-inmemantlr provides the functionality of [ANTLR v4](http://www.antlr.org/) 
-through a simple API. Usually ANTLR requires the user to perform the grammar generation and compilation 
-steps. Instead, inmemantlr does all of these steps automatically
-and in-memory while keeping all of the original ANTLR objects accessible through
-its `GenericParser` class which is serializable, and hence, can be reused at a
-later point in time or across different applications. inmemantlr can be used
-via an easy-to-use Java API or as command-line tool.
-
-Moreover, you can easily generate a parse tree from a parsed file and convert
-it into various formats such as `.dot`, `.xml` or `.json`. A parse tree
-can be processed/translated by means of inmemantlr's `ParseTreeProcessor` class.
-
-All of the above-mentioned inmemantlr features are illustrated by
-[examples](#toc). inmemantlr is ready to use for all of the
-[grammars-v4](https://github.com/antlr/grammars-v4) grammars (for detailed
-examples please have a look at [grammars-v4](#grammars-v4)).
-
-# Status
-
-[![Linux Build Status](https://api.travis-ci.org/julianthome/inmemantlr.svg?branch=master)][travis]
-[![Test Coverage](https://codecov.io/gh/julianthome/inmemantlr/branch/master/graph/badge.svg)][coverage]
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.julianthome/inmemantlr/badge.svg)][mcentral]
-
-[travis]: https://travis-ci.org/julianthome/inmemantlr
-[coverage]: https://codecov.io/gh/julianthome/inmemantlr
-[mcentral]: https://maven-badges.herokuapp.com/maven-central/com.github.julianthome/inmemantlr
-
-# Authors and major contributors
-
-- Julian Thome, julian.thome@gmail.com, main author
-- [Alan Stewart](https://github.com/alankstewart) (code style improvements, performance improvements, Tool customization)
-- Radoslaw Cymer (bugfixes, code style improvements, typos in Javadoc)
-- [Nikolas Havrikov](https://github.com/havrikov) (code style, bugfixes, performance improvements)
-- [Calogero G. Zarba](https://github.com/calogero81) (feature improvements)
-- [dafei1288](https://github.com/dafei1288) (Maintainability)
-
-# TOC
-
-[Integration](#integration)
-
-[API Usage Scenarios](#api-usage-scenarios)
-  * [Get started](#get-started)
-  * [Simple parsing](#simple-parsing)
-  * [Parse tree generation](#parse-tree-generation)
-  * [Parse tree serialization](#parse-tree-serialization)
-  * [Parse tree pruning](#parse-tree-pruning)
-  * [Parse tree processing](#parse-tree-processing)
-  * [Sequential parsing](#sequential-parsing)
-  * [Non-combined grammars](#non-combined-grammars)
-  * [Lexer-only grammars](#lexer-only-grammars)
-  * [Accessing ANTLR objects](#accessing-antlr-objects)
-  * [Parser serialization](#parser-serialization)
-  * [grammars-v4](#grammars-v4)
-
-[Licence](#licence)
-
-# Integration
-
-## Maven 
-inmemantlr is available on maven central and can be integrated by
-using the following dependency in the `pom.xml` file. Note, that the maven
-releases do not necessarily contain the newest changes that are available in
-the repository. The maven releases are kept in sync with the tagged
-[releases](https://github.com/julianthome/inmemantlr/releases). The API
-documentation for every release is avalable
-[here](http://www.javadoc.io/doc/com.github.julianthome/inmemantlr). However,
-the content of this documentation, in particular the code examples and usage
-scenarios, is always aligned with the master branch of this repository. Hence,
-it might be that the latest inmemantlr features are not yet available through
-the maven package.
-
-```xml
-<dependency>
-    <groupId>com.github.julianthome</groupId>
-    <artifactId>inmemantlr-api</artifactId>
-    <version>1.9.2</version>
-</dependency>
+It can be run afterwards with the following command:
+```bash
+java -cp target/quil-parser-analyser-1.0-SNAPSHOT.jar Main <path-to-Quil-file> <options>
 ```
+The options are:
+- `-cfg` to create the CFGs of the Quil code. The result is saved in a `.dot` and a `.ps` file. The files are saved as `<quil-filename>cfg.dot` and `<quil-filename>cfg.ps`.
+- `-ddg` to create the DDGs of the Quil code. The result is saved in a `.dot` and a `.ps` file. The files are saved as `<quil-filename>ddg.dot` and `<quil-filename>ddg.ps`.
+- `-optimize <readout-parameters>` to optimize the Quil code. The result is saved in a `.json` file. The file is saved as `<quil-filename>_optimization_fuzzing.json`. The `-optimize` option is followed by the readout parameters of the program.
+- `-iterations m` to run the optimization routine `m` times. The default value is $500$.
+- `-nOptimizations n` to apply `n` optimization operations in each optimization routine. The default value is $50$.
 
-# API Usage Scenarios
+# Citation
 
-The following code snippets shows an example how to use the API of inmemantlr;
-descriptions are provided as source code comments. For the sake of simplicity,
-exception handling is omitted for all of the following examples.
+If you use this project in your research, please cite it as follows:
 
-## Get started
-
-The code sample below shows how you could get started with inmemantlr. The
-class `GenericParserToGo` (available as of release 1.6) provides a very simple API that should be sufficient
-for most of the use cases: you only have to provide the ANTLR grammar file in
-conjunction with the file/string to parse, and a call to `parse()` (with
-the string and starting-rule as parameters) will return the corresponding parse
-tree.
-
-
-```java
-File gfile = new File("Java.g4");
-File cfile = new File("HelloWorld.java");
-ParseTree pt = new GenericParserToGo(gfile).parse(cfile, "compilationUnit");
-```
-
-
-## Simple parsing
-
-``` java
-// 1. load grammar
-File f = new File("Java.g4");
-GenericParser gp = new GenericParser(f);
-// 2. load file content into string
-String s = FileUtils.loadFileContent("HelloWorld.java");
-// 3. set listener for checking parse tree elements. Here you could use any ParseTreeListener implementation. The default listener is used per default
-gp.setListener(new DefaultListener());
-// 4. compile Lexer and parser in-memory
-gp.compile();
-// 5. parse the string that represents the content of HelloWorld.java
-ParserRuleContext ctx = gp.parse(s, "compilationUnit", GenericParser.CaseSensitiveType.NONE);
-```
-
-## Parse tree generation
-
-While providing access to the original `ParseTree` data-structure of ANTLR
-which can be obtained through the `ParserRuleContext` object, inmemantlr also
-provides it's own `ParseTree` data-structure and some ready-to-use utility
-classes which help with everyday tasks such as pruning, data-conversion,
-tree-traversal and translation.
-
-If you would like to obtain the `ParseTree` from a parsed file,
-the following snippet could be of use:
-
-``` java
-File f = new File("Java.g4");
-GenericParser gp = new GenericParser(f);
-String s = FileUtils.loadFileContent("HelloWorld.java");
-
-// this listener will create a parse tree from the java file
-DefaultTreeListener dlist = new DefaultTreeListener();
-
-gp.setListener(dlist);
-gp.compile();
-
-ParserRuleContext ctx = gp.parse(s, "compilationUnit", GenericParser.CaseSensitiveType.NONE);
-// get access to the parse tree of inmemantlr
-ParseTree pt = dlist.getParseTree();
-```
-
-## Parse tree serialization
-
-As depicted below, our `ParseTree` implementation can be serialized to various
-output formats such as `.xml`, `.json` or `.dot`.
-
-```java
-String xml = parseTree.toXml();
-String json = parseTree.toJson();
-String dot = parseTree.toDot();
-```
-
-Serialization may be useful in case you would like to use parsing results
-across different applications or in case you would like get a quick and simple
-visualization of your parse tree by means of graphviz as in the example
-below. 
-
-<img src="https://github.com/julianthome/inmemantlr/blob/master/images/pt.png" alt="Example Parse tree" width="400px" align="second">
-
-## Parse tree pruning
-
-In case you are just interested in particular nodes of the parse tree, it is
-possible to pass a lambda expression as parameter to the `DefaultTreeListener`
-as illustrated in the example below. Only those nodes remain in the parse
-tree for which the lambda expression returns true.
-
-``` java
-private Set<String> filter  = new HashSet<>(Arrays.asList(new String []{
-        "alternation", "expr", "literal",
-}));
-// ...
-dlist = new DefaultTreeListener(s -> filter.contains(s));
-// ...
-```
-
-
-## Parse tree processing
-
-With inmemantlr, you can easily process or translate a given Parse tree by means of an
-`ParseTreeProcessor`. Note, that ANTLR can automatically generate
-visitors/listeners from a given grammar which you can obtain through the
-`GenericParser` member function `getAllCompiledObjects`. However,
-in case you would like to develop a simple application inmemantlr
-`ParseTreeProcessor` might be sufficient for your use case.
-
-The following example illustrates how to process a simple
-parse tree that represents a mathematical expression. Given the grammar definition
-below, parsing the string `'3+100'` would yield this parse tree:
-
-<img src="https://github.com/julianthome/inmemantlr/blob/master/images/simpleop.png" alt="ParseTree derived from simple expression '3+100'" width="200px" align="second">
-
-```
-grammar Ops;
-
-Plus: '+';
-Minus: '-';
-Number: '-'?([0-9]|[1-9][0-9]+);
-
-s: (expression)* EOF;
-plus: Plus;
-minus: Minus;
-operation: plus | minus;
-expression: operand operation operand;
-operand: Number;
-
-WS  :  [ \t\r\n]+ -> skip;
-```
-
-The following code example illustrates how to compute the result of a
-mathematical expression based on the above-mentioned grammar.
-
-
-```java
-// ...
-gp.compile();
-// this example shows you how one could use inmemantlr for sequential parsing
-ParseTree pt;
-gp.parse("3+100");
-pt = t.getParseTree();
-// Process the Parse tree bottom-up starting from the leafs up to the root node
-ParseTreeProcessor<String, String> processor = new ParseTreeProcessor<String, String>(pt) {
-  @Override
-  public String getResult() {
-    // when all nodes have been processed, the result is available in the smap
-    // value of the root node which is returned here
-    return smap.get(pt.getRoot());
-  }
-  @Override
-  protected void initialize() {
-    // initialize smap - a data structure that keeps track of the intermediate
-    // values for every node
-    pt.getNodes().forEach(n -> smap.put(n, n.getLabel()));
-  }
-  // This operation is executed for each and every node in left to right and
-  // bottom up order. Non-leaf nodes are processed only if all of their siblings
-  // have been already processed
-  @Override
-  protected void process(ParseTreeNode n) {
-    if(n.getRule().equals("expression")){
-      int n0 = Integer.parseInt(smap.get(n.getChild(0)));
-      int n1 = Integer.parseInt(smap.get(n.getChild(2)));
-      int result = 0;
-      switch(smap.get(n.getChild(1))) {
-        case "+":
-          result = n0 + n1;
-        break;
-        case "-":
-          result = n0 - n1;
-        break;
-      }
-      // store computation result of addition subtraction for current node
-      smap.put(n, String.valueOf(result));
-    } else {
-      // when node is no expression NT, propate child node value 1:1
-      // to parent
-      simpleProp(n);
-    }
-  }
-};
-// compute the result
-processor.process();
-// print the computation results which is 103
-System.out.println(processor.getResult());
-```
-
-A more practical example on how to use the Parse tree processor can be found within
-my [CTrans project](https://github.com/julianthome/ctrans) which takes
-a given boolean formula and translates it into CNF or DNF, respectively.
-
-## Sequential parsing 
-
-If you have multiple strings to parse one after another,
-the following code snippet might be useful:
-
-```java
-File f = new File("Simple.g4");
-GenericParser gp = new GenericParser(f);
-
-// note that the listener should always be set before
-// the compilation. Otherwise, the listener cannot
-// capture the parsing information.
-gp.setListener(new DefaultTreeListener());
-gp.compile();
-
-ParseTree pt;
-gp.parse("PRINT a+b");
-pt = t.getParseTree();
-// do something with parsing result
-
-gp.parse("PRINT \"test\"");
-pt = t.getParseTree();
-// do something with parsing result
-```
-
-## Non-combined grammars
-
-```java
-// define array of ANTLR files to consider -- inmemantlr will automatically
-// analyses their interdependencies
-File files [] = {
-  new File("MySQLLexer.g4"),
-  new File("MySQLParser.g4")
-};
-// simply pass files to constructor
-GenericParser gp = new GenericParser(files);
-// parser is ready to use
-```
-
-## Lexer-only grammars
-
-In case you are interested in only using a lexer grammar, you can use the 
-`lex` method which will provide you with a list of tokens.
-
-``` java
-GenericParser gp = new GenericParser(new File("LexerGrammar"));
-gp.compile();
-try {
-    List<Token> tokens = gp.lex("a09");
-    Assertions.assertEquals(tokens.size(), 2);
-} catch (IllegalWorkflowException e) {
-    Assertions.assertFalse(true);
+```bibtex
+@mastersthesis{optimizeQuil,
+  author  = {Remme, Lian},
+  title   = {Optimization Strategies for Quantum Computers in Distributed Systems},
+  school  = {Heinrich Heine University Düsseldorf},
+  year    = {2025},
+  month   = {2}
 }
 ```
 
-
-## Accessing ANTLR objects
-
-For accessing the ANTLR parser/lexer objects, you can use the
-`getAllCompiledObjects` method which will return the source and byte code of
-the source files that were generated by ANTLR and the corresponding byte code
-generated by inmenantlr.
-
-```java
-// get access to ANTLR objects
-MemoryTupleSet set = gp.getAllCompiledObjects();
-// memory tuple contains the generated source code of ANTLR
-// and the associated byte code
-for(MemoryTuple tup : set) {
-  // get source code object
-  MemorySource = tup.getSource();
-  // get byte code objects
-  Set<MemoryByteCode> bcode = tup.getByteCodeObjects();
-}
-```
-
-Through the method `writeAntlrArtifactsTo`, which belongs to the `GenericParser`
-class, inmemantlr also offers the possibility to write the ANTLR artifacts,
-i.e., the Java source files for a grammar/lexer, to a file.
-
-``` java
-// ...
-GenericParser gp = new GenericParser(tc,sgrammarcontent);
-// ...
-gp.writeAntlrAritfactsTo("/tmp/grammar");
-```
-
-After the call above, you will find the `.java` files in the specified
-destination `/tmp/grammar`.
-
-## Parser serialization
-
-For avoiding unnecessary compilation and for enabling the re-use of a generic
-parser across different Java applications or runs, it is possible to serialize
-a generic parser.
-
-A generic parser could be serialized to a file with the following code:
-```java
-// store a generic parser in the file "/tmp/gp.out" and
-// overwrite the file if it already exists
-gp.store("/tmp/gp.out", true);
-```
-
-A generic parser can be loaded from a file with the following
-code:
-
-```java
-// load generic parser from file /tmp/gp.out
-GenericParser gp = GenericParser.load("/tmp/gp.out");
-```
-
-## grammars-v4
-
-The [grammars-v4](https://github.com/antlr/grammars-v4) repository is added as
-a submodule. For executing all the grammars-v4 test cases, one could run the
-following commands from within the `inmemantlr-api` maven module.
-
-```bash
-git submodule init
-git submodule update
-mvn -Dtest=TestExternalGrammars test
-```
-
-# Licence
+# License
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Julian Thome <julian.thome.de@gmail.com>
+Copyright (c) 2025 Lian Remme <lian.remme@dlr.de>
+
+The copyright of the in-memory ANTLR API (org.snt.inmemantlr) belongs to Julian Thome <julian.thome.de@gmail.com> and licensed under the MIT License (https://github.com/julianthome/inmemantlr).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
