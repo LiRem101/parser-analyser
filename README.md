@@ -15,7 +15,21 @@ It can apply optimization procedures to the Quil code.
   * [Control Flow Graphs (CFGs)](#control-flow-graphs--cfgs-)
   * [Data Dependency Graphs (DDGs)](#data-dependency-graphs--ddgs-)
 - [Optimization of Quil Programs](#optimization-of-quil-programs)
-- 
+  * [Constant Propagation](#constant-propagation)
+  * [Live-Variable Analysis](#live-variable-analysis)
+  * [Constant Folding](#constant-folding)
+  * [Dead Code Elimination](#dead-code-elimination)
+  * [Finding Hybrid Dependencies](#finding-hybrid-dependencies)
+  * [Instruction Reordering](#instruction-reordering)
+  * [Latest Possible Quantum Execution](#latest-possible-quantum-execution)
+  * [Applying the Optimization Strategies](#applying-the-optimization-strategies)
+- [Metrics to Evaluate Quil Programs Against](#metrics-to-evaluate-quil-programs-against)
+  * [Wall time](#wall-time)
+  * [Quantum instruction number (QIN):](#quantum-instruction-number--qin--)
+  * [Quantum calculation time (QCT)](#quantum-calculation-time--qct-)
+- [Compile and Run](#compile-and-run)
+- [Citation](#citation)
+- [License](#license)
 
 ## The Quil Language
 
@@ -233,7 +247,7 @@ Which means we did $n/2$ random draws per optimization routine, rounded up.
 
 The result of the optimization routine is a `.json` file containing the optimization steps and the optimized Quil code.
 
-## Metrics to Evaluate Quil Programs against
+## Metrics to Evaluate Quil Programs Against
 
 The Quil programs are evaluated against different metrics.
 
