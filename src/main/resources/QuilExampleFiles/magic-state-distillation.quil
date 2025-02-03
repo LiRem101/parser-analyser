@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+
+DECLARE muls INTEGER[3]
+DECLARE ro INTEGER[7]
+DECLARE success BIT[3]
+DECLARE result BIT[1]
+LABEL @start
+H 0
+H 1
+H 2
+H 7
+CNOT 7 6
+CNOT 6 4
+CNOT 6 3
+CNOT 2 3
+CNOT 2 4
+CNOT 2 5
+CNOT 1 4
+CNOT 1 5
+CNOT 1 6
+CNOT 0 3
+CNOT 0 5
+CNOT 0 6
+S 0
+S 1
+S 2
+S 3
+S 4
+S 5
+S 6
+MEASURE 0 ro[0]
+MEASURE 1 ro[1]
+MEASURE 2 ro[2]
+MEASURE 3 ro[3]
+MEASURE 4 ro[4]
+MEASURE 5 ro[5]
+MEASURE 6 ro[6]
+# Get 1 for measurements 1 and -1 for measurements 0
+MUL ro[0] 2
+MUL ro[1] 2
+MUL ro[2] 2
+MUL ro[3] 2
+MUL ro[4] 2
+MUL ro[5] 2
+MUL ro[6] 2
+SUB ro[0] 1
+SUB ro[1] 1
+SUB ro[2] 1
+SUB ro[3] 1
+SUB ro[4] 1
+SUB ro[5] 1
+SUB ro[6] 1
+MOVE muls[0] 1
+MOVE muls[1] 1
+MOVE muls[2] 1
+MUL muls[0] ro[1]
+MUL muls[0] ro[2]
+MUL muls[0] ro[3]
+MUL muls[0] ro[4]
+MUL muls[1] ro[0]
+MUL muls[1] ro[2]
+MUL muls[1] ro[3]
+MUL muls[1] ro[5]
+MUL muls[2] ro[0]
+MUL muls[2] ro[1]
+MUL muls[2] ro[3]
+MUL muls[2] ro[6]
+EQ success[0] muls[0] 1
+EQ success[1] muls[1] 1
+EQ success[2] muls[2] 1
+JUMP-UNLESS @start success[0]
+JUMP-UNLESS @start success[1]
+JUMP-UNLESS @start success[2]
+CNOT 7 8
+CNOT 8 7
+H 8
+CNOT 7 8
+H 8
+MEASURE 8 result[0]

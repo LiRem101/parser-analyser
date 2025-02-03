@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+
+DECLARE m BIT
+H 0
+MEASURE 0 m
+JUMP-WHEN @label_name m
+Y 0
+LABEL @label_name
+Z 0
+MEASURE 0 m	

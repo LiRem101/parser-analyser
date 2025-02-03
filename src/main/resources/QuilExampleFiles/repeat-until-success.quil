@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+
+DECLARE ancilla BIT[1]
+DECLARE result BIT[1]
+LABEL @init_ancilla
+RESET 1
+RESET 2
+H 1
+PHASE(-0.7854) 1
+H 2
+CNOT 2 1
+T 1
+H 1
+MEASURE 1 ancilla[0]
+JUMP-WHEN @init_ancilla ancilla[0]
+T 0
+Z 0
+CNOT 0 2
+T 2
+H 2
+MEASURE 2 ancilla[0]
+JUMP-UNLESS @END ancilla[0]
+Z 0
+JUMP @init_ancilla
+LABEL @END
+MEASURE 0 result[0]

@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+
+DECLARE ro BIT[3]
+H 1
+CONTROLLED X 1 2
+CONTROLLED X 0 1
+H 0
+MEASURE 0 ro[0]
+MEASURE 1 ro[1]
+JUMP-UNLESS @END_0 ro[0]
+Z 2
+LABEL @END_0
+JUMP-UNLESS @END_1 ro[1]
+X 2
+LABEL @END_1
+MEASURE 2 ro[2]
