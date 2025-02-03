@@ -2,6 +2,9 @@
  ANTLR4 grammar taken from Quil GitHub repository:
  https://github.com/quil-lang/quil/blob/master/grammars/Quil.g4
 
+ The keyword "wait" was changed to "wait1" to avoid conflicts with the Antlr implementation.
+ As inmemantlr creates method names out of the rule names, and the name "wait" for a method is already reserved in Java.
+
  SPDX-FileCopyrightText: 2024 Robert S. Smith; Rigetti & Co. Inc.; and contributors
 
  SPDX-License-Identifier: Apache-2.0
