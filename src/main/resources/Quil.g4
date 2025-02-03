@@ -28,7 +28,7 @@ instr               : gate
                     | jumpWhen
                     | jumpUnless
                     | resetState
-                    | wait_
+                    | wait1
                     | classicalUnary
                     | classicalBinary
                     | classicalComparison
@@ -98,7 +98,7 @@ resetState          : RESET qubit? ; // NB: cannot be named "reset" due to confl
 
 // I. Classical/Quantum Synchronization
 
-wait_               : WAIT ;
+wait1               : WAIT ;
 
 // J. Classical Instructions
 
