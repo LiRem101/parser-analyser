@@ -51,14 +51,23 @@ public class LineParameterDeterminer {
                 // Remove BIT, FLOAT, INTEGER, OCTET or REAL in the middle
                 param = param.replaceAll("[BIT|FLOAT|INTEGER|OCTET|REAL]", "");
 
-                String param_prefix = param.split("\\[")[0];
-                int param_number = Integer.parseInt(param.split("\\[")[1].split("\\]")[0]);
-                for (int i = 1; i <= param_number; i++) {
-                    String finalParam = param_prefix + "[" + (i - 1) + "]";
+                String[] paramArray = param.split("\\[");
+                String param_prefix = paramArray[0];
+                int param_number = 1;
+                if(paramArray.length > 1) {
+                    param_number = Integer.parseInt(paramArray[1].split("]")[0]);
+                    for (int i = 1; i <= param_number; i++) {
+                        String finalParam = param_prefix + "[" + (i - 1) + "]";
+                        lineParameters.stream()
+                                .filter(lp -> lp.getLineNumber() == line)
+                                .forEach(lp -> lp.addClassicalParameter(finalParam));
+                    }
+                } else {
                     lineParameters.stream()
                             .filter(lp -> lp.getLineNumber() == line)
-                            .forEach(lp -> lp.addClassicalParameter(finalParam));
+                            .forEach(lp -> lp.addClassicalParameter(param_prefix));
                 }
+
                 break;
             case "qubit":
             case "qubitVariable":
