@@ -28,6 +28,7 @@ It can apply optimization procedures to the Quil code.
   * [Quantum instruction number (QIN):](#quantum-instruction-number--qin--)
   * [Quantum calculation time (QCT)](#quantum-calculation-time--qct-)
 - [Compile and Run](#compile-and-run)
+  * [Testing via grammars-v4](#testing-via-grammars-v4)
 - [Citation](#citation)
 - [License](#license)
 
@@ -307,6 +308,18 @@ The options are:
 - `-optimize <readout-parameters>` to optimize the Quil code. The result is saved in a `.json` file. The file is saved as `<quil-filename>_optimization_fuzzing.json`. The `-optimize` option is followed by the readout parameters of the program.
 - `-iterations m` to run the optimization routine `m` times. The default value is $500$.
 - `-nOptimizations n` to apply `n` optimization operations in each optimization routine. The default value is $50$.
+
+### Testing via grammars-v4
+
+The [grammars-v4](https://github.com/antlr/grammars-v4) repository is added as
+a submodule. For executing all the grammars-v4 test cases, one could run the
+following commands from within the project.
+
+```bash
+git submodule init
+git submodule update
+mvn -Dtest=TestExternalGrammars test
+```
 
 # Citation
 
