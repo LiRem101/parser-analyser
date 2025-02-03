@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+digraph "ControlFlowGraph" {
+"start0" ["shape"="rectangle","color"="black","label"=<START<br align="left"/>>]
+"startclassical15" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">1: DECLARE ancilla BIT[1]</font><br align="left"/><font color="#464df7">2: DECLARE result BIT[1]</font><br align="left"/>>]
+"line14quantum01" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">14: T 0</font><br align="left"/><font color="#fe4eda">15: Z 0</font><br align="left"/><font color="#fe4eda">16: CNOT 0 2</font><br align="left"/><font color="#fe4eda">17: T 2</font><br align="left"/><font color="#fe4eda">18: H 2</font><br align="left"/>>]
+"line14control23" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">19: MEASURE 2 ancilla[0]</font><br align="left"/><font color="#000000">20: JUMP-UNLESS @END ancilla[0]</font><br align="left"/>>]
+"line21control22" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">22: JUMP @init_ancilla</font><br align="left"/>>]
+"@init_ancilla6" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">3: LABEL @init_ancilla</font><br align="left"/>>]
+"@END4" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">23: LABEL @END</font><br align="left"/><font color="#008000">24: MEASURE 0 result[0]</font><br align="left"/>>]
+"line21quantum07" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">21: Z 0</font><br align="left"/>>]
+"halt10" ["shape"="rectangle","color"="black","label"=<HALT<br align="left"/>>]
+"@init_ancillaquantum09" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">4: RESET 1</font><br align="left"/><font color="#fe4eda">5: RESET 2</font><br align="left"/><font color="#fe4eda">6: H 1</font><br align="left"/><font color="#fe4eda">7: PHASE(-0.7854) 1</font><br align="left"/><font color="#fe4eda">8: H 2</font><br align="left"/><font color="#fe4eda">9: CNOT 2 1</font><br align="left"/><font color="#fe4eda">10: T 1</font><br align="left"/><font color="#fe4eda">11: H 1</font><br align="left"/>>]
+"@init_ancillacontrol38" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">12: MEASURE 1 ancilla[0]</font><br align="left"/><font color="#000000">13: JUMP-WHEN @init_ancilla ancilla[0]</font><br align="left"/>>]
+"start0" -> "startclassical15"
+"startclassical15" -> "@init_ancilla6"
+"line14quantum01" -> "line14control23"
+"line14control23" -> "line21quantum07"
+"line14control23" -> "@END4"
+"line21control22" -> "@init_ancilla6"
+"@init_ancilla6" -> "@init_ancillaquantum09"
+"@END4" -> "halt10"
+"line21quantum07" -> "line21control22"
+"@init_ancillaquantum09" -> "@init_ancillacontrol38"
+"@init_ancillacontrol38" -> "line14quantum01"
+"@init_ancillacontrol38" -> "@init_ancilla6"
+}

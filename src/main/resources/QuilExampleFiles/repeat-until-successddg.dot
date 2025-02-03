@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+digraph "ControlFlowGraph" {
+"Line60" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">6: H 1</font><br align="left"/>>]
+"Line425" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">4: RESET 1</font><br align="left"/>>]
+"Line92" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">9: CNOT 2 1</font><br align="left"/>>]
+"Line720" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">7: PHASE(-0.7854) 1</font><br align="left"/>>]
+"Line834" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">8: H 2</font><br align="left"/>>]
+"Line123" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">12: MEASURE 1 ancilla[0]</font><br align="left"/>>]
+"Line1139" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">11: H 1</font><br align="left"/>>]
+"Line141" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">1: DECLARE ancilla BIT[1]</font><br align="left"/>>]
+"Line94" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">9: CNOT 2 1</font><br align="left"/>>]
+"Line732" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">7: PHASE(-0.7854) 1</font><br align="left"/>>]
+"Line816" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">8: H 2</font><br align="left"/>>]
+"Line195" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">19: MEASURE 2 ancilla[0]</font><br align="left"/>>]
+"Line1812" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">18: H 2</font><br align="left"/>>]
+"Line116" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">11: H 1</font><br align="left"/>>]
+"Line1026" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">10: T 1</font><br align="left"/>>]
+"Line207" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">20: JUMP-UNLESS @END ancilla[0]</font><br align="left"/>>]
+"Line98" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">9: CNOT 2 1</font><br align="left"/>>]
+"Line745" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">7: PHASE(-0.7854) 1</font><br align="left"/>>]
+"Line842" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">8: H 2</font><br align="left"/>>]
+"Line139" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">13: JUMP-WHEN @init_ancilla ancilla[0]</font><br align="left"/>>]
+"Line1238" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">12: MEASURE 1 ancilla[0]</font><br align="left"/>>]
+"Line1110" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">11: H 1</font><br align="left"/>>]
+"Line1037" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">10: T 1</font><br align="left"/>>]
+"Line1011" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">10: T 1</font><br align="left"/>>]
+"Line1733" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">17: T 2</font><br align="left"/>>]
+"Line1313" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">13: JUMP-WHEN @init_ancilla ancilla[0]</font><br align="left"/>>]
+"Line614" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">6: H 1</font><br align="left"/>>]
+"Line41" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">4: RESET 1</font><br align="left"/>>]
+"Line527" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: RESET 2</font><br align="left"/>>]
+"Line1318" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">13: JUMP-WHEN @init_ancilla ancilla[0]</font><br align="left"/>>]
+"Line1240" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">12: MEASURE 1 ancilla[0]</font><br align="left"/>>]
+"Line619" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">6: H 1</font><br align="left"/>>]
+"Line444" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">4: RESET 1</font><br align="left"/>>]
+"Line1523" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">15: Z 0</font><br align="left"/>>]
+"Line1422" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">14: T 0</font><br align="left"/>>]
+"Line1630" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">16: CNOT 0 2</font><br align="left"/>>]
+"Line536" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: RESET 2</font><br align="left"/>>]
+"Line524" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: RESET 2</font><br align="left"/>>]
+"Line60" -> "Line425"
+"Line92" -> "Line834"
+"Line92" -> "Line720"
+"Line720" -> "Line60"
+"Line834" -> "Line536"
+"Line123" -> "Line141"
+"Line123" -> "Line1139"
+"Line1139" -> "Line1011"
+"Line94" -> "Line816"
+"Line94" -> "Line732"
+"Line732" -> "Line614"
+"Line816" -> "Line527"
+"Line195" -> "Line1812"
+"Line1812" -> "Line1733"
+"Line116" -> "Line1026"
+"Line1026" -> "Line92"
+"Line207" -> "Line195"
+"Line98" -> "Line842"
+"Line98" -> "Line745"
+"Line745" -> "Line619"
+"Line842" -> "Line524"
+"Line139" -> "Line1238"
+"Line1238" -> "Line116"
+"Line1110" -> "Line1037"
+"Line1037" -> "Line94"
+"Line1011" -> "Line98"
+"Line1733" -> "Line1630"
+"Line1313" -> "Line123"
+"Line614" -> "Line41"
+"Line1318" -> "Line1240"
+"Line1240" -> "Line1110"
+"Line619" -> "Line444"
+"Line1523" -> "Line1422"
+"Line1630" -> "Line1523"
+}

@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+digraph "ControlFlowGraph" {
+"Line140" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">14: MEASURE 2 ro[2]</font><br align="left"/>>]
+"Line125" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">12: X 2</font><br align="left"/>>]
+"Line144" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">14: MEASURE 2 ro[2]</font><br align="left"/>>]
+"Line121" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">12: X 2</font><br align="left"/>>]
+"Line410" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">4: CONTROLLED X 0 1</font><br align="left"/>>]
+"Line315" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">3: CONTROLLED X 1 2</font><br align="left"/>>]
+"Line811" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">8: JUMP-UNLESS @END_0 ro[0]</font><br align="left"/>>]
+"Line614" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">6: MEASURE 0 ro[0]</font><br align="left"/>>]
+"Line516" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: H 0</font><br align="left"/>>]
+"Line13" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">1: DECLARE ro BIT[3]</font><br align="left"/>>]
+"Line29" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">2: H 1</font><br align="left"/>>]
+"Line719" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">7: MEASURE 1 ro[1]</font><br align="left"/>>]
+"Line140" -> "Line125"
+"Line144" -> "Line121"
+"Line410" -> "Line315"
+"Line315" -> "Line29"
+"Line811" -> "Line614"
+"Line614" -> "Line13"
+"Line614" -> "Line516"
+"Line516" -> "Line410"
+"Line719" -> "Line13"
+"Line719" -> "Line410"
+}

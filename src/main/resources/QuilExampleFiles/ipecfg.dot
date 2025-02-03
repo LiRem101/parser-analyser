@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+digraph "ControlFlowGraph" {
+"startquantum00" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">23: H 0</font><br align="left"/><font color="#fe4eda">24: CONTROLLED targetGate_even 0 1 2</font><br align="left"/>>]
+"startcontrol224" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">25: RZ(theta[0]) 0</font><br align="left"/>>]
+"startclassical311" ["shape"="rectangle","color"="black","label"=<CPU:<br align="left"/><font color="#464df7">64: MOVE theta[0] -3.141592653589793</font><br align="left"/><font color="#464df7">65: ADD param_wo_pi[0] lastMeasurement[0]</font><br align="left"/><font color="#464df7">66: DIV param_wo_pi[0] 2</font><br align="left"/><font color="#464df7">67: MUL theta[0] param_wo_pi[0]</font><br align="left"/><font color="#464df7">68: MOVE result[0] 3.141592653589793</font><br align="left"/><font color="#464df7">69: MUL result[0] -2</font><br align="left"/><font color="#464df7">70: MUL result[0] param_wo_pi[0]</font><br align="left"/>>]
+"halt4" ["shape"="rectangle","color"="black","label"=<HALT<br align="left"/>>]
+"startcontrol142" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">43: RZ(theta[0]) 0</font><br align="left"/>>]
+"startquantum1511" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">44: H 0</font><br align="left"/>>]
+"startcontrol113" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">36: MEASURE 0 lastMeasurement[0]</font><br align="left"/>>]
+"startquantum1210" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">41: H 0</font><br align="left"/><font color="#fe4eda">42: CONTROLLED targetGate_even 0 1 2</font><br align="left"/>>]
+"startclassical1322" ["shape"="rectangle","color"="black","label"=<CPU:<br align="left"/><font color="#464df7">37: MOVE theta[0] -3.141592653589793</font><br align="left"/><font color="#464df7">38: ADD param_wo_pi[0] lastMeasurement[0]</font><br align="left"/><font color="#464df7">39: DIV param_wo_pi[0] 2</font><br align="left"/><font color="#464df7">40: MUL theta[0] param_wo_pi[0]</font><br align="left"/>>]
+"startcontrol55" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">27: MEASURE 0 lastMeasurement[0]</font><br align="left"/>>]
+"startquantum621" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">32: H 0</font><br align="left"/><font color="#fe4eda">33: CONTROLLED targetGate_even 0 1 2</font><br align="left"/>>]
+"startclassical712" ["shape"="rectangle","color"="black","label"=<CPU:<br align="left"/><font color="#464df7">28: MOVE theta[0] -3.141592653589793</font><br align="left"/><font color="#464df7">29: ADD param_wo_pi[0] lastMeasurement[0]</font><br align="left"/><font color="#464df7">30: DIV param_wo_pi[0] 2</font><br align="left"/><font color="#464df7">31: MUL theta[0] param_wo_pi[0]</font><br align="left"/>>]
+"startquantum276" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">62: H 0</font><br align="left"/>>]
+"startcontrol2927" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">63: MEASURE 0 lastMeasurement[0]</font><br align="left"/>>]
+"startquantum37" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">26: H 0</font><br align="left"/>>]
+"startcontrol238" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">54: MEASURE 0 lastMeasurement[0]</font><br align="left"/>>]
+"startquantum2419" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">59: H 0</font><br align="left"/><font color="#fe4eda">60: CONTROLLED targetGate_odd 0 1 2</font><br align="left"/>>]
+"startclassical259" ["shape"="rectangle","color"="black","label"=<CPU:<br align="left"/><font color="#464df7">55: MOVE theta[0] -3.141592653589793</font><br align="left"/><font color="#464df7">56: ADD param_wo_pi[0] lastMeasurement[0]</font><br align="left"/><font color="#464df7">57: DIV param_wo_pi[0] 2</font><br align="left"/><font color="#464df7">58: MUL theta[0] param_wo_pi[0]</font><br align="left"/>>]
+"startcontrol2626" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">61: RZ(theta[0]) 0</font><br align="left"/>>]
+"startcontrol1720" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">45: MEASURE 0 lastMeasurement[0]</font><br align="left"/>>]
+"startcontrol813" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">34: RZ(theta[0]) 0</font><br align="left"/>>]
+"startquantum917" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">35: H 0</font><br align="left"/>>]
+"start14" ["shape"="rectangle","color"="black","label"=<START<br align="left"/>>]
+"startclassical115" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">4: DECLARE theta REAL[1]</font><br align="left"/><font color="#464df7">5: DECLARE result REAL[1]</font><br align="left"/><font color="#464df7">6: DECLARE param_wo_pi REAL[1]</font><br align="left"/><font color="#464df7">7: DECLARE lastMeasurement BIT[1]</font><br align="left"/><font color="#464df7">20: MOVE theta[0] 0</font><br align="left"/><font color="#464df7">21: MOVE param_wo_pi[0] 0</font><br align="left"/><font color="#464df7">22: MOVE lastMeasurement[0] 0</font><br align="left"/>>]
+"startquantum1816" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">50: H 0</font><br align="left"/><font color="#fe4eda">51: CONTROLLED targetGate_even 0 1 2</font><br align="left"/>>]
+"startcontrol2018" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">52: RZ(theta[0]) 0</font><br align="left"/>>]
+"startquantum2123" ["shape"="rectangle","color"="black","label"=<QPU:<br align="left"/><font color="#fe4eda">53: H 0</font><br align="left"/>>]
+"startclassical1925" ["shape"="rectangle","color"="black","label"=<CPU:<br align="left"/><font color="#464df7">46: MOVE theta[0] -3.141592653589793</font><br align="left"/><font color="#464df7">47: ADD param_wo_pi[0] lastMeasurement[0]</font><br align="left"/><font color="#464df7">48: DIV param_wo_pi[0] 2</font><br align="left"/><font color="#464df7">49: MUL theta[0] param_wo_pi[0]</font><br align="left"/>>]
+"startquantum00" -> "startcontrol224"
+"startcontrol224" -> "startquantum37"
+"startclassical311" -> "halt4"
+"startcontrol142" -> "startquantum1511"
+"startquantum1511" -> "startcontrol1720"
+"startcontrol113" -> "startclassical1322"
+"startcontrol113" -> "startquantum1210"
+"startquantum1210" -> "startcontrol142"
+"startclassical1322" -> "startcontrol142"
+"startcontrol55" -> "startclassical712"
+"startcontrol55" -> "startquantum621"
+"startquantum621" -> "startcontrol813"
+"startclassical712" -> "startcontrol813"
+"startquantum276" -> "startcontrol2927"
+"startcontrol2927" -> "startclassical311"
+"startquantum37" -> "startcontrol55"
+"startcontrol238" -> "startclassical259"
+"startcontrol238" -> "startquantum2419"
+"startquantum2419" -> "startcontrol2626"
+"startclassical259" -> "startcontrol2626"
+"startcontrol2626" -> "startquantum276"
+"startcontrol1720" -> "startclassical1925"
+"startcontrol1720" -> "startquantum1816"
+"startcontrol813" -> "startquantum917"
+"startquantum917" -> "startcontrol113"
+"start14" -> "startclassical115"
+"start14" -> "startquantum00"
+"startclassical115" -> "startcontrol224"
+"startquantum1816" -> "startcontrol2018"
+"startcontrol2018" -> "startquantum2123"
+"startquantum2123" -> "startcontrol238"
+"startclassical1925" -> "startcontrol2018"
+}

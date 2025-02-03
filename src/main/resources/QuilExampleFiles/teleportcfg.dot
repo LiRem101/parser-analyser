@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+digraph "ControlFlowGraph" {
+"line12quantum00" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">12: X 2</font><br align="left"/>>]
+"@END_17" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">13: LABEL @END_1</font><br align="left"/><font color="#008000">14: MEASURE 2 ro[2]</font><br align="left"/>>]
+"line9quantum01" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">9: Z 2</font><br align="left"/>>]
+"@END_02" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">10: LABEL @END_0</font><br align="left"/><font color="#000000">11: JUMP-UNLESS @END_1 ro[1]</font><br align="left"/>>]
+"startcontrol23" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#008000">6: MEASURE 0 ro[0]</font><br align="left"/><font color="#008000">7: MEASURE 1 ro[1]</font><br align="left"/><font color="#000000">8: JUMP-UNLESS @END_0 ro[0]</font><br align="left"/>>]
+"startquantum04" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">2: H 1</font><br align="left"/><font color="#fe4eda">3: CONTROLLED X 1 2</font><br align="left"/><font color="#fe4eda">4: CONTROLLED X 0 1</font><br align="left"/><font color="#fe4eda">5: H 0</font><br align="left"/>>]
+"startclassical15" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">1: DECLARE ro BIT[3]</font><br align="left"/>>]
+"halt6" ["shape"="rectangle","color"="black","label"=<HALT<br align="left"/>>]
+"start8" ["shape"="rectangle","color"="black","label"=<START<br align="left"/>>]
+"line12quantum00" -> "@END_17"
+"@END_17" -> "halt6"
+"line9quantum01" -> "@END_02"
+"@END_02" -> "line12quantum00"
+"@END_02" -> "@END_17"
+"startcontrol23" -> "line9quantum01"
+"startcontrol23" -> "@END_02"
+"startquantum04" -> "startcontrol23"
+"startclassical15" -> "startcontrol23"
+"start8" -> "startclassical15"
+"start8" -> "startquantum04"
+}

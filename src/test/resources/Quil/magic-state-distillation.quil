@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+# SPDX-License-Identifier: MIT
+
 DECLARE muls INTEGER[3]
 DECLARE ro INTEGER[7]
 DECLARE success BIT[3]
