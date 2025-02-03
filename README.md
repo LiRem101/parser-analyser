@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
+
+SPDX-License-Identifier: CC-BY-3.0
+-->
+
+
 [![Java Version](https://img.shields.io/badge/Java-8-green.svg)](https://shields.io/)
 
 # Quil Parser & Analyser

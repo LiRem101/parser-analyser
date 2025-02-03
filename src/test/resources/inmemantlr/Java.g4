@@ -1,7 +1,12 @@
 /*
- [The "BSD licence"]
+ [The "BSD license"]
  Copyright (c) 2013 Terence Parr, Sam Harwell
  All rights reserved.
+
+ PDX-FileCopyrightText: 2013 Terence Parr, Sam Harwell
+
+ SPDX-License-Identifier: BSD-3-Clause
+ (according to https://github.com/aphyr/clj-antlr)
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
