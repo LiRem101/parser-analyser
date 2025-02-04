@@ -38,7 +38,7 @@ import de.hhu.lirem101.quil_optimizer.analysis.FindHybridDependencies;
 import de.hhu.lirem101.quil_optimizer.analysis.LiveVariableAnalyser;
 import de.hhu.lirem101.quil_optimizer.transformation.ConstantFolder;
 import de.hhu.lirem101.quil_optimizer.transformation.DeadCodeEliminator;
-import de.hhu.lirem101.quil_optimizer.transformation.JITQuantumExecuter;
+import de.hhu.lirem101.quil_optimizer.transformation.LatestPossibleQuantumExecuter;
 import de.hhu.lirem101.quil_optimizer.transformation.ReOrdererForHybridExecution;
 import org.snt.inmemantlr.tree.ParseTreeNode;
 
@@ -103,7 +103,7 @@ public class OptimizingQuil {
         optimizationSteps.add(Arrays.asList("LiveVariableAnalysis", "DeadCodeElimination"));
         optimizationSteps.add(Arrays.asList("ConstantPropagation", "ConstantFolding"));
         optimizationSteps.add(Arrays.asList("HybridDependencies", "ReOrdering"));
-        optimizationSteps.add(Arrays.asList("HybridDependencies", "QuantumJIT"));
+        optimizationSteps.add(Arrays.asList("HybridDependencies", "LastPossibleQuantumExecution"));
         Random random = new Random();
         ArrayList<ArrayList<String>> optimizations = new ArrayList<>();
 
@@ -161,15 +161,15 @@ public class OptimizingQuil {
         int minimumInstructionsIndex = -1;
         int minQuantumInstructions = numberOfQuantumInstr.stream().mapToInt(x -> x).sum();
         int minimumQuantumInstructionsIndex = -1;
-        int minDifference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
-        int minimumDifferenceIndex = -1;
+        int minQuantumCalculationTime = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
+        int minimumQuantumCalculationTimeIndex = -1;
         int minWallTime = wallTime.stream().mapToInt(x -> x).sum();
         int minimumWallTimeIndex = -1;
 
         result.add("OriginalNumberOfInstructions", numberOfInstructionsBuilder);
         result.add("OriginalWallTime", wallTimeBuilder);
         result.add("OriginalNumberOfQuantumInstructions", numberOfQuantumInstructionsBuilder);
-        result.add("OriginalDifferenceBetweenFirstAndLastQuantumInstruction", minDifference);
+        result.add("OriginalQuantumCalculationTime", minQuantumCalculationTime);
         for(int i = 0; i < optimizations.size(); i++) {
             if(i != 0) {
                 oQuil = new OptimizingQuil(block, classes, root, readoutParams, quilCode);
@@ -203,9 +203,9 @@ public class OptimizingQuil {
                 }
 
                 int difference = oQuil.getAmountOfInstructionsBetweenFirstAndLastQuantumInstruction();
-                if(difference < minDifference) {
-                    minDifference = difference;
-                    minimumDifferenceIndex = i;
+                if(difference < minQuantumCalculationTime) {
+                    minQuantumCalculationTime = difference;
+                    minimumQuantumCalculationTimeIndex = i;
                 }
 
                 wallTime = numberOfWalltimes(oQuil.currentOrder);
@@ -241,15 +241,15 @@ public class OptimizingQuil {
         result.add("MinimumQuantumInstructionsIndex", minimumQuantumInstructionsIndex);
         result.add("MinimumNumberOfQuantumInstructions", minQuantumInstructions);
 
-        result.add("MinimumDifferenceIndex", minimumDifferenceIndex);
-        result.add("MinimumDifference", minDifference);
+        result.add("MinimumQuantumCalculationTimeIndex", minimumQuantumCalculationTimeIndex);
+        result.add("MinimumQuantumCalculationTime", minQuantumCalculationTime);
 
         result.add("MinimumWallTimeIndex", minimumWallTimeIndex);
         result.add("MinimumWallTime", minWallTime);
 
         System.out.println("Minimum number of instructions: " + minNumberOfInstructions + " in iteration " + minimumInstructionsIndex);
         System.out.println("Minimum number of quantum instructions: " + minQuantumInstructions + " in iteration " + minimumQuantumInstructionsIndex);
-        System.out.println("Minimum difference between first and last quantum instruction: " + minDifference + " in iteration " + minimumDifferenceIndex);
+        System.out.println("Minimum quantum calculation time: " + minQuantumCalculationTime + " in iteration " + minimumQuantumCalculationTimeIndex);
         System.out.println("Minimum wall time: " + minWallTime + " in iteration " + minimumWallTimeIndex);
 
         JsonObject json = result.build();
@@ -318,13 +318,13 @@ public class OptimizingQuil {
                     addLinesToJson(constantFolderBuilder, currentOrder, changedLines);
                     appliedSteps.add("ChangedLines", constantFolderBuilder);
                     break;
-                case "QuantumJIT":
+                case "LastPossibleQuantumExecution":
                     if (!hybridDependencies.isEmpty()) {
-                        JITQuantumExecuter jqe = new JITQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
+                        LatestPossibleQuantumExecuter jqe = new LatestPossibleQuantumExecuter(hybridDependencies.get(0), currentOrder.get(0));
                         ArrayList<InstructionNode> reOrdered = jqe.reorderInstructions();
-                        JsonArrayBuilder reOrderJIT = Json.createArrayBuilder();
-                        addInstructionsToJson(reOrderJIT, new ArrayList<>(Collections.singletonList(reOrdered)));
-                        appliedSteps.add("Result", reOrderJIT);
+                        JsonArrayBuilder latestPossibleQuantumExecutorJson = Json.createArrayBuilder();
+                        addInstructionsToJson(latestPossibleQuantumExecutorJson, new ArrayList<>(Collections.singletonList(reOrdered)));
+                        appliedSteps.add("Result", latestPossibleQuantumExecutorJson);
                         if(!reOrdered.isEmpty()) {
                             currentOrder.set(0, reOrdered);
                         }

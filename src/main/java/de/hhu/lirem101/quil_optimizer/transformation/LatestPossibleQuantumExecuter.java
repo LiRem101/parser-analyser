@@ -34,17 +34,16 @@ import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.ExecutableInstructionsExtractor;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
 
-import javax.sound.sampled.Line;
 import java.util.*;
 
-public class JITQuantumExecuter {
+public class LatestPossibleQuantumExecuter {
 
     LinkedHashMap<Integer, Set<Integer>> hybridDependencies;
     ArrayList<InstructionNode> instructions;
     boolean calculated = false;
     boolean orderRemainedEqual = false;
 
-    public JITQuantumExecuter(LinkedHashMap<Integer, Set<Integer>> hybridDependencies, ArrayList<InstructionNode> instructions) {
+    public LatestPossibleQuantumExecuter(LinkedHashMap<Integer, Set<Integer>> hybridDependencies, ArrayList<InstructionNode> instructions) {
         this.hybridDependencies = hybridDependencies;
         this.instructions = instructions;
     }

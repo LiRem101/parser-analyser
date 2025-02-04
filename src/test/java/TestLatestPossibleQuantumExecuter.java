@@ -30,14 +30,14 @@
 
 import de.hhu.lirem101.quil_analyser.LineType;
 import de.hhu.lirem101.quil_optimizer.InstructionNode;
-import de.hhu.lirem101.quil_optimizer.transformation.JITQuantumExecuter;
+import de.hhu.lirem101.quil_optimizer.transformation.LatestPossibleQuantumExecuter;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
 
-class TestJITQuantumExecuter {
+class TestLatestPossibleQuantumExecuter {
 
     @Test
     void reordersInstructionsCorrectlyWhenHybridDependenciesExist() {
@@ -62,7 +62,7 @@ class TestJITQuantumExecuter {
         instructions.add(node2);
         instructions.add(node3);
         instructions.add(node4);
-        JITQuantumExecuter executer = new JITQuantumExecuter(hybridDependencies, instructions);
+        LatestPossibleQuantumExecuter executer = new LatestPossibleQuantumExecuter(hybridDependencies, instructions);
 
         ArrayList<InstructionNode> result = executer.reorderInstructions();
 
@@ -81,7 +81,7 @@ class TestJITQuantumExecuter {
         ArrayList<InstructionNode> instructions = new ArrayList<>();
         instructions.add(node1);
         instructions.add(node2);
-        JITQuantumExecuter executer = new JITQuantumExecuter(hybridDependencies, instructions);
+        LatestPossibleQuantumExecuter executer = new LatestPossibleQuantumExecuter(hybridDependencies, instructions);
 
         ArrayList<InstructionNode> result = executer.reorderInstructions();
 
@@ -110,7 +110,7 @@ class TestJITQuantumExecuter {
         instructions.add(node2);
         instructions.add(node3);
         instructions.add(node4);
-        JITQuantumExecuter executer = new JITQuantumExecuter(hybridDependencies, instructions);
+        LatestPossibleQuantumExecuter executer = new LatestPossibleQuantumExecuter(hybridDependencies, instructions);
 
         ArrayList<InstructionNode> result = executer.reorderInstructions();
 
@@ -121,7 +121,7 @@ class TestJITQuantumExecuter {
     void handlesEmptyInstructionsList() {
         LinkedHashMap<Integer, Set<Integer>> hybridDependencies = new LinkedHashMap<>();
         ArrayList<InstructionNode> instructions = new ArrayList<>();
-        JITQuantumExecuter executer = new JITQuantumExecuter(hybridDependencies, instructions);
+        LatestPossibleQuantumExecuter executer = new LatestPossibleQuantumExecuter(hybridDependencies, instructions);
 
         ArrayList<InstructionNode> result = executer.reorderInstructions();
 
@@ -135,7 +135,7 @@ class TestJITQuantumExecuter {
         LinkedHashMap<Integer, Set<Integer>> hybridDependencies = new LinkedHashMap<>();
         hybridDependencies.put(0, new HashSet<>());
         ArrayList<InstructionNode> instructions = new ArrayList<>(Collections.singletonList(node));
-        JITQuantumExecuter executer = new JITQuantumExecuter(hybridDependencies, instructions);
+        LatestPossibleQuantumExecuter executer = new LatestPossibleQuantumExecuter(hybridDependencies, instructions);
 
         ArrayList<InstructionNode> result = executer.reorderInstructions();
 
