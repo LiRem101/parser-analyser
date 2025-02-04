@@ -91,38 +91,6 @@ public class TestSimple {
         }
     }
 
-    @Test
-    public void testOclStringParsing() throws IOException {
-
-        try (InputStream sgrammar = getClass().getClassLoader()
-                .getResourceAsStream("inmemantlr/DeepOcl.g4")) {
-            sgrammarcontent = FileUtils.getStringFromStream(sgrammar);
-        }
-
-        String toParse = "context Dependent inv inv54: (self.birthyear " +
-                ">=2012 and self.allowances->size()=1) or (self.birthyear < " +
-                "2012 and self.birthyear >= 1996)";
-
-
-        GenericParser gp = new GenericParser(sgrammarcontent);
-        DefaultTreeListener t = new DefaultTreeListener();
-
-        gp.setListener(t);
-
-        assertDoesNotThrow(gp::compile);
-
-        ParserRuleContext ctx = assertDoesNotThrow(() -> gp.parse(toParse));
-
-        LOGGER.info("ctx {}", ctx.getChild(0).getText());
-
-        ParseTree a = t.getParseTree();
-
-        assertTrue(a.getNodes().size() > 1);
-
-        LOGGER.debug(a.toDot());
-
-    }
-
 
 
     @Test

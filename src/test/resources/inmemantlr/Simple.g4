@@ -1,3 +1,8 @@
+/*
+ SPDX-FileCopyrightText: 2016 Julian Thome <julian.thome.de@gmail.com>
+ SPDX-License-Identifier: MIT
+*/
+
 grammar Simple;
 
 Opname: [a-zA-Z]+[_a-zA-Z0-9]*;

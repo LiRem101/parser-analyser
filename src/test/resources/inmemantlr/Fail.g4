@@ -5,6 +5,9 @@
  https://basarat.gitbooks.io/typescript/content/
  https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript
 
+ SPDX-FileCopyrightText: 2016 Julian Thome <julian.thome.de@gmail.com>
+ SPDX-License-Identifier: MIT
+
  IntelliJ with antlr4 plugin used: http://plugins.jetbrains.com/plugin/7358?pr=
  to develop this grammar
 */

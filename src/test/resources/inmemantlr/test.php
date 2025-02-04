@@ -1,7 +1,10 @@
 <?php
 
+// SPDX-FileCopyrightText: 2025 Julian Thome <julian.thome.de@gmail.com>
+//
+// SPDX-License-Identifier: MIT
 
-    $config["link"] = "blue";
+$config["link"] = "blue";
     $config["delbut"] = "http://localhost/delbut.png";
     $config["showip"] = "1";
     $config["ipbut"] = "http://localhost/ipbut.png";
