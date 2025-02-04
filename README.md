@@ -12,15 +12,17 @@ SPDX-License-Identifier: CC-BY-3.0
 This project parses, analyses and optimizes Quil code. 
 It is part of my master's thesis “Optimization Strategies for Quantum Computers in Distributed Systems”.
 
+The Quil code, control flow graphs, data-dependence graphs and optimization results relevant to my master's thesis can be found at `src/main/resources/QuilExampleFiles`.
+
 The main focus of the project is to examine real-time quantum calculations, i.e. quantum calculations with classical feedback within the coherence time of the qubits.
-The project analyzes Quil files and creates Control Flow Graphs (CFGs) and Data Dependency Graphs (DDGs) of the Quil code.
+The project analyzes Quil files and creates Control Flow Graphs (CFGs) and Data dependence Graphs (DDGs) of the Quil code.
 It can apply optimization procedures to the Quil code.
 
 ## Table of Contents
 - [The Quil Language](#the-quil-language)
 - [Analyzation of Quil Programs](#analyzation-of-quil-programs)
   * [Control Flow Graphs (CFGs)](#control-flow-graphs--cfgs-)
-  * [Data Dependency Graphs (DDGs)](#data-dependency-graphs--ddgs-)
+  * [Data Dependence Graphs (DDGs)](#data-dependence-graphs--ddgs-)
 - [Optimization of Quil Programs](#optimization-of-quil-programs)
   * [Constant Propagation](#constant-propagation)
   * [Live-Variable Analysis](#live-variable-analysis)
@@ -66,7 +68,7 @@ All other instructions need to be executed by QPU and CPU at the same time, and 
 
 ## Analyzation of Quil Programs
 
-The project creates Control Flow Graphs (CFGs) and Data Dependency Graphs (DDGs) of Quil programs.
+The project creates Control Flow Graphs (CFGs) and Data dependence Graphs (DDGs) of Quil programs.
 
 ### Control Flow Graphs (CFGs)
 
@@ -92,7 +94,7 @@ MEASURE 0 m
 results into the CFG:
 ![An image of the CFG corresponding to the given Quil code.](src/main/resources/QuilExampleFiles/readme-examplecfg.png "CFG")
 
-### Data Dependency Graphs (DDGs)
+### Data Dependence Graphs (DDGs)
 
 A DDG is a directed graph.
 Nodes represent basic blocks (or, in our case, single instructions) of a program.
@@ -101,7 +103,7 @@ Edges only appear between instructions/nodes if no other instruction $C$ has to 
 
 Every node of the DDG holds a single Quil instruction.
 The edges indicate which instructions have to be executed before their instruction can be executed.
-This is done by checking variable dependency.
+This is done by checking variable dependence.
 Unconditional jumps are resolved before creating the DDG and not listed as nodes.
 
 Conditional jumps in the program pose a problem to the DDG.
@@ -212,7 +214,7 @@ RZ(m) 0
 ```
 contains the hybrid instructions `MEASURE` and `RZ(m)`.
 All other lines have to be executed before `RZ(m)`.
-But the only direct dependency we save for it is `MEASURE`, as `MEASURE` is a hybrid instruction and depends on `H` and the `DECLARE` instruction as well.
+But the only direct dependence we save for it is `MEASURE`, as `MEASURE` is a hybrid instruction and depends on `H` and the `DECLARE` instruction as well.
 For `MEASURE`, the dependencies `H` and `DECLARE` are saved.
 
 ### Instruction Reordering
@@ -224,7 +226,7 @@ The goal is to reorder the instructions to maximize the number of parallel execu
 In other words, the time in which only one device is calculating and the other one is idling should be minimized.
 
 The two devices only influence each other through hybrid nodes.
-To prevent long waiting times of one device for the other, we use the knowledge we gained from the DDG and the finding hybrid-dependency analysis.
+To prevent long waiting times of one device for the other, we use the knowledge we gained from the DDG and the finding hybrid-dependence analysis.
 
 If the CPU or the QPU have to wait for the other device before a hybrid instruction, the algorithm aims to avoid that the waiting device does not execute instructions.
 It is checked whether there are instructions for the waiting device that can already be executed, i.e. for which all dependencies have been executed.
