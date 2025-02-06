@@ -12,7 +12,8 @@ SPDX-License-Identifier: CC-BY-3.0
 This project parses, analyses and optimizes Quil code. 
 It is part of my master's thesis “Optimization Strategies for Quantum Computers in Distributed Systems”.
 
-The Quil code, control flow graphs, data-dependence graphs and optimization results relevant to my master's thesis can be found at `src/main/resources/QuilExampleFiles`.
+The Quil code, control flow graphs, and data-dependence graphs relevant to my master's thesis can be found at `src/main/resources/QuilExampleFiles`.
+The optimization results refered to in my thesis are available at [Zenodo](https://doi.org/10.5281/zenodo.14823715).
 
 The main focus of the project is to examine real-time quantum calculations, i.e. quantum calculations with classical feedback within the coherence time of the qubits.
 The project analyzes Quil files and creates Control Flow Graphs (CFGs) and Data dependence Graphs (DDGs) of the Quil code.
@@ -21,8 +22,8 @@ It can apply optimization procedures to the Quil code.
 ## Table of Contents
 - [The Quil Language](#the-quil-language)
 - [Analyzation of Quil Programs](#analyzation-of-quil-programs)
-  * [Control Flow Graphs (CFGs)](#control-flow-graphs--cfgs-)
-  * [Data Dependence Graphs (DDGs)](#data-dependence-graphs--ddgs-)
+  * [Control Flow Graphs (CFGs)](#control-flow-graphs-cfgs)
+  * [Data Dependence Graphs (DDGs)](#data-dependence-graphs-ddgs)
 - [Optimization of Quil Programs](#optimization-of-quil-programs)
   * [Constant Propagation](#constant-propagation)
   * [Live-Variable Analysis](#live-variable-analysis)
@@ -34,10 +35,11 @@ It can apply optimization procedures to the Quil code.
   * [Applying the Optimization Strategies](#applying-the-optimization-strategies)
 - [Metrics to Evaluate Quil Programs Against](#metrics-to-evaluate-quil-programs-against)
   * [Wall time](#wall-time)
-  * [Quantum instruction number (QIN):](#quantum-instruction-number--qin--)
-  * [Quantum calculation time (QCT)](#quantum-calculation-time--qct-)
+  * [Quantum instruction number (QIN):](#quantum-instruction-number-qin)
+  * [Quantum calculation time (QCT)](#quantum-calculation-time-qct)
 - [Compile and Run](#compile-and-run)
 - [Citation](#citation)
+- [Supplementary Materials](#supplementary-materials)
 - [License](#license)
 
 ## The Quil Language
@@ -330,6 +332,9 @@ If you use this project in your research, please cite it as follows:
   month   = {2}
 }
 ```
+# Supplementary Materials
+
+The optimization results refered to in my thesis are available at [Zenodo](https://doi.org/10.5281/zenodo.14823715).
 
 # License
 
