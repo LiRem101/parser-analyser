@@ -1,20 +1,17 @@
-# SPDX-FileCopyrightText: 2025 Lian Remme <lian.remme@dlr.de>
-# SPDX-License-Identifier: MIT
 digraph "ControlFlowGraph" {
-"Line42" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">4: JUMP-WHEN @label_name m</font><br align="left"/>>]
-"Line36" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">3: MEASURE 0 m</font><br align="left"/>>]
-"Line83" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">8: MEASURE 0 m	</font><br align="left"/>>]
-"Line71" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">7: Z 0</font><br align="left"/>>]
-"Line85" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">8: MEASURE 0 m	</font><br align="left"/>>]
-"Line58" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: Y 0</font><br align="left"/>>]
-"Line710" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">7: Z 0</font><br align="left"/>>]
-"Line20" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">2: H 0</font><br align="left"/>>]
-"Line19" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">1: DECLARE m BIT</font><br align="left"/>>]
-"Line42" -> "Line36"
-"Line36" -> "Line19"
-"Line36" -> "Line20"
-"Line83" -> "Line71"
-"Line85" -> "Line710"
-"Line85" -> "Line58"
-"Line710" -> "Line58"
+"Line60" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">6: MEASURE 0 m</font><br align="left"/>>]
+"Line58" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">5: H 0</font><br align="left"/>>]
+"Line42" ["shape"="rectangle","color"="#464df7","label"=<CPU:<br align="left"/><font color="#464df7">4: DECLARE m BIT</font><br align="left"/>>]
+"Line105" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">10: Z 0</font><br align="left"/>>]
+"Line86" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">8: Y 0</font><br align="left"/>>]
+"Line117" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">11: MEASURE 0 m	</font><br align="left"/>>]
+"Line101" ["shape"="rectangle","color"="#fe4eda","label"=<QPU:<br align="left"/><font color="#fe4eda">10: Z 0</font><br align="left"/>>]
+"Line79" ["shape"="rectangle","color"="black","label"=<Hybrid:<br align="left"/><font color="#000000">7: JUMP-WHEN @label_name m</font><br align="left"/>>]
+"Line1110" ["shape"="rectangle","color"="#008000","label"=<Hybrid:<br align="left"/><font color="#008000">11: MEASURE 0 m	</font><br align="left"/>>]
+"Line60" -> "Line42"
+"Line60" -> "Line58"
+"Line105" -> "Line86"
+"Line117" -> "Line101"
+"Line79" -> "Line60"
+"Line1110" -> "Line105"
 }

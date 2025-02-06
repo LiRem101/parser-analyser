@@ -115,7 +115,8 @@ public class DataDependencyGraphCreator {
             Set<LineParameter> toAdd = new TreeSet<>();
             ArrayList<Integer> allPreviousLines = allPreviousLines(block, currentLine.getLineNumber());
             LinkedList<Integer> queue = new LinkedList<>(allPreviousLines);
-            while(!queue.isEmpty()) {
+            boolean foundDependency = false;
+            while(!queue.isEmpty() && !foundDependency) {
                 int line = queue.poll();
                 LineParameter lp = currentLineParams.stream().filter(l -> l.getLineNumber() == line).findFirst().orElse(null);
                 if (lp == null) {
@@ -123,9 +124,7 @@ public class DataDependencyGraphCreator {
                 }
                 if (lp.containsQuantumParameter(param) || lp.containsClassicalParameter(param)) {
                     toAdd.add(lp);
-                    ControlFlowBlock blockOfLine = blocks.stream().filter(b -> b.getCodelines().contains(lp.getLineNumber())).findFirst().orElse(null);
-                    ArrayList<Integer> previousLinesOfThisLine = allPreviousLines(blockOfLine, lp.getLineNumber());
-                    queue.removeAll(previousLinesOfThisLine);
+                    foundDependency = true;
                 }
             }
             for (LineParameter lp : toAdd) {
